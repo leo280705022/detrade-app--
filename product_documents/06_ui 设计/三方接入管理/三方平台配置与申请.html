@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Detrade Admin - 平台配置管理</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --primary:#1677ff;
+  --primary-hover:#4096ff;
+  --success:#52c41a;
+  --warning:#faad14;
+  --danger:#ff4d4f;
+  --danger-hover:#ff7875;
+  --orange:#fa8c16;
+  --bg-dark:#001529;
+  --bg-darker:#000c17;
+  --sidebar-w:220px;
+  --header-h:56px;
+  --border:#e8e8e8;
+  --text:#333;
+  --text-light:#888;
+  --bg-light:#fafafa;
+  --radius:6px;
+}
+body{font-family:'Noto Sans SC',sans-serif;background:#f0f2f5;color:var(--text);font-size:14px;}
+a{text-decoration:none;color:inherit;}
+
+/* === HEADER === */
+.header{height:var(--header-h);background:var(--bg-dark);display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:fixed;top:0;left:0;right:0;z-index:100;}
+.header-logo{display:flex;align-items:center;gap:12px;color:#fff;font-size:20px;font-weight:700;letter-spacing:1px;}
+.header-logo svg{width:32px;height:32px;}
+.header-right{display:flex;align-items:center;gap:16px;}
+.header-right .avatar{width:32px;height:32px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;cursor:pointer;}
+.header-right .notif{position:relative;cursor:pointer;color:rgba(255,255,255,.75);font-size:18px;}
+.header-right .notif .badge{position:absolute;top:-4px;right:-6px;background:var(--danger);color:#fff;font-size:10px;padding:1px 5px;border-radius:10px;}
+.header-right .user-name{color:rgba(255,255,255,.85);font-size:13px;}
+
+/* === SIDEBAR === */
+.sidebar{width:var(--sidebar-w);background:var(--bg-dark);position:fixed;top:var(--header-h);left:0;bottom:0;overflow-y:auto;z-index:90;padding-top:8px;}
+.sidebar::-webkit-scrollbar{width:4px;}
+.sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px;}
+.nav-section{padding:8px 0;}
+.nav-section-title{padding:12px 24px 8px;color:rgba(255,255,255,.35);font-size:12px;text-transform:uppercase;letter-spacing:1px;}
+.nav-item{display:flex;align-items:center;padding:0 24px;height:40px;color:rgba(255,255,255,.65);cursor:pointer;transition:all .2s;font-size:14px;position:relative;gap:10px;}
+.nav-item:hover{color:#fff;background:rgba(255,255,255,.06);}
+.nav-item.active{color:#fff;background:var(--primary);border-radius:0;}
+.nav-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:#fff;border-radius:0 2px 2px 0;}
+.nav-item .nav-icon{width:16px;height:16px;flex-shrink:0;}
+.nav-item .badge-count{margin-left:auto;background:var(--danger);color:#fff;font-size:11px;padding:1px 7px;border-radius:10px;min-width:20px;text-align:center;}
+.nav-group-title{display:flex;align-items:center;padding:0 24px;height:40px;color:rgba(255,255,255,.65);cursor:pointer;font-size:14px;gap:10px;}
+.nav-group-title:hover{color:#fff;}
+.nav-group-title .arrow{margin-left:auto;transition:transform .2s;font-size:12px;}
+.nav-group-title.open .arrow{transform:rotate(90deg);}
+.nav-group-children{overflow:hidden;transition:max-height .3s ease;}
+.nav-group-children .nav-item{padding-left:48px;}
+
+/* === MAIN CONTENT === */
+.main{margin-left:var(--sidebar-w);margin-top:var(--header-h);padding:24px;min-height:calc(100vh - var(--header-h));}
+
+/* === TABS === */
+.tab-bar{display:flex;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--border);padding-bottom:0;}
+.tab-item{padding:8px 20px;cursor:pointer;color:var(--text-light);font-size:14px;border-bottom:2px solid transparent;transition:all .2s;display:flex;align-items:center;gap:8px;}
+.tab-item:hover{color:var(--primary);}
+.tab-item.active{color:var(--primary);border-bottom-color:var(--primary);font-weight:500;}
+
+/* === FILTER BAR === */
+.filter-bar{display:flex;align-items:center;gap:16px;margin-bottom:20px;flex-wrap:wrap;}
+.filter-bar label{font-size:13px;color:var(--text-light);white-space:nowrap;}
+.filter-bar input[type="text"],.filter-bar select{height:32px;border:1px solid #d9d9d9;border-radius:4px;padding:0 12px;font-size:13px;outline:none;transition:border-color .2s;font-family:inherit;}
+.filter-bar input[type="text"]:focus,.filter-bar select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(22,119,255,.1);}
+.filter-bar input[type="text"]{width:200px;}
+.filter-bar select{width:160px;color:var(--text-light);}
+.btn{height:32px;padding:0 16px;border:none;border-radius:4px;cursor:pointer;font-size:13px;font-family:inherit;transition:all .2s;display:inline-flex;align-items:center;justify-content:center;gap:4px;white-space:nowrap;}
+.btn-primary{background:var(--primary);color:#fff;}
+.btn-primary:hover{background:var(--primary-hover);}
+.btn-default{background:#fff;border:1px solid #d9d9d9;color:var(--text);}
+.btn-default:hover{border-color:var(--primary);color:var(--primary);}
+.btn-danger{background:var(--danger);color:#fff;}
+.btn-danger:hover{background:var(--danger-hover);}
+.btn-success{background:var(--success);color:#fff;}
+.btn-success:hover{background:#73d13d;}
+.btn-warning{background:var(--warning);color:#fff;}
+.btn-warning:hover{background:#ffc53d;}
+.btn-orange{background:var(--orange);color:#fff;}
+.btn-orange:hover{background:#ffa940;}
+.btn-sm{height:26px;padding:0 10px;font-size:12px;}
+.btn-link{background:none;border:none;color:var(--primary);padding:0 4px;height:auto;font-size:13px;}
+.btn-link:hover{color:var(--primary-hover);}
+.btn-link.danger{color:var(--danger);}
+.btn-link.danger:hover{color:var(--danger-hover);}
+.btn-link.success{color:var(--success);}
+.btn-link.success:hover{color:#73d13d;}
+.btn-link.warning{color:var(--orange);}
+.btn-link.warning:hover{color:#ffa940;}
+.btn-link.disabled{color:#ccc;pointer-events:none;}
+.btn-link.info{color:var(--primary);}
+.btn-link.info:hover{color:var(--primary-hover);}
+
+/* === TABLE === */
+.table-wrap{background:#fff;border-radius:var(--radius);box-shadow:0 1px 3px rgba(0,0,0,.08);overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead{background:var(--bg-light);}
+th{padding:12px 16px;text-align:left;font-weight:500;color:var(--text);border-bottom:1px solid var(--border);white-space:nowrap;}
+td{padding:12px 16px;border-bottom:1px solid #f0f0f0;vertical-align:middle;}
+tr:hover td{background:#fafafa;}
+tr:last-child td{border-bottom:none;}
+
+/* === TAGS === */
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:12px;line-height:1.6;}
+.tag-green{background:#f6ffed;border:1px solid #b7eb8f;color:#52c41a;}
+.tag-blue{background:#e6f7ff;border:1px solid #91d5ff;color:#1890ff;}
+.tag-orange{background:#fff7e6;border:1px solid #ffd591;color:#fa8c16;}
+.tag-red{background:#fff2f0;border:1px solid #ffccc7;color:#ff4d4f;}
+.tag-gray{background:#fafafa;border:1px solid #d9d9d9;color:#999;}
+.tag-purple{background:#f9f0ff;border:1px solid #d3adf7;color:#722ed1;}
+
+/* === STATUS DOT === */
+.status-dot{display:inline-flex;align-items:center;gap:6px;}
+.status-dot::before{content:'';width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.status-dot.enable::before{background:var(--success);}
+.status-dot.disable::before{background:var(--danger);}
+
+/* === ACTIONS === */
+.actions{display:flex;align-items:center;gap:2px;}
+.actions .divider{color:#e8e8e8;margin:0 2px;}
+
+/* === PAGINATION === */
+.pagination{display:flex;align-items:center;justify-content:space-between;padding:16px 0;font-size:13px;color:var(--text-light);}
+.pagination .page-btns{display:flex;gap:4px;}
+.pagination .page-btn{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border:1px solid #d9d9d9;border-radius:4px;cursor:pointer;font-size:13px;background:#fff;transition:all .2s;}
+.pagination .page-btn:hover{border-color:var(--primary);color:var(--primary);}
+.pagination .page-btn.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+
+/* === MODAL === */
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:all .25s;}
+.modal-overlay.show{opacity:1;visibility:visible;}
+.modal{background:#fff;border-radius:8px;width:680px;max-width:92vw;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,.15);transform:translateY(20px);transition:transform .25s;}
+.modal-overlay.show .modal{transform:translateY(0);}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid var(--border);}
+.modal-header h3{font-size:16px;font-weight:600;}
+.modal-close{width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:4px;color:var(--text-light);font-size:18px;transition:all .2s;}
+.modal-close:hover{background:#f5f5f5;color:var(--text);}
+.modal-body{padding:24px;overflow-y:auto;flex:1;}
+.modal-footer{padding:12px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;}
+
+/* === FORM === */
+.form-row{display:flex;gap:24px;margin-bottom:20px;}
+.form-group{flex:1;}
+.form-group.full{flex:1 1 100%;}
+.form-group label{display:block;font-size:13px;color:var(--text);margin-bottom:6px;font-weight:400;}
+.form-group label .required{color:var(--danger);margin-right:2px;}
+.form-group input[type="text"],.form-group select,.form-group textarea{width:100%;height:36px;border:1px solid #d9d9d9;border-radius:4px;padding:0 12px;font-size:13px;font-family:inherit;outline:none;transition:border-color .2s;}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(22,119,255,.1);}
+.form-group textarea{height:80px;padding:8px 12px;resize:vertical;}
+.form-group input[readonly]{background:#f5f5f5;color:var(--text-light);}
+.form-group .input-with-btn{display:flex;gap:8px;}
+.form-group .input-with-btn input{flex:1;}
+.checkbox-group{display:flex;gap:16px;flex-wrap:wrap;padding-top:4px;}
+.checkbox-group label{display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:400;margin-bottom:0;}
+.checkbox-group input{width:auto;height:auto;}
+
+/* === KEY DISPLAY === */
+.key-cell{display:flex;align-items:center;gap:8px;}
+.key-text{font-family:'Courier New',monospace;font-size:12px;color:var(--text);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.key-copy{cursor:pointer;color:var(--primary);font-size:14px;flex-shrink:0;padding:2px;}
+.key-copy:hover{color:var(--primary-hover);}
+
+/* === PAGE HIDDEN === */
+.page{display:none;}
+.page.active{display:block;}
+
+/* === DETAIL VIEW === */
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.detail-item{display:flex;flex-direction:column;gap:4px;}
+.detail-item.full{grid-column:1/-1;}
+.detail-item .detail-label{font-size:12px;color:var(--text-light);}
+.detail-item .detail-value{font-size:14px;color:var(--text);}
+
+/* === TOAST === */
+.toast-container{position:fixed;top:24px;right:24px;z-index:2000;display:flex;flex-direction:column;gap:8px;}
+.toast{padding:12px 20px;border-radius:6px;color:#fff;font-size:13px;box-shadow:0 4px 16px rgba(0,0,0,.15);animation:slideIn .3s ease;display:flex;align-items:center;gap:8px;min-width:240px;}
+.toast.success{background:var(--success);}
+.toast.error{background:var(--danger);}
+.toast.warning{background:var(--orange);}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0;}to{transform:translateX(0);opacity:1;}}
+@keyframes slideOut{from{transform:translateX(0);opacity:1;}to{transform:translateX(100%);opacity:0;}}
+
+/* === EMPTY STATE === */
+.empty-state{text-align:center;padding:60px 20px;color:var(--text-light);}
+.empty-state p{font-size:14px;}
+
+/* === CONFIRM DIALOG === */
+.confirm-body{text-align:center;padding:20px 0;}
+.confirm-body .confirm-icon{font-size:48px;margin-bottom:16px;}
+.confirm-body .confirm-icon.warning{color:var(--warning);}
+.confirm-body .confirm-icon.danger{color:var(--danger);}
+.confirm-body .confirm-icon.success{color:var(--success);}
+.confirm-body p{font-size:15px;color:var(--text);line-height:1.6;}
+.confirm-body .confirm-sub{font-size:13px;color:var(--text-light);margin-top:8px;}
+
+/* === KEY RESET RESULT === */
+.key-result{background:#f6ffed;border:1px solid #b7eb8f;border-radius:6px;padding:16px;margin-top:12px;}
+.key-result .key-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(0,0,0,.06);}
+.key-result .key-row:last-child{border-bottom:none;}
+.key-result .key-label{font-size:13px;color:var(--text-light);font-weight:500;}
+.key-result .key-value{font-family:'Courier New',monospace;font-size:12px;color:var(--text);display:flex;align-items:center;gap:8px;}
+
+/* === REASON INPUT === */
+.reason-input{width:100%;height:80px;border:1px solid #d9d9d9;border-radius:4px;padding:8px 12px;font-size:13px;font-family:inherit;resize:vertical;outline:none;}
+.reason-input:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(22,119,255,.1);}
+
+/* === CONFIG STATUS TAGS === */
+.config-status-tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:12px;}
+.config-status-tag.pending-config{background:#fff7e6;border:1px solid #ffd591;color:#fa8c16;}
+.config-status-tag.configured{background:#f6ffed;border:1px solid #b7eb8f;color:#52c41a;}
+
+/* === APPROVE SUCCESS MODAL === */
+.approve-success-body{text-align:center;padding:20px 0;}
+.approve-success-body .success-icon{font-size:56px;margin-bottom:16px;}
+.approve-success-body .success-title{font-size:18px;font-weight:600;color:var(--success);margin-bottom:12px;}
+.approve-success-body .success-desc{font-size:14px;color:var(--text);margin-bottom:8px;}
+.approve-success-body .success-hint{font-size:13px;color:var(--text-light);margin-bottom:24px;}
+
+@media(max-width:1200px){
+  .filter-bar{gap:10px;}
+  .filter-bar input[type="text"]{width:160px;}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-logo">
+    <svg viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#1677ff"/><path d="M8 16l4-6h8l4 6-4 6h-8l-4-6z" fill="#fff" opacity=".9"/><circle cx="16" cy="16" r="3" fill="#1677ff"/></svg>
+    <span>Detrade</span>
+  </div>
+  <div class="header-right">
+    <span class="user-name">你好，Frease</span>
+    <div class="avatar">F</div>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="nav-section">
+    <div class="nav-item"><span>📊</span> 运营看板</div>
+    <div class="nav-item"><span>💰</span> 备用金概览</div>
+    <div class="nav-item"><span>🪙</span> 币管理</div>
+    <div class="nav-item"><span>📈</span> 交易管理</div>
+    <div class="nav-item"><span>🎮</span> 玩法管理</div>
+    <div class="nav-item"><span>📋</span> 流水记录</div>
+    <div class="nav-item"><span>🌐</span> 国际化管理</div>
+    <div class="nav-item"><span>📢</span> 消息管理</div>
+    <div class="nav-item"><span>🛡️</span> 保留管理</div>
+    <div class="nav-item"><span>📦</span> 常胜管理</div>
+    <div class="nav-item"><span>🌙</span> 晴天管理</div>
+    <div class="nav-item"><span>🎯</span> 活动管理</div>
+    <div class="nav-item"><span>👤</span> 用户管理</div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-group-title open" onclick="toggleGroup(this)">
+      <span>⚙️</span> 系统管理 <span class="arrow">▶</span>
+    </div>
+    <div class="nav-group-children" style="max-height:200px;">
+      <div class="nav-item active" data-page="application" onclick="switchPage('application',this)">
+        <span>📝</span> 申请表管理 <span class="badge-count">3</span>
+      </div>
+      <div class="nav-item" data-page="config" onclick="switchPage('config',this)">
+        <span>⚙️</span> 配置管理
+      </div>
+      <div class="nav-item"><span>📃</span> 操作日志</div>
+      <div class="nav-item"><span>📁</span> 文件管理</div>
+    </div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-item"><span>⚠️</span> 风险管理</div>
+    <div class="nav-item"><span>🏢</span> 代理中心</div>
+    <div class="nav-item"><span>💳</span> 理财管理</div>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main">
+  <!-- TAB BAR -->
+  <div class="tab-bar">
+    <div class="tab-item active" data-page="application" onclick="switchPage('application')">
+      申请表管理
+    </div>
+    <div class="tab-item" data-page="config" onclick="switchPage('config')">
+      配置管理
+    </div>
+  </div>
+
+  <!-- ==================== APPLICATION PAGE ==================== -->
+  <div class="page active" id="page-application">
+    <div class="filter-bar">
+      <label>平台名称：</label>
+      <input type="text" placeholder="请输入平台名称" id="appSearchName">
+      <label>状态：</label>
+      <select id="appSearchStatus">
+        <option value="">请选择状态</option>
+        <option value="pending">待审批</option>
+        <option value="rejected">已拒绝</option>
+      </select>
+      <button class="btn btn-primary" onclick="filterApplications()">查 询</button>
+      <button class="btn btn-default" onclick="resetAppFilters()">重 置</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>平台名称</th>
+            <th>平台类型</th>
+            <th>国家</th>
+            <th>目标市场</th>
+            <th>用户量</th>
+            <th>状态</th>
+            <th>法律资格</th>
+            <th>平台联系人</th>
+            <th>邮箱</th>
+            <th>Telegram</th>
+            <th>申请时间</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="appTableBody"></tbody>
+      </table>
+    </div>
+    <div class="pagination">
+      <span>共 <strong id="appTotal">0</strong> 条</span>
+      <div class="page-btns">
+        <div class="page-btn">&lt;</div>
+        <div class="page-btn active">1</div>
+        <div class="page-btn">&gt;</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== CONFIG PAGE ==================== -->
+  <div class="page" id="page-config">
+    <div class="filter-bar">
+      <label>平台名称：</label>
+      <input type="text" placeholder="请输入平台名称" id="configSearchName">
+      <label>状态：</label>
+      <select id="configSearchStatus">
+        <option value="">请选择状态</option>
+        <option value="enabled">启用</option>
+        <option value="disabled">禁用</option>
+      </select>
+      <label>配置状态：</label>
+      <select id="configSearchConfigStatus">
+        <option value="">请选择配置状态</option>
+        <option value="pending-config">待配置</option>
+        <option value="configured">已配置</option>
+      </select>
+      <button class="btn btn-primary" onclick="filterConfigs()">查 询</button>
+      <button class="btn btn-default" onclick="resetConfigFilters()">重 置</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>平台名称</th>
+            <th>平台类型</th>
+            <th>配置状态</th>
+            <th>状态</th>
+            <th>Domain URL</th>
+            <th>平台网址</th>
+            <th>IP白名单</th>
+            <th>补充说明</th>
+            <th>API Key</th>
+            <th>Public Key</th>
+            <th>Private Key</th>
+            <th>申请详情</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="configTableBody"></tbody>
+      </table>
+    </div>
+    <div class="pagination">
+      <span>共 <strong id="configTotal">0</strong> 条</span>
+      <div class="page-btns">
+        <div class="page-btn">&lt;</div>
+        <div class="page-btn active">1</div>
+        <div class="page-btn">&gt;</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== MODALS ==================== -->
+
+<!-- Application Detail Modal -->
+<div class="modal-overlay" id="modalAppDetail">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>申请详情</h3>
+      <div class="modal-close" onclick="closeModal('modalAppDetail')">&times;</div>
+    </div>
+    <div class="modal-body" id="appDetailContent"></div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modalAppDetail')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- Approve Confirm Modal -->
+<div class="modal-overlay" id="modalApprove">
+  <div class="modal" style="width:440px;">
+    <div class="modal-header">
+      <h3>审批确认</h3>
+      <div class="modal-close" onclick="closeModal('modalApprove')">&times;</div>
+    </div>
+    <div class="modal-body">
+      <div class="confirm-body">
+        <div class="confirm-icon success">✅</div>
+        <p>是否批准该平台接入？</p>
+        <p class="confirm-sub" id="approvePlatformName"></p>
+        <p class="confirm-sub" style="color:var(--orange);margin-top:8px;">审批通过后该记录将转移至配置管理</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modalApprove')">取 消</button>
+      <button class="btn btn-success" onclick="confirmApprove()">确认审批</button>
+    </div>
+  </div>
+</div>
+
+<!-- Approve Success + Redirect Modal -->
+<div class="modal-overlay" id="modalApproveSuccess">
+  <div class="modal" style="width:440px;">
+    <div class="modal-header">
+      <h3>审批结果</h3>
+      <div class="modal-close" onclick="closeModal('modalApproveSuccess')">&times;</div>
+    </div>
+    <div class="modal-body">
+      <div class="approve-success-body">
+        <div class="success-icon">🎉</div>
+        <div class="success-title">审批成功</div>
+        <p class="success-desc" id="approveSuccessName"></p>
+        <p class="success-hint">请前往配置管理完成平台配置后启用</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modalApproveSuccess')">稍后前往</button>
+      <button class="btn btn-primary" onclick="goToConfig()">立即前往</button>
+    </div>
+  </div>
+</div>
+
+<!-- Reject Modal -->
+<div class="modal-overlay" id="modalReject">
+  <div class="modal" style="width:480px;">
+    <div class="modal-header">
+      <h3>拒绝申请</h3>
+      <div class="modal-close" onclick="closeModal('modalReject')">&times;</div>
+    </div>
+    <div class="modal-body">
+      <div style="margin-bottom:16px;">
+        <p style="font-size:14px;margin-bottom:8px;">拒绝平台：<strong id="rejectPlatformName"></strong></p>
+        <label style="font-size:13px;color:var(--text-light);display:block;margin-bottom:6px;">拒绝原因：</label>
+        <textarea class="reason-input" id="rejectReason" placeholder="请输入拒绝原因"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modalReject')">取 消</button>
+      <button class="btn btn-danger" onclick="confirmReject()">确认拒绝</button>
+    </div>
+  </div>
+</div>
+
+<!-- Config Edit Modal -->
+<div class="modal-overlay" id="modalConfigEdit">
+  <div class="modal" style="width:740px;">
+    <div class="modal-header">
+      <h3>编辑配置</h3>
+      <div class="modal-close" onclick="closeModal('modalConfigEdit')">&times;</div>
+    </div>
+    <div class="modal-body" id="configEditContent"></div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modalConfigEdit')">取 消</button>
+      <button class="btn btn-primary" onclick="saveConfig()">保 存</button>
+    </div>
+  </div>
+</div>
+
+<!-- View IP/Note Modal -->
+<div class="modal-overlay" id="modalViewInfo">
+  <div class="modal" style="width:520px;">
+    <div class="modal-header">
+      <h3 id="viewInfoTitle">查看</h3>
+      <div class="modal-close" onclick="closeModal('modalViewInfo')">&times;</div>
+    </div>
+    <div class="modal-body">
+      <div style="padding:12px 0;font-size:14px;line-height:1.8;word-break:break-all;" id="viewInfoContent"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modalViewInfo')">关 闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- Reset Key Confirm Modal -->
+<div class="modal-overlay" id="modalResetKey">
+  <div class="modal" style="width:480px;">
+    <div class="modal-header">
+      <h3>重置密钥对</h3>
+      <div class="modal-close" onclick="closeModal('modalResetKey')">&times;</div>
+    </div>
+    <div class="modal-body">
+      <div class="confirm-body">
+        <div class="confirm-icon warning">⚠️</div>
+        <p>重置后将生成新的 API Key、Public Key 和 Private Key，原密钥对将失效。</p>
+        <p class="confirm-sub" id="resetKeyPlatform"></p>
+        <p class="confirm-sub" style="color:var(--danger);margin-top:12px;">⚠️ 新生成的密钥仅展示一次，请妥善保存！</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('modalResetKey')">取 消</button>
+      <button class="btn btn-orange" onclick="confirmResetKey()">确认重置</button>
+    </div>
+  </div>
+</div>
+
+<!-- Key Reset Result Modal -->
+<div class="modal-overlay" id="modalKeyResult">
+  <div class="modal" style="width:560px;">
+    <div class="modal-header">
+      <h3>🔑 新密钥对已生成</h3>
+      <div class="modal-close" onclick="closeModal('modalKeyResult')">&times;</div>
+    </div>
+    <div class="modal-body" id="keyResultContent"></div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="closeModal('modalKeyResult')">我知道了</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ==================== DATA ====================
+let applications = [
+  {id:2,name:'xx',type:'exchange',country:'-',market:['EU'],users:'100-500',status:'pending',legal:'已有',contact:'-',email:'-',telegram:'-',time:'2026-05-19 14:22:00',platformUrl:'-',domainUrl:'-',ipWhitelist:'',note:''},
+  {id:4,name:'xyes',type:'exchange',country:'-',market:['EU'],users:'100-500',status:'pending',legal:'已有',contact:'-',email:'-',telegram:'@xyes_admin',time:'2026-05-20 11:45:00',platformUrl:'https://wallet.xyesdev.com',domainUrl:'https://wallet.xyesdev.com/api/v1/detrade',ipWhitelist:'',note:''},
+  {id:5,name:'playsta',type:'exchange',country:'-',market:['EU'],users:'100-500',status:'pending',legal:'已有',contact:'-',email:'-',telegram:'-',time:'2026-05-21 16:00:00',platformUrl:'https://uatdetrade.vkingplays.com',domainUrl:'https://uatdetrade.vkingplays.com',ipWhitelist:'',note:''},
+  {id:7,name:'willbet',type:'exchange',country:'-',market:['EU'],users:'100-500',status:'rejected',legal:'已有',contact:'-',email:'-',telegram:'-',time:'2026-05-15 13:20:00',platformUrl:'-',domainUrl:'https://bridge.willbet.in',ipWhitelist:'',note:'资质不符',rejectReason:'平台资质审核未通过'},
+  {id:9,name:'newbet',type:'betting',country:'-',market:['NA','EU'],users:'1000-10000',status:'pending',legal:'无',contact:'alice',email:'alice@newbet.com',telegram:'@newbet_alice',time:'2026-05-22 10:30:00',platformUrl:'https://newbet.io',domainUrl:'https://newbet.io/api/detrade',ipWhitelist:'52.14.88.90',note:'首次申请'},
+  {id:10,name:'casinopro',type:'betting',country:'-',market:['AF'],users:'100-500',status:'rejected',legal:'无',contact:'bob',email:'bob@casinopro.com',telegram:'@casinopro_bob',time:'2026-05-20 17:00:00',platformUrl:'https://casinopro.net',domainUrl:'-',ipWhitelist:'',note:'',rejectReason:'用户量未达最低要求'}
+];
+
+let configs = [
+  {id:1,name:'bc',type:'exchange',country:'-',market:['EU'],users:'100-500',legal:'已有',contact:'-',email:'bc@gmail.com',telegram:'@bc_official',platformUrl:'https://bc.game',domainUrl:'https://platform-trrda3dde.dogcrash.game/platform-trading',ipWhitelist:'3.108.153.137',note:'',apiKey:'e967****145a',publicKey:'MIII****AQAB',privateKey:'MIII****kw==',status:'enabled',configStatus:'configured',fullApiKey:'e9678a2b145a',fullPublicKey:'MIII3x9kAQAB',fullPrivateKey:'MIII7z8ckw==',time:'2026-05-18 10:30:00'},
+  {id:3,name:'k8',type:'exchange',country:'-',market:['EU'],users:'100-500',legal:'已有',contact:'-',email:'-',telegram:'@k8_support',platformUrl:'-',domainUrl:'-',ipWhitelist:'10.0.0.1,10.0.0.2',note:'测试备注',apiKey:'8faf****db90',publicKey:'MIII****AQAB',privateKey:'MIII****4u==',status:'disabled',configStatus:'configured',fullApiKey:'8faf2e3db90',fullPublicKey:'MIII3x9kAQAB',fullPrivateKey:'MIII8k7m4u==',time:'2026-05-17 09:15:00'},
+  {id:6,name:'hoy',type:'exchange',country:'china',market:['EU'],users:'1000-10000',legal:'已有',contact:'jerry',email:'je@hah.co',telegram:'@hoy_jerry',platformUrl:'http://detrade.co',domainUrl:'https://dev.mars.bingo/channel/detrade-stag',ipWhitelist:'',note:'',apiKey:'e25a****28c1',publicKey:'MIII****AQAB',privateKey:'MIII****2Tu=',status:'enabled',configStatus:'configured',fullApiKey:'e25a9b328c1',fullPublicKey:'MIII3x9kAQAB',fullPrivateKey:'MIII6m42Tu=',time:'2026-05-16 08:30:00'},
+  {id:8,name:'test666',type:'exchange',country:'test',market:['AS'],users:'100-500',legal:'已有',contact:'test',email:'test@gmail.com',telegram:'@test666',platformUrl:'test',domainUrl:'-',ipWhitelist:'',note:'',apiKey:'--',publicKey:'--',privateKey:'--',status:'disabled',configStatus:'pending-config',fullApiKey:'',fullPublicKey:'',fullPrivateKey:'',time:'2026-05-22 09:00:00'}
+];
+
+let currentApproveId = null;
+let currentRejectId = null;
+let currentEditConfig = null;
+let currentResetConfig = null;
+
+// ==================== RENDER APPLICATIONS ====================
+function renderApplications(data) {
+  const tbody = document.getElementById('appTableBody');
+  if (!data || data.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="13"><div class="empty-state"><p>暂无数据</p></div></td></tr>';
+    document.getElementById('appTotal').textContent = '0';
+    return;
+  }
+  document.getElementById('appTotal').textContent = data.length;
+  tbody.innerHTML = data.map(app => {
+    const statusTag = app.status === 'pending' ? '<span class="tag tag-orange">待审批</span>' :
+                      '<span class="tag tag-red">已拒绝</span>';
+    const typeTag = app.type === 'exchange' ? '<span class="tag tag-green">exchange</span>' : '<span class="tag tag-purple">betting</span>';
+    const marketTags = app.market.map(m => `<span class="tag tag-blue">${m}</span>`).join(' ');
+    const legalTag = app.legal === '已有' ? '<span class="tag tag-green">已有</span>' : '<span class="tag tag-gray">无</span>';
+    const canApprove = app.status === 'pending';
+    const canReject = app.status === 'pending';
+    return `<tr>
+      <td>${app.id}</td>
+      <td>${app.name}</td>
+      <td>${typeTag}</td>
+      <td>${app.country}</td>
+      <td>${marketTags}</td>
+      <td>${app.users}</td>
+      <td>${statusTag}</td>
+      <td>${legalTag}</td>
+      <td>${app.contact}</td>
+      <td>${app.email}</td>
+      <td>${app.telegram || '-'}</td>
+      <td style="white-space:nowrap;font-size:12px;color:var(--text-light);">${app.time}</td>
+      <td>
+        <div class="actions">
+          <button class="btn-link" onclick="viewAppDetail(${app.id})">详情</button>
+          <span class="divider">|</span>
+          ${canApprove ? `<button class="btn-link success" onclick="approveApp(${app.id})">通过</button>` : `<button class="btn-link disabled">通过</button>`}
+          <span class="divider">|</span>
+          ${canReject ? `<button class="btn-link danger" onclick="rejectApp(${app.id})">拒绝</button>` : `<button class="btn-link disabled">拒绝</button>`}
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ==================== RENDER CONFIGS ====================
+function renderConfigs(data) {
+  const tbody = document.getElementById('configTableBody');
+  if (!data || data.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="14"><div class="empty-state"><p>暂无数据</p></div></td></tr>';
+    document.getElementById('configTotal').textContent = '0';
+    return;
+  }
+  document.getElementById('configTotal').textContent = data.length;
+  tbody.innerHTML = data.map((cfg, idx) => {
+    const statusDot = cfg.status === 'enabled' ? '<span class="status-dot enable">启用</span>' : '<span class="status-dot disable">禁用</span>';
+    const isPendingConfig = cfg.configStatus === 'pending-config';
+    const toggleText = cfg.status === 'enabled' ? '禁用' : '启用';
+    const toggleClass = cfg.status === 'enabled' ? 'danger' : 'success';
+    const canToggle = !isPendingConfig;
+    const configStatusTag = cfg.configStatus === 'configured' ? '<span class="config-status-tag configured">已配置</span>' : '<span class="config-status-tag pending-config">待配置</span>';
+    const typeTag = cfg.type === 'exchange' ? '<span class="tag tag-green">exchange</span>' : '<span class="tag tag-purple">betting</span>';
+    return `<tr>
+      <td>${cfg.id}</td>
+      <td>${cfg.name}</td>
+      <td>${typeTag}</td>
+      <td>${configStatusTag}</td>
+      <td>${statusDot}</td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${cfg.domainUrl}">${cfg.domainUrl}</td>
+      <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${cfg.platformUrl}">${cfg.platformUrl}</td>
+      <td><button class="btn-link" onclick="viewInfo('IP白名单','${cfg.ipWhitelist || '未设置'}')">${cfg.ipWhitelist ? '查看' : '-'}</button></td>
+      <td><button class="btn-link" onclick="viewInfo('补充说明','${cfg.note || '无'}')">${cfg.note ? '查看' : '-'}</button></td>
+      <td><div class="key-cell"><span class="key-text">${cfg.apiKey}</span>${cfg.fullApiKey ? `<span class="key-copy" onclick="copyKey('${cfg.fullApiKey}')">📋</span>` : ''}</div></td>
+      <td><div class="key-cell"><span class="key-text">${cfg.publicKey}</span>${cfg.fullPublicKey ? `<span class="key-copy" onclick="copyKey('${cfg.fullPublicKey}')">📋</span>` : ''}</div></td>
+      <td><div class="key-cell"><span class="key-text">${cfg.privateKey}</span>${cfg.fullPrivateKey ? `<span class="key-copy" onclick="copyKey('${cfg.fullPrivateKey}')">📋</span>` : ''}</div></td>
+      <td><button class="btn-link info" onclick="viewConfigAppDetail(${idx})">查看</button></td>
+      <td>
+        <div class="actions">
+          <button class="btn-link" onclick="editConfig(${idx})">编辑</button>
+          <span class="divider">|</span>
+          ${canToggle ? `<button class="btn-link ${toggleClass}" onclick="toggleConfigStatus(${idx})">${toggleText}</button>` : `<button class="btn-link disabled" title="需先完成配置">启用</button>`}
+          <span class="divider">|</span>
+          <button class="btn-link warning" onclick="resetKey(${idx})">重置密钥对</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ==================== PAGE SWITCH ====================
+function switchPage(page, navItem) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.tab-item[data-page="${page}"]`).classList.add('active');
+  document.querySelectorAll('.nav-item[data-page]').forEach(n => n.classList.remove('active'));
+  if (navItem) {
+    navItem.classList.add('active');
+  } else {
+    const navEl = document.querySelector(`.nav-item[data-page="${page}"]`);
+    if (navEl) navEl.classList.add('active');
+  }
+}
+
+function goToConfig() {
+  closeModal('modalApproveSuccess');
+  switchPage('config');
+}
+
+// ==================== SIDEBAR TOGGLE ====================
+function toggleGroup(el) {
+  el.classList.toggle('open');
+  const children = el.nextElementSibling;
+  if (el.classList.contains('open')) {
+    children.style.maxHeight = '200px';
+  } else {
+    children.style.maxHeight = '0';
+  }
+}
+
+// ==================== MODAL ====================
+function openModal(id) { document.getElementById(id).classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('show');
+  });
+});
+
+// ==================== TOAST ====================
+function showToast(msg, type = 'success') {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = 'toast ' + type;
+  const icons = {success: '✅', error: '❌', warning: '⚠️'};
+  toast.innerHTML = `<span>${icons[type] || ''}</span> ${msg}`;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.animation = 'slideOut .3s ease forwards';
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
+// ==================== COPY KEY ====================
+function copyKey(key) {
+  navigator.clipboard.writeText(key).then(() => {
+    showToast('已复制到剪贴板');
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = key;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('已复制到剪贴板');
+  });
+}
+
+// ==================== APPLICATION FUNCTIONS ====================
+function viewAppDetail(id) {
+  const app = applications.find(a => a.id === id);
+  if (!app) return;
+  const statusText = app.status === 'pending' ? '待审批' : '已拒绝';
+  const content = document.getElementById('appDetailContent');
+  content.innerHTML = `
+    <div class="detail-grid">
+      <div class="detail-item"><span class="detail-label">ID</span><span class="detail-value">${app.id}</span></div>
+      <div class="detail-item"><span class="detail-label">平台名称</span><span class="detail-value">${app.name}</span></div>
+      <div class="detail-item"><span class="detail-label">国家</span><span class="detail-value">${app.country}</span></div>
+      <div class="detail-item"><span class="detail-label">平台联系人</span><span class="detail-value">${app.contact}</span></div>
+      <div class="detail-item"><span class="detail-label">平台类型</span><span class="detail-value"><span class="tag tag-green">${app.type}</span></span></div>
+      <div class="detail-item"><span class="detail-label">目标市场</span><span class="detail-value">${app.market.map(m => `<span class="tag tag-blue">${m}</span>`).join(' ')}</span></div>
+      <div class="detail-item"><span class="detail-label">用户量</span><span class="detail-value">${app.users}</span></div>
+      <div class="detail-item"><span class="detail-label">法律资格</span><span class="detail-value"><span class="tag tag-green">${app.legal}</span></span></div>
+      <div class="detail-item"><span class="detail-label">状态</span><span class="detail-value"><span class="tag ${app.status === 'pending' ? 'tag-orange' : 'tag-red'}">${statusText}</span></span></div>
+      <div class="detail-item"><span class="detail-label">邮箱</span><span class="detail-value">${app.email}</span></div>
+      <div class="detail-item"><span class="detail-label">Telegram</span><span class="detail-value">${app.telegram || '-'}</span></div>
+      <div class="detail-item"><span class="detail-label">申请时间</span><span class="detail-value">${app.time}</span></div>
+      <div class="detail-item full"><span class="detail-label">平台网址</span><span class="detail-value">${app.platformUrl}</span></div>
+      <div class="detail-item full"><span class="detail-label">Domain URL</span><span class="detail-value">${app.domainUrl}</span></div>
+      <div class="detail-item"><span class="detail-label">IP白名单</span><span class="detail-value">${app.ipWhitelist || '未设置'}</span></div>
+      ${app.note ? `<div class="detail-item full"><span class="detail-label">补充说明</span><span class="detail-value">${app.note}</span></div>` : ''}
+      ${app.rejectReason ? `<div class="detail-item full"><span class="detail-label">拒绝原因</span><span class="detail-value" style="color:var(--danger);">${app.rejectReason}</span></div>` : ''}
+    </div>
+  `;
+  openModal('modalAppDetail');
+}
+
+function approveApp(id) {
+  currentApproveId = id;
+  const app = applications.find(a => a.id === id);
+  document.getElementById('approvePlatformName').textContent = `平台：${app.name}`;
+  openModal('modalApprove');
+}
+
+function confirmApprove() {
+  const appIdx = applications.findIndex(a => a.id === currentApproveId);
+  if (appIdx === -1) return;
+  const app = applications[appIdx];
+  configs.push({
+    id: app.id,
+    name: app.name,
+    type: app.type,
+    country: app.country,
+    market: app.market,
+    users: app.users,
+    legal: app.legal,
+    contact: app.contact,
+    email: app.email,
+    telegram: app.telegram,
+    platformUrl: app.platformUrl,
+    domainUrl: app.domainUrl,
+    ipWhitelist: app.ipWhitelist,
+    note: app.note,
+    apiKey: '--',
+    publicKey: '--',
+    privateKey: '--',
+    status: 'disabled',
+    configStatus: 'pending-config',
+    fullApiKey: '',
+    fullPublicKey: '',
+    fullPrivateKey: '',
+    time: app.time
+  });
+  applications.splice(appIdx, 1);
+  closeModal('modalApprove');
+  renderApplications(getFilteredApps());
+  renderConfigs(getFilteredConfigs());
+  updateBadgeCount();
+  // Show success + redirect modal
+  document.getElementById('approveSuccessName').textContent = `平台「${app.name}」已审批通过`;
+  openModal('modalApproveSuccess');
+}
+
+function rejectApp(id) {
+  currentRejectId = id;
+  const app = applications.find(a => a.id === id);
+  document.getElementById('rejectPlatformName').textContent = app.name;
+  document.getElementById('rejectReason').value = '';
+  openModal('modalReject');
+}
+
+function confirmReject() {
+  const reason = document.getElementById('rejectReason').value.trim();
+  if (!reason) { showToast('请输入拒绝原因', 'warning'); return; }
+  const app = applications.find(a => a.id === currentRejectId);
+  if (!app) return;
+  app.status = 'rejected';
+  app.rejectReason = reason;
+  closeModal('modalReject');
+  renderApplications(getFilteredApps());
+  showToast('已拒绝该申请');
+  updateBadgeCount();
+}
+
+function filterApplications() { renderApplications(getFilteredApps()); }
+function resetAppFilters() {
+  document.getElementById('appSearchName').value = '';
+  document.getElementById('appSearchStatus').value = '';
+  renderApplications(applications);
+}
+function getFilteredApps() {
+  const name = document.getElementById('appSearchName').value.trim().toLowerCase();
+  const status = document.getElementById('appSearchStatus').value;
+  return applications.filter(app => {
+    if (name && !app.name.toLowerCase().includes(name)) return false;
+    if (status && app.status !== status) return false;
+    return true;
+  });
+}
+
+function updateBadgeCount() {
+  const pendingCount = applications.filter(a => a.status === 'pending').length;
+  const badge = document.querySelector('.badge-count');
+  if (badge) {
+    badge.textContent = pendingCount;
+    badge.style.display = pendingCount === 0 ? 'none' : 'inline';
+  }
+}
+
+// ==================== CONFIG FUNCTIONS ====================
+function viewConfigAppDetail(idx) {
+  const cfg = configs[idx];
+  const content = document.getElementById('appDetailContent');
+  content.innerHTML = `
+    <div class="detail-grid">
+      <div class="detail-item"><span class="detail-label">ID</span><span class="detail-value">${cfg.id}</span></div>
+      <div class="detail-item"><span class="detail-label">平台名称</span><span class="detail-value">${cfg.name}</span></div>
+      <div class="detail-item"><span class="detail-label">国家</span><span class="detail-value">${cfg.country}</span></div>
+      <div class="detail-item"><span class="detail-label">平台联系人</span><span class="detail-value">${cfg.contact}</span></div>
+      <div class="detail-item"><span class="detail-label">平台类型</span><span class="detail-value"><span class="tag tag-green">${cfg.type}</span></span></div>
+      <div class="detail-item"><span class="detail-label">目标市场</span><span class="detail-value">${cfg.market.map(m => `<span class="tag tag-blue">${m}</span>`).join(' ')}</span></div>
+      <div class="detail-item"><span class="detail-label">用户量</span><span class="detail-value">${cfg.users}</span></div>
+      <div class="detail-item"><span class="detail-label">法律资格</span><span class="detail-value"><span class="tag tag-green">${cfg.legal}</span></span></div>
+      <div class="detail-item"><span class="detail-label">邮箱</span><span class="detail-value">${cfg.email}</span></div>
+      <div class="detail-item"><span class="detail-label">Telegram</span><span class="detail-value">${cfg.telegram || '-'}</span></div>
+      <div class="detail-item"><span class="detail-label">申请时间</span><span class="detail-value">${cfg.time}</span></div>
+      <div class="detail-item"><span class="detail-label">配置状态</span><span class="detail-value">${cfg.configStatus === 'configured' ? '<span class="config-status-tag configured">已配置</span>' : '<span class="config-status-tag pending-config">待配置</span>'}</span></div>
+      <div class="detail-item full"><span class="detail-label">平台网址</span><span class="detail-value">${cfg.platformUrl}</span></div>
+      <div class="detail-item full"><span class="detail-label">Domain URL</span><span class="detail-value">${cfg.domainUrl}</span></div>
+      <div class="detail-item"><span class="detail-label">IP白名单</span><span class="detail-value">${cfg.ipWhitelist || '未设置'}</span></div>
+      ${cfg.note ? `<div class="detail-item full"><span class="detail-label">补充说明</span><span class="detail-value">${cfg.note}</span></div>` : ''}
+    </div>
+  `;
+  openModal('modalAppDetail');
+}
+
+function editConfig(idx) {
+  currentEditConfig = idx;
+  const cfg = configs[idx];
+  const content = document.getElementById('configEditContent');
+  content.innerHTML = `
+    <div class="form-row">
+      <div class="form-group"><label>ID</label><input type="text" value="${cfg.id}" readonly></div>
+      <div class="form-group"><label><span class="required">*</span> 平台名称</label><input type="text" id="editName" value="${cfg.name}"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>国家</label><input type="text" id="editCountry" value="${cfg.country || ''}" placeholder="请输入国家"></div>
+      <div class="form-group"><label>平台联系人</label><input type="text" id="editContact" value="${cfg.contact || ''}" placeholder="请输入平台联系人"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Telegram</label><input type="text" id="editTelegram" value="${cfg.telegram || ''}" placeholder="请输入Telegram账号"></div>
+      <div class="form-group"><label><span class="required">*</span> 邮箱</label><input type="text" id="editEmail" value="${cfg.email}" placeholder="请输入邮箱"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label><span class="required">*</span> 平台类型</label>
+        <div class="checkbox-group">
+          <label><input type="checkbox" id="editTypeExchange" ${cfg.type === 'exchange' ? 'checked' : ''}> exchange</label>
+          <label><input type="checkbox" id="editTypeBetting" ${cfg.type === 'betting' ? 'checked' : ''}> betting</label>
+        </div>
+      </div>
+      <div class="form-group"><label><span class="required">*</span> 目标市场</label>
+        <div class="checkbox-group">
+          <label><input type="checkbox" id="editMarketAS" ${cfg.market.includes('AS')?'checked':''}> AS</label>
+          <label><input type="checkbox" id="editMarketEU" ${cfg.market.includes('EU')?'checked':''}> EU</label>
+          <label><input type="checkbox" id="editMarketNA" ${cfg.market.includes('NA')?'checked':''}> NA</label>
+          <label><input type="checkbox" id="editMarketSA" ${cfg.market.includes('SA')?'checked':''}> SA</label>
+          <label><input type="checkbox" id="editMarketAF" ${cfg.market.includes('AF')?'checked':''}> AF</label>
+          <label><input type="checkbox" id="editMarketAU" ${cfg.market.includes('AU')?'checked':''}> AU</label>
+        </div>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label><span class="required">*</span> 用户量</label>
+        <select id="editUsers">
+          <option value="100-500" ${cfg.users==='100-500'?'selected':''}>100-500</option>
+          <option value="1000-10000" ${cfg.users==='1000-10000'?'selected':''}>1000-10000</option>
+        </select>
+      </div>
+      <div class="form-group"><label><span class="required">*</span> 法律资格</label>
+        <select id="editLegal">
+          <option value="已有" ${cfg.legal==='已有'?'selected':''}>已有</option>
+          <option value="无" ${cfg.legal==='无'?'selected':''}>无</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group full"><label><span class="required">*</span> 平台网址</label>
+        <div class="input-with-btn">
+          <input type="text" id="editPlatformUrl" value="${cfg.platformUrl}" placeholder="请输入平台网址">
+          <button class="btn btn-link" onclick="testLink('editPlatformUrl')">测试链接</button>
+        </div>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group full"><label><span class="required">*</span> Domain URL</label>
+        <div class="input-with-btn">
+          <input type="text" id="editDomainUrl" value="${cfg.domainUrl}" placeholder="请输入Domain URL">
+          <button class="btn btn-link" onclick="testLink('editDomainUrl')">测试链接</button>
+        </div>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group full"><label>IP白名单 <span style="color:var(--text-light);font-weight:400;">(多个IP用英文逗号分隔)</span></label>
+        <textarea id="editIP" placeholder="请输入IP白名单">${cfg.ipWhitelist}</textarea>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group full"><label>补充说明</label><textarea id="editNote" placeholder="请输入补充说明">${cfg.note||''}</textarea></div>
+    </div>
+  `;
+  openModal('modalConfigEdit');
+}
+
+function testLink(inputId) {
+  const url = document.getElementById(inputId).value.trim();
+  if (!url || url === '-') { showToast('请先输入有效的URL', 'warning'); return; }
+  showToast('链接测试中...', 'warning');
+  setTimeout(() => {
+    showToast(url.startsWith('http') ? '链接可达' : '链接不可达', url.startsWith('http') ? 'success' : 'error');
+  }, 1000);
+}
+
+function saveConfig() {
+  const idx = currentEditConfig;
+  if (idx === null) return;
+  const cfg = configs[idx];
+  cfg.name = document.getElementById('editName').value;
+  cfg.country = document.getElementById('editCountry').value;
+  cfg.contact = document.getElementById('editContact').value;
+  cfg.telegram = document.getElementById('editTelegram').value;
+  cfg.email = document.getElementById('editEmail').value;
+  cfg.type = document.getElementById('editTypeExchange').checked ? 'exchange' : 'betting';
+  cfg.market = [];
+  ['AS','EU','NA','SA','AF','AU'].forEach(m => {
+    if (document.getElementById('editMarket'+m).checked) cfg.market.push(m);
+  });
+  cfg.users = document.getElementById('editUsers').value;
+  cfg.legal = document.getElementById('editLegal').value;
+  cfg.platformUrl = document.getElementById('editPlatformUrl').value;
+  cfg.domainUrl = document.getElementById('editDomainUrl').value;
+  cfg.ipWhitelist = document.getElementById('editIP').value;
+  cfg.note = document.getElementById('editNote').value;
+  cfg.configStatus = 'configured';
+  closeModal('modalConfigEdit');
+  renderConfigs(getFilteredConfigs());
+  showToast('配置保存成功，配置状态已变更为"已配置"');
+}
+
+function toggleConfigStatus(idx) {
+  configs[idx].status = configs[idx].status === 'enabled' ? 'disabled' : 'enabled';
+  renderConfigs(getFilteredConfigs());
+  showToast('操作成功');
+}
+
+function resetKey(idx) {
+  currentResetConfig = idx;
+  document.getElementById('resetKeyPlatform').textContent = `平台：${configs[idx].name}`;
+  openModal('modalResetKey');
+}
+
+function confirmResetKey() {
+  const idx = currentResetConfig;
+  if (idx === null) return;
+  const newApiKey = generateKey(12);
+  const newPublicKey = 'MIII' + generateKey(6) + 'AQAB';
+  const newPrivateKey = 'MIII' + generateKey(6) + '==';
+  configs[idx].apiKey = newApiKey.substring(0,4) + '****' + newApiKey.substring(newApiKey.length-4);
+  configs[idx].publicKey = newPublicKey.substring(0,4) + '****' + newPublicKey.substring(newPublicKey.length-4);
+  configs[idx].privateKey = newPrivateKey.substring(0,4) + '****' + newPrivateKey.substring(newPrivateKey.length-4);
+  configs[idx].fullApiKey = newApiKey;
+  configs[idx].fullPublicKey = newPublicKey;
+  configs[idx].fullPrivateKey = newPrivateKey;
+  configs[idx].configStatus = 'configured';
+  closeModal('modalResetKey');
+  showKeyResult(configs[idx]);
+  renderConfigs(getFilteredConfigs());
+}
+
+function showKeyResult(cfg) {
+  document.getElementById('keyResultContent').innerHTML = `
+    <p style="font-size:14px;margin-bottom:16px;color:var(--text);">以下为新生成的密钥对，请妥善保存：</p>
+    <div class="key-result">
+      <div class="key-row"><span class="key-label">API Key</span><span class="key-value">${cfg.fullApiKey} <span class="key-copy" onclick="copyKey('${cfg.fullApiKey}')">📋</span></span></div>
+      <div class="key-row"><span class="key-label">Public Key</span><span class="key-value">${cfg.fullPublicKey} <span class="key-copy" onclick="copyKey('${cfg.fullPublicKey}')"></span></span></div>
+      <div class="key-row"><span class="key-label">Private Key</span><span class="key-value">${cfg.fullPrivateKey} <span class="key-copy" onclick="copyKey('${cfg.fullPrivateKey}')">📋</span></span></div>
+    </div>
+    <p style="font-size:12px;color:var(--danger);margin-top:16px;">⚠️ 此信息仅展示一次，请复制保存！关闭后将无法再次查看。</p>
+  `;
+  openModal('modalKeyResult');
+}
+
+function generateKey(len) {
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  let r = '';
+  for (let i = 0; i < len; i++) r += chars.charAt(Math.floor(Math.random() * chars.length));
+  return r;
+}
+
+function filterConfigs() { renderConfigs(getFilteredConfigs()); }
+function resetConfigFilters() {
+  document.getElementById('configSearchName').value = '';
+  document.getElementById('configSearchStatus').value = '';
+  document.getElementById('configSearchConfigStatus').value = '';
+  renderConfigs(configs);
+}
+function getFilteredConfigs() {
+  const name = document.getElementById('configSearchName').value.trim().toLowerCase();
+  const status = document.getElementById('configSearchStatus').value;
+  const configStatus = document.getElementById('configSearchConfigStatus').value;
+  return configs.filter(cfg => {
+    if (name && !cfg.name.toLowerCase().includes(name)) return false;
+    if (status && cfg.status !== status) return false;
+    if (configStatus && cfg.configStatus !== configStatus) return false;
+    return true;
+  });
+}
+
+function viewInfo(title, content) {
+  document.getElementById('viewInfoTitle').textContent = title;
+  document.getElementById('viewInfoContent').textContent = content;
+  openModal('modalViewInfo');
+}
+
+// ==================== INIT ====================
+renderApplications(applications);
+renderConfigs(configs);
+updateBadgeCount();
+</script>
+</body>
+</html>

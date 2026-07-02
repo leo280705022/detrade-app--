@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeTrade - Forgot Password</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css" />
+    <script src="https://unpkg.com/element-plus"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@element-plus/icons-vue"></script>
+    <style>
+        [v-cloak] { display: none; }
+        body { 
+            background: linear-gradient(135deg, #0f172a 0%, #1a1a2e 50%, #0f172a 100%);
+            min-height: 100vh;
+        }
+        .card {
+            background: rgba(30, 30, 50, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .btn-primary {
+            background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+        }
+        .btn-primary:hover {
+            background: linear-gradient(90deg, #059669 0%, #047857 100%);
+        }
+        .btn-primary:disabled {
+            background: #374151;
+            cursor: not-allowed;
+        }
+        .input-field {
+            background: rgba(31, 41, 55, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .input-field:focus {
+            border-color: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+        }
+        .code-input {
+            width: 48px;
+            height: 56px;
+            font-size: 24px;
+            text-align: center;
+        }
+        .progress-weak { background: #ef4444; }
+        .progress-medium { background: #f59e0b; }
+        .progress-strong { background: #10b981; }
+        .fade-enter-active, .fade-leave-active {
+            transition: opacity 0.3s ease;
+        }
+        .fade-enter-from, .fade-leave-to {
+            opacity: 0;
+            opacity: 0;
+        }
+        .slide-enter-active, .slide-leave-active {
+            transition: all 0.3s ease;
+        }
+        .slide-enter-from {
+            transform: translateX(20px);
+            opacity: 0;
+        }
+        .slide-leave-to {
+            transform: translateX(-20px);
+            opacity: 0;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-4">
+    <div id="app" v-cloak class="w-full max-w-md">
+        <div class="card rounded-2xl p-8 shadow-2xl">
+            
+            <div class="flex items-center justify-between mb-8">
+                <button @click="goBack" class="flex items-center text-gray-400 hover:text-white transition-colors">
+                    <el-icon class="mr-1"><ArrowLeft /></el-icon>
+                    <span>{{ t('back') }}</span>
+                </button>
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gradient-to-tr from-green-400 to-cyan-500 rounded-xl flex items-center justify-center font-bold text-xl">D</div>
+                    <span class="text-xl font-bold text-white">DeTrade</span>
+                </div>
+                <button @click="toggleLang" class="text-sm text-gray-400 hover:text-white transition-colors">
+                    {{ lang === 'zh' ? 'EN' : '中文' }}
+                </button>
+            </div>
+
+            <transition name="slide" mode="out-in">
+                <div v-if="currentStep === 1" key="step1">
+                    <div class="text-center mb-8">
+                        <h1 class="text-2xl font-bold text-white mb-2">{{ t('forgotPassword') }}</h1>
+                        <p class="text-gray-400">{{ t('enterEmailDesc') }}</p>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">{{ t('email') }}</label>
+                            <el-input
+                                v-model="email"
+                                :placeholder="t('emailPlaceholder')"
+                                class="w-full"
+                                size="large"
+                                type="email"
+                                @keyup.enter="sendCode"
+                            >
+                                <template #prefix>
+                                    <el-icon class="text-gray-500"><Message /></el-icon>
+                                </template>
+                            </el-input>
+                            <p v-if="emailError" class="text-red-400 text-sm mt-1">{{ emailError }}</p>
+                        </div>
+                        
+                        <el-button
+                            type="primary"
+                            size="large"
+                            class="w-full btn-primary h-12 text-base font-semibold"
+                            :disabled="!isEmailValid || isLoading"
+                            :loading="isLoading"
+                            @click="sendCode"
+                        >
+                            {{ t('sendCode') }}
+                        </el-button>
+                    </div>
+                </div>
+
+                <div v-else-if="currentStep === 2" key="step2">
+                    <div class="text-center mb-8">
+                        <h1 class="text-2xl font-bold text-white mb-2">{{ t('enterCode') }}</h1>
+                        <p class="text-gray-400">{{ t('codeSentTo') }} <span class="text-green-400 font-medium">{{ maskedEmail }}</span></p>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="flex justify-center gap-2 mb-6">
+                            <el-input
+                                v-for="(digit, index) in codeDigits"
+                                :key="index"
+                                v-model="codeDigits[index]"
+                                class="code-input input-field"
+                                size="large"
+                                maxlength="1"
+                                :ref="el => setCodeInputRef(el, index)"
+                                @input="onCodeInput(index)"
+                                @keydown="onCodeKeydown($event, index)"
+                                type="text"
+                                inputmode="numeric"
+                            />
+                        </div>
+                        
+                        <p v-if="codeError" class="text-red-400 text-sm text-center mb-4">{{ codeError }}</p>
+                        
+                        <el-button
+                            type="primary"
+                            size="large"
+                            class="w-full btn-primary h-12 text-base font-semibold"
+                            :disabled="!isCodeComplete || isLoading"
+                            :loading="isLoading"
+                            @click="verifyCode"
+                        >
+                            {{ t('next') }}
+                        </el-button>
+                        
+                        <div class="text-center">
+                            <button
+                                @click="resendCode"
+                                :disabled="resendCountdown > 0"
+                                :class="resendCountdown > 0 ? 'text-gray-500 cursor-not-allowed' : 'text-green-400 hover:text-green-300'"
+                                class="text-sm transition-colors"
+                            >
+                                {{ resendCountdown > 0 ? `${t('resendIn')} ${resendCountdown}s` : t('resendCode') }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-else-if="currentStep === 3" key="step3">
+                    <div class="text-center mb-8">
+                        <h1 class="text-2xl font-bold text-white mb-2">{{ t('setNewPassword') }}</h1>
+                        <p class="text-gray-400">{{ t('setPasswordDesc') }}</p>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">{{ t('newPassword') }}</label>
+                            <el-input
+                                v-model="newPassword"
+                                :placeholder="t('passwordPlaceholder')"
+                                class="w-full"
+                                size="large"
+                                :type="showPassword1 ? 'text' : 'password'"
+                                @keyup.enter="resetPassword"
+                            >
+                                <template #prefix>
+                                    <el-icon class="text-gray-500"><Lock /></el-icon>
+                                </template>
+                                <template #suffix>
+                                    <el-icon class="text-gray-500 cursor-pointer" @click="showPassword1 = !showPassword1">
+                                        <component :is="showPassword1 ? 'View' : 'Hide'" />
+                                    </el-icon>
+                                </template>
+                            </el-input>
+                            
+                            <div class="mt-2 space-y-1">
+                                <div class="flex gap-1">
+                                <div v-for="i in 3" :key="i" 
+                                    class="h-1 flex-1 rounded-full transition-colors"
+                                    :class="passwordStrengthClass(i)">
+                                </div>
+                                </div>
+                                <p v-if="passwordStrengthText" class="text-sm" :class="passwordStrengthColor">{{ passwordStrengthText }}</p>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-300 mb-2">{{ t('confirmPassword') }}</label>
+                            <el-input
+                                v-model="confirmPassword"
+                                :placeholder="t('confirmPasswordPlaceholder')"
+                                class="w-full"
+                                size="large"
+                                :type="showPassword2 ? 'text' : 'password'"
+                                @keyup.enter="resetPassword"
+                            >
+                                <template #prefix>
+                                    <el-icon class="text-gray-500"><Lock /></el-icon>
+                                </template>
+                                <template #suffix>
+                                    <el-icon class="text-gray-500 cursor-pointer" @click="showPassword2 = !showPassword2">
+                                        <component :is="showPassword2 ? 'View' : 'Hide'" />
+                                    </el-icon>
+                                </template>
+                            </el-input>
+                            <p v-if="passwordError" class="text-red-400 text-sm mt-1">{{ passwordError }}</p>
+                        </div>
+                        
+                        <el-button
+                            type="primary"
+                            size="large"
+                            class="w-full btn-primary h-12 text-base font-semibold"
+                            :disabled="!isPasswordValid || isLoading"
+                            :loading="isLoading"
+                            @click="resetPassword"
+                        >
+                            {{ t('confirmReset') }}
+                        </el-button>
+                    </div>
+                </div>
+
+                <div v-else-if="currentStep === 4" key="step4">
+                    <div class="text-center">
+                        <div class="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <el-icon class="text-5xl text-green-400"><CircleCheck /></el-icon>
+                        </div>
+                        <h1 class="text-2xl font-bold text-white mb-2">{{ t('resetSuccess') }}</h1>
+                        <p class="text-gray-400 mb-8">{{ t('resetSuccessDesc') }}</p>
+                        
+                        <el-button
+                            type="primary"
+                            size="large"
+                            class="w-full btn-primary h-12 text-base font-semibold"
+                            @click="backToLogin"
+                        >
+                            {{ t('backToLogin') }}
+                        </el-button>
+                    </div>
+                </div>
+            </transition>
+        </div>
+        
+        <div class="fixed bottom-0 left-0 right-0 p-4 text-center">
+            <p class="text-gray-500 text-xs">
+                {{ t('footerText') }}
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, onMounted, onUnmounted } = Vue;
+
+        const messages = {
+            zh: {
+                back: '返回',
+                forgotPassword: '忘记密码',
+                enterEmailDesc: '请输入您的注册邮箱，我们将发送验证码',
+                email: '电子邮箱',
+                emailPlaceholder: '请输入您的邮箱',
+                sendCode: '发送验证码',
+                enterCode: '输入验证码',
+                codeSentTo: '验证码已发送至',
+                next: '下一步',
+                resendCode: '重新发送',
+                resendIn: '秒后重发',
+                setNewPassword: '设置新密码',
+                setPasswordDesc: '请设置您的新密码',
+                newPassword: '新密码',
+                passwordPlaceholder: '请输入新密码',
+                confirmPassword: '确认密码',
+                confirmPasswordPlaceholder: '请再次输入新密码',
+                confirmReset: '确认重置',
+                resetSuccess: '密码重置成功！',
+                resetSuccessDesc: '您的密码已成功重置，请使用新密码登录',
+                backToLogin: '返回登录',
+                footerText: '本网站受 reCAPTCHA 保护，适用 Google 隐私政策和服务条款。',
+                passwordRequirements: '密码长度至少8位，包含字母和数字',
+                passwordMismatch: '两次输入的密码不一致',
+                invalidEmail: '请输入有效的邮箱地址',
+                invalidCode: '验证码错误，请重试',
+                weak: '弱',
+                medium: '中',
+                strong: '强',
+                passwordHint: '建议包含字母、数字和特殊字符'
+            },
+            en: {
+                back: 'Back',
+                forgotPassword: 'Forgot Password',
+                enterEmailDesc: 'Enter your registered email and we will send a verification code',
+                email: 'Email',
+                emailPlaceholder: 'Enter your email',
+                sendCode: 'Send Code',
+                enterCode: 'Enter Code',
+                codeSentTo: 'Code sent to',
+                next: 'Next',
+                resendCode: 'Resend Code',
+                resendIn: 'Resend in',
+                setNewPassword: 'Set New Password',
+                setPasswordDesc: 'Please set your new password',
+                newPassword: 'New Password',
+                passwordPlaceholder: 'Enter new password',
+                confirmPassword: 'Confirm Password',
+                confirmPasswordPlaceholder: 'Confirm your new password',
+                confirmReset: 'Confirm Reset',
+                resetSuccess: 'Password Reset Successful!',
+                resetSuccessDesc: 'Your password has been reset successfully, please login with your new password',
+                backToLogin: 'Back to Login',
+                footerText: 'This site is protected by reCAPTCHA and the Google Privacy Policy and Terms of Service apply.',
+                passwordRequirements: 'Password must be at least 8 characters with letters and numbers',
+                passwordMismatch: 'Passwords do not match',
+                invalidEmail: 'Please enter a valid email address',
+                invalidCode: 'Invalid code, please try again',
+                weak: 'Weak',
+                medium: 'Medium',
+                strong: 'Strong',
+                passwordHint: 'Suggest including letters, numbers, and special characters'
+            }
+        };
+
+        const app = createApp({
+            setup() {
+                const lang = ref('zh');
+                const currentStep = ref(1);
+                const email = ref('');
+                const emailError = ref('');
+                const codeDigits = ref(['', '', '', '', '', '']);
+                const codeError = ref('');
+                const newPassword = ref('');
+                const confirmPassword = ref('');
+                const passwordError = ref('');
+                const showPassword1 = ref(false);
+                const showPassword2 = ref(false);
+                const isLoading = ref(false);
+                const resendCountdown = ref(0);
+                const codeInputRefs = ref([]);
+                let resendTimer = null;
+
+                const t = (key) => {
+                    return messages[lang.value][key] || key;
+                };
+
+                const toggleLang = () => {
+                    lang.value = lang.value === 'zh' ? 'en' : 'zh';
+                    document.documentElement.lang = lang.value === 'zh' ? 'zh-CN' : 'en';
+                };
+
+                const isEmailValid = computed(() => {
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    return emailRegex.test(email.value);
+                });
+
+                const maskedEmail = computed(() => {
+                    if (!email.value) return '';
+                    const [name, domain] = email.value.split('@');
+                    if (name.length <= 2) return email.value;
+                    return name[0] + '***' + '@' + domain;
+                });
+
+                const isCodeComplete = computed(() => {
+                    return codeDigits.value.every(d => d !== '');
+                });
+
+                const passwordStrength = computed(() => {
+                    const pwd = newPassword.value;
+                    if (!pwd) return 0;
+                    let score = 0;
+                    if (pwd.length >= 8) score++;
+                    if (/[a-zA-Z]/.test(pwd) && /[0-9]/.test(pwd)) score++;
+                    if (/[^a-zA-Z0-9]/.test(pwd)) score++;
+                    return score;
+                });
+
+                const passwordStrengthText = computed(() => {
+                    if (!newPassword.value) return '';
+                    if (passwordStrength.value === 1) return t('weak');
+                    if (passwordStrength.value === 2) return t('medium');
+                    if (passwordStrength.value === 3) return t('strong');
+                    return '';
+                });
+
+                const passwordStrengthColor = computed(() => {
+                    if (passwordStrength.value === 1) return 'text-red-400';
+                    if (passwordStrength.value === 2) return 'text-yellow-400';
+                    if (passwordStrength.value === 3) return 'text-green-400';
+                    return '';
+                });
+
+                const passwordStrengthClass = (index) => {
+                    if (index <= passwordStrength.value) {
+                        if (passwordStrength.value === 1) return 'progress-weak';
+                        if (passwordStrength.value === 2) return 'progress-medium';
+                        if (passwordStrength.value === 3) return 'progress-strong';
+                    }
+                    return 'bg-gray-700';
+                };
+
+                const isPasswordValid = computed(() => {
+                    const pwd = newPassword.value;
+                    const isValid = pwd.length >= 8 && /[a-zA-Z]/.test(pwd) && /[0-9]/.test(pwd);
+                    const isMatch = pwd === confirmPassword.value;
+                    return isValid && isMatch;
+                });
+
+                const setCodeInputRef = (el, index) => {
+                    if (el) {
+                        codeInputRefs.value[index] = el;
+                    }
+                };
+
+                const onCodeInput = (index) => {
+                    const digit = codeDigits.value[index];
+                    if (digit && index < 5 && codeInputRefs.value[index + 1]) {
+                        codeInputRefs.value[index + 1].focus();
+                    }
+                    codeError.value = '';
+                };
+
+                const onCodeKeydown = (e, index) => {
+                    if (e.key === 'Backspace' && !codeDigits.value[index] === '' && index > 0) {
+                        codeInputRefs.value[index - 1].focus();
+                    }
+                };
+
+                const sendCode = async () => {
+                    if (!isEmailValid.value) {
+                        emailError.value = t('invalidEmail');
+                        return;
+                    }
+                    emailError.value = '';
+                    isLoading.value = true;
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    isLoading.value = false;
+                    currentStep.value = 2;
+                    startResendCountdown();
+                };
+
+                const startResendCountdown = () => {
+                    resendCountdown.value = 60;
+                    resendTimer = setInterval(() => {
+                        resendCountdown.value--;
+                        if (resendCountdown.value <= 0) {
+                            clearInterval(resendTimer);
+                        }
+                    }, 1000);
+                };
+
+                const resendCode = async () => {
+                    if (resendCountdown.value > 0) return;
+                    isLoading.value = true;
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    isLoading.value = false;
+                    startResendCountdown();
+                    ElementPlus.ElMessage.success(lang.value === 'zh' ? '验证码已重新发送' : 'Code resent successfully');
+                };
+
+                const verifyCode = async () => {
+                    if (!isCodeComplete.value) return;
+                    codeError.value = '';
+                    isLoading.value = true;
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    const code = codeDigits.value.join('');
+                    if (code === '123456') {
+                        isLoading.value = false;
+                        currentStep.value = 3;
+                    } else {
+                        isLoading.value = false;
+                        codeError.value = t('invalidCode');
+                        codeDigits.value = ['', '', '', '', '', ''];
+                        if (codeInputRefs.value[0]) {
+                            codeInputRefs.value[0].focus();
+                        }
+                    }
+                };
+
+                const resetPassword = async () => {
+                    if (!isPasswordValid.value) {
+                        if (newPassword.value.length < 8 || !/[a-zA-Z]/.test(newPassword.value) || !/[0-9]/.test(newPassword.value)) {
+                            passwordError.value = t('passwordRequirements');
+                        } else if (newPassword.value !== confirmPassword.value) {
+                            passwordError.value = t('passwordMismatch');
+                        }
+                        return;
+                    }
+                    passwordError.value = '';
+                    isLoading.value = true;
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    isLoading.value = false;
+                    currentStep.value = 4;
+                };
+
+                const goBack = () => {
+                    if (currentStep.value > 1) {
+                        currentStep.value--;
+                        if (currentStep.value === 1) {
+                            codeDigits.value = ['', '', '', '', '', ''];
+                        } else if (currentStep.value === 2) {
+                            newPassword.value = '';
+                            confirmPassword.value = '';
+                        }
+                    }
+                };
+
+                const backToLogin = () => {
+                    ElementPlus.ElMessage.success(lang.value === 'zh' ? '即将返回登录页' : 'Redirecting to login page');
+                };
+
+                onMounted(() => {
+                    if (codeInputRefs.value[0]) {
+                        codeInputRefs.value[0].focus();
+                    }
+                });
+
+                onUnmounted(() => {
+                    if (resendTimer) {
+                        clearInterval(resendTimer);
+                    }
+                });
+
+                return {
+                    lang, currentStep, email, emailError, codeDigits, codeError,
+                    newPassword, confirmPassword, passwordError,
+                    showPassword1, showPassword2, isLoading, resendCountdown,
+                    t, toggleLang, isEmailValid, maskedEmail, isCodeComplete,
+                    passwordStrengthText, passwordStrengthColor, passwordStrengthClass,
+                    isPasswordValid, setCodeInputRef, onCodeInput, onCodeKeydown,
+                    sendCode, resendCode, verifyCode, resetPassword, goBack, backToLogin
+                };
+            }
+        });
+
+        for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+            app.component(key, component);
+        }
+        app.use(ElementPlus);
+        app.mount('#app');
+    </script>
+</body>
+</html>

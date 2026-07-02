@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>业务端 - 代理数据查看系统</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.5.13/dist/vue.global.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; font-size: 13px; color: #333; background: #f0f2f5; }
+        
+        /* 顶部导航栏 */
+        .header { background: #001529; color: #fff; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+        .header h1 { font-size: 16px; font-weight: 500; }
+        .header-right { display: flex; align-items: center; gap: 16px; }
+        .account-select { padding: 6px 12px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); color: #fff; font-size: 13px; cursor: pointer; min-width: 200px; }
+        .account-select option { background: #001529; color: #fff; }
+        .account-info { font-size: 12px; color: rgba(255,255,255,0.65); }
+        
+        /* 主内容区 */
+        .main-content { padding: 16px; max-width: 1400px; margin: 0 auto; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .page-header h2 { font-size: 16px; font-weight: 500; }
+        
+        /* 统计卡片 */
+        .stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
+        .stat-item { background: #fff; padding: 16px; border-radius: 4px; border: 1px solid #e8e8e8; }
+        .stat-label { font-size: 12px; color: #666; margin-bottom: 8px; }
+        .stat-value { font-size: 20px; font-weight: 500; color: #333; }
+        .stat-value.green { color: #52c41a; }
+        .stat-value.blue { color: #1890ff; }
+        .stat-value.orange { color: #fa8c16; }
+        
+        /* 表格 */
+        .table-wrap { background: #fff; border-radius: 4px; border: 1px solid #e8e8e8; overflow: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th { background: #fafafa; padding: 10px 12px; text-align: left; font-weight: 500; color: #666; border-bottom: 1px solid #e8e8e8; white-space: nowrap; }
+        td { padding: 10px 12px; border-bottom: 1px solid #f0f0f0; }
+        tr:hover { background: #fafafa; }
+        .text-right { text-align: right; }
+        .text-green { color: #52c41a; }
+        .text-red { color: #ff4d4f; }
+        .text-blue { color: #1890ff; }
+        .text-orange { color: #fa8c16; }
+        
+        /* 标签 */
+        .tag { display: inline-block; padding: 2px 8px; border-radius: 2px; font-size: 11px; }
+        .tag-green { background: #f6ffed; color: #52c41a; border: 1px solid #b7eb8f; }
+        .tag-blue { background: #e6f7ff; color: #1890ff; border: 1px solid #91d5ff; }
+        .tag-orange { background: #fff7e6; color: #fa8c16; border: 1px solid #ffd591; }
+        .tag-gray { background: #fafafa; color: #666; border: 1px solid #d9d9d9; }
+        
+        /* 按钮 */
+        .btn { padding: 6px 12px; border-radius: 4px; border: 1px solid #d9d9d9; cursor: pointer; font-size: 12px; transition: all 0.2s; }
+        .btn-primary { background: #1890ff; color: #fff; border-color: #1890ff; }
+        .btn-primary:hover { background: #40a9ff; }
+        .btn-default { background: #fff; color: #333; }
+        .btn-default:hover { border-color: #1890ff; color: #1890ff; }
+        .btn-sm { padding: 4px 8px; font-size: 11px; }
+        
+        /* 工具栏 */
+        .toolbar { display: flex; gap: 12px; align-items: center; }
+        .toolbar input { padding: 6px 10px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 12px; }
+        
+        /* 详情网格 */
+        .detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; background: #fff; padding: 16px; border-radius: 4px; border: 1px solid #e8e8e8; margin-bottom: 16px; }
+        .detail-label { font-size: 11px; color: #999; margin-bottom: 4px; }
+        .detail-value { font-size: 13px; color: #333; font-weight: 500; }
+        
+        /* 卡片容器 */
+        .card { background: #fff; border-radius: 4px; border: 1px solid #e8e8e8; margin-bottom: 16px; }
+        .card-header { padding: 12px 16px; border-bottom: 1px solid #e8e8e8; display: flex; justify-content: space-between; align-items: center; }
+        .card-title { font-size: 14px; font-weight: 500; }
+        .card-body { padding: 16px; }
+        
+        /* 提示说明 */
+        .note { font-size: 11px; color: #999; margin-top: 8px; padding: 8px 12px; background: #fafafa; border-radius: 4px; border: 1px solid #e8e8e8; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- 顶部导航栏 -->
+        <div class="header">
+            <h1>业务端数据查看</h1>
+            <div class="header-right">
+                <select class="account-select" v-model="currentAccount">
+                    <option value="A">A账号 - 商务角色</option>
+                    <option value="B">B账号 - 一级代理</option>
+                    <option value="C">C账号 - 二级代理</option>
+                    <option value="D">D账号 - 普通用户</option>
+                    <option value="E">E账号 - 普通用户</option>
+                </select>
+                <div class="account-info">{{ accountInfo[currentAccount].name }} | UID: {{ accountInfo[currentAccount].uid }}</div>
+            </div>
+        </div>
+
+        <!-- 主内容区 -->
+        <div class="main-content">
+            <!-- ========== A账号：商务角色 ========== -->
+            <div v-if="currentAccount === 'A'">
+                <div class="page-header">
+                    <h2>商务角色 - 下级代理数据总览</h2>
+                </div>
+
+                <div class="stat-row">
+                    <div class="stat-item">
+                        <div class="stat-label">一级代理数</div>
+                        <div class="stat-value blue">{{ aStats.tier1Count }}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">二级代理数</div>
+                        <div class="stat-value blue">{{ aStats.tier2Count }}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">团队用户数</div>
+                        <div class="stat-value">{{ aStats.totalUsers }}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">团队总交易额</div>
+                        <div class="stat-value green">${{ formatNumber(aStats.totalVolume) }}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">NGR利润</div>
+                        <div class="stat-value green">${{ formatNumber(aStats.ngrProfit) }}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">PPL利润</div>
+                        <div class="stat-value green">${{ formatNumber(aStats.pplProfit) }}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">UD利润</div>
+                        <div class="stat-value green">${{ formatNumber(aStats.udProfit) }}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">总返佣支出</div>
+                        <div class="stat-value orange">${{ formatNumber(aStats.totalCommission) }}</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">一级代理列表</div>
+                        <div class="toolbar">
+                            <input v-model="aFilter.tier1Uid" placeholder="搜索UID" style="width:120px;">
+                            <button class="btn btn-sm btn-primary" @click="searchTier1">查询</button>
+                        </div>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>用户名</th>
+                                    <th>UID</th>
+                                    <th>二级代理数</th>
+                                    <th>团队用户数</th>
+                                    <th class="text-right">NGR返佣</th>
+                                    <th class="text-right">PPL返佣</th>
+                                    <th class="text-right">UD返佣</th>
+                                    <th class="text-right">总返佣</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="t1 in filteredTier1List" :key="t1.uid">
+                                    <td>{{ t1.username }}</td>
+                                    <td class="text-blue">{{ t1.uid }}</td>
+                                    <td>{{ t1.tier2Count }}</td>
+                                    <td>{{ t1.teamUsers }}</td>
+                                    <td class="text-right text-green">${{ formatNumber(t1.ngrCommission) }}</td>
+                                    <td class="text-right text-green">${{ formatNumber(t1.pplCommission) }}</td>
+                                    <td class="text-right text-green">${{ formatNumber(t1.udCommission) }}</td>
+                                    <td class="text-right text-green">${{ formatNumber(t1.totalCommission) }}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-default" @click="viewTier1Detail(t1)">详情</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========== B账号：一级代理 ========== -->
+            <div v-if="currentAccount === 'B'">
+                <div class="page-header">
+                    <h2>一级代理 - 返佣数据</h2>
+                </div>
+
+                <div class="stat-row">
+                    <div class="stat-item">
+                        <div class="stat-label">本期NGR返佣</div>
+                        <div class="stat-value green">${{ formatNumber(bStats.currentNgr) }}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">本期PPL返佣</div>
+                        <div class="stat-value green">${{ formatNumber(bStats.currentPpl) }}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">本期UD返佣</div>
+                        <div class="stat-value green">${{ formatNumber(bStats.currentUd) }}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">本期总返佣</div>
+                        <div class="stat-value green">${{ formatNumber(bStats.currentTotal) }}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">累计总返佣</div>
+                        <div class="stat-value blue">${{ formatNumber(bStats.totalCommission) }}</div>
+                    </div>
+                </div>
+
+                <div class="detail-grid">
+                    <div>
+                        <div class="detail-label">NGR返佣比例</div>
+                        <div class="detail-value">{{ bConfig.ngrRate }}%</div>
+                    </div>
+                    <div>
+                        <div class="detail-label">PPL返佣比例</div>
+                        <div class="detail-value">{{ bConfig.pplRate }}%</div>
+                    </div>
+                    <div>
+                        <div class="detail-label">UD返佣比例</div>
+                        <div class="detail-value">{{ bConfig.udRate }}%</div>
+                    </div>
+                    <div>
+                        <div class="detail-label">所属商务</div>
+                        <div class="detail-value">{{ accountInfo.A.name }} ({{ accountInfo.A.uid }})</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">二级代理返佣贡献明细（C提供给B的返佣）</div>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>二级代理用户名</th>
+                                    <th>UID</th>
+                                    <th>团队用户数</th>
+                                    <th class="text-right">NGR返佣基数</th>
+                                    <th class="text-right">NGR返佣金额</th>
+                                    <th class="text-right">PPL返佣基数</th>
+                                    <th class="text-right">PPL返佣金额</th>
+                                    <th class="text-right">UD返佣基数</th>
+                                    <th class="text-right">UD返佣金额</th>
+                                    <th class="text-right">总返佣</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="t2 in bTier2Contributions" :key="t2.uid">
+                                    <td>{{ t2.username }}</td>
+                                    <td class="text-blue">{{ t2.uid }}</td>
+                                    <td>{{ t2.teamUsers }}</td>
+                                    <td class="text-right">${{ formatNumber(t2.ngrBase) }}</td>
+                                    <td class="text-right text-green">${{ formatNumber(t2.ngrCommission) }}</td>
+                                    <td class="text-right">${{ formatNumber(t2.pplBase) }}</td>
+                                    <td class="text-right text-green">${{ formatNumber(t2.pplCommission) }}</td>
+                                    <td class="text-right">${{ formatNumber(t2.udBase) }}</td>
+                                    <td class="text-right text-green">${{ formatNumber(t2.udCommission) }}</td>
+                                    <td class="text-right text-green">${{ formatNumber(t2.totalCommission) }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">返佣历史记录</div>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>期数</th>
+                                    <th>时间范围</th>
+                                    <th class="text-right">NGR返佣</th>
+                                    <th class="text-right">PPL返佣</th>
+                                    <th class="text-right">UD返佣</th>
+                                    <th class="text-right">总返佣</th>
+                                    <th>状态</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="record in bCommissionHistory" :key="record.period">
+                                    <td>{{ record.period }}</td>
+                                    <td>{{ record.dateRange }}</td>
+                                    <td class="text-right text-green">${{ formatNumber(record.ngr) }}</td>
+                                    <td class="text-right text-green">${{ formatNumber(record.ppl) }}</td>
+                                    <td class="text-right text-green">${{ formatNumber(record.ud) }}</td>
+                                    <td class="text-right text-green">${{ formatNumber(record.total) }}</td>
+                                    <td><span class="tag tag-green">{{ record.status }}</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========== C账号：二级代理 ========== -->
+            <div v-if="currentAccount === 'C'">
+                <div class="page-header">
+                    <h2>二级代理 - 返佣数据</h2>
+                </div>
+
+                <div class="stat-row">
+                    <div class="stat-item">
+                        <div class="stat-label">本期NGR返佣</div>
+                        <div class="stat-value green">${{ formatNumber(cStats.currentNgr) }}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">本期PPL返佣</div>
+                        <div class="stat-value green">${{ formatNumber(cStats.currentPpl) }}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">本期UD返佣</div>
+                        <div class="stat-value green">${{ formatNumber(cStats.currentUd) }}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">本期总返佣</div>
+                        <div class="stat-value green">${{ formatNumber(cStats.currentTotal) }}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">累计总返佣</div>
+                        <div class="stat-value blue">${{ formatNumber(cStats.totalCommission) }}</div>
+                    </div>
+                </div>
+
+                <div class="detail-grid">
+                    <div>
+                        <div class="detail-label">继承模式</div>
+                        <div class="detail-value"><span class="tag tag-blue">{{ cConfig.inheritMode }}</span></div>
+                    </div>
+                    <div>
+                        <div class="detail-label">{{ cConfig.inheritMode }}返佣比例</div>
+                        <div class="detail-value">{{ cConfig.inheritRate }}%</div>
+                    </div>
+                    <div>
+                        <div class="detail-label">UD返佣比例</div>
+                        <div class="detail-value">{{ cConfig.udRate }}%</div>
+                    </div>
+                    <div>
+                        <div class="detail-label">所属一级代理</div>
+                        <div class="detail-value">{{ accountInfo.B.name }} ({{ accountInfo.B.uid }})</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">团队用户返佣贡献明细（D提供给C的返佣）</div>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>用户名</th>
+                                    <th>UID</th>
+                                    <th class="text-right">交易额</th>
+                                    <th class="text-right">NGR返佣基数</th>
+                                    <th class="text-right">NGR返佣金额</th>
+                                    <th class="text-right">UD返佣基数</th>
+                                    <th class="text-right">UD返佣金额</th>
+                                    <th class="text-right">总返佣</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="user in cTeamContributions" :key="user.uid">
+                                    <td>{{ user.username }}</td>
+                                    <td class="text-blue">{{ user.uid }}</td>
+                                    <td class="text-right">${{ formatNumber(user.volume) }}</td>
+                                    <td class="text-right">${{ formatNumber(user.ngrBase) }}</td>
+                                    <td class="text-right text-green">${{ formatNumber(user.ngrCommission) }}</td>
+                                    <td class="text-right">${{ formatNumber(user.udBase) }}</td>
+                                    <td class="text-right text-green">${{ formatNumber(user.udCommission) }}</td>
+                                    <td class="text-right text-green">${{ formatNumber(user.totalCommission) }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">返佣历史记录</div>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>期数</th>
+                                    <th>时间范围</th>
+                                    <th class="text-right">NGR返佣</th>
+                                    <th class="text-right">UD返佣</th>
+                                    <th class="text-right">总返佣</th>
+                                    <th>状态</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="record in cCommissionHistory" :key="record.period">
+                                    <td>{{ record.period }}</td>
+                                    <td>{{ record.dateRange }}</td>
+                                    <td class="text-right text-green">${{ formatNumber(record.ngr) }}</td>
+                                    <td class="text-right text-green">${{ formatNumber(record.ud) }}</td>
+                                    <td class="text-right text-green">${{ formatNumber(record.total) }}</td>
+                                    <td><span class="tag tag-green">{{ record.status }}</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========== D账号：普通用户（被C邀请） ========== -->
+            <div v-if="currentAccount === 'D'">
+                <div class="page-header">
+                    <h2>普通用户 - 平级邀请数据</h2>
+                </div>
+
+                <div class="stat-row">
+                    <div class="stat-item">
+                        <div class="stat-label">平级邀请用户数</div>
+                        <div class="stat-value blue">{{ dStats.invitedCount }}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">邀请用户总交易额</div>
+                        <div class="stat-value green">${{ formatNumber(dStats.invitedVolume) }}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">本期返佣收入</div>
+                        <div class="stat-value green">${{ formatNumber(dStats.currentCommission) }}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">累计返佣收入</div>
+                        <div class="stat-value blue">${{ formatNumber(dStats.totalCommission) }}</div>
+                    </div>
+                </div>
+
+                <div class="detail-grid">
+                    <div>
+                        <div class="detail-label">返佣比例</div>
+                        <div class="detail-value">{{ dConfig.commissionRate }}%</div>
+                    </div>
+                    <div>
+                        <div class="detail-label">邀请人（上级二级代理）</div>
+                        <div class="detail-value">{{ accountInfo.C.name }} ({{ accountInfo.C.uid }})</div>
+                    </div>
+                    <div>
+                        <div class="detail-label">注册时间</div>
+                        <div class="detail-value">{{ dConfig.registerTime }}</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">平级邀请用户列表（E账号）</div>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>用户名</th>
+                                    <th>UID</th>
+                                    <th>注册时间</th>
+                                    <th class="text-right">交易额</th>
+                                    <th class="text-right">返佣基数</th>
+                                    <th class="text-right">返佣金额</th>
+                                    <th>状态</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="user in dInvitedUsers" :key="user.uid">
+                                    <td>{{ user.username }}</td>
+                                    <td class="text-blue">{{ user.uid }}</td>
+                                    <td>{{ user.registerTime }}</td>
+                                    <td class="text-right">${{ formatNumber(user.volume) }}</td>
+                                    <td class="text-right">${{ formatNumber(user.commissionBase) }}</td>
+                                    <td class="text-right text-green">${{ formatNumber(user.commission) }}</td>
+                                    <td><span class="tag tag-green">活跃</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">返佣历史记录</div>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>期数</th>
+                                    <th>时间范围</th>
+                                    <th class="text-right">返佣金额</th>
+                                    <th>状态</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="record in dCommissionHistory" :key="record.period">
+                                    <td>{{ record.period }}</td>
+                                    <td>{{ record.dateRange }}</td>
+                                    <td class="text-right text-green">${{ formatNumber(record.commission) }}</td>
+                                    <td><span class="tag tag-green">{{ record.status }}</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========== E账号：普通用户（被D邀请，不归属A-D代理线） ========== -->
+            <div v-if="currentAccount === 'E'">
+                <div class="page-header">
+                    <h2>普通用户 - 个人数据</h2>
+                </div>
+
+                <div class="note">注：E账号由D账号邀请注册，不归属于A-D代理线下的用户</div>
+
+                <div class="stat-row" style="margin-top:16px;">
+                    <div class="stat-item">
+                        <div class="stat-label">账户余额</div>
+                        <div class="stat-value blue">${{ formatNumber(eStats.balance) }}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">累计充值</div>
+                        <div class="stat-value">${{ formatNumber(eStats.totalDeposit) }}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">累计提现</div>
+                        <div class="stat-value">${{ formatNumber(eStats.totalWithdraw) }}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">累计交易额</div>
+                        <div class="stat-value green">${{ formatNumber(eStats.totalVolume) }}</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">累计盈亏</div>
+                        <div class="stat-value" :class="eStats.totalProfit >= 0 ? 'text-green' : 'text-red'">${{ formatNumber(eStats.totalProfit) }}</div>
+                    </div>
+                </div>
+
+                <div class="detail-grid">
+                    <div>
+                        <div class="detail-label">用户名</div>
+                        <div class="detail-value">{{ accountInfo.E.name }}</div>
+                    </div>
+                    <div>
+                        <div class="detail-label">UID</div>
+                        <div class="detail-value">{{ accountInfo.E.uid }}</div>
+                    </div>
+                    <div>
+                        <div class="detail-label">注册时间</div>
+                        <div class="detail-value">{{ eConfig.registerTime }}</div>
+                    </div>
+                    <div>
+                        <div class="detail-label">邀请人</div>
+                        <div class="detail-value">{{ accountInfo.D.name }} ({{ accountInfo.D.uid }})</div>
+                    </div>
+                    <div>
+                        <div class="detail-label">代理线归属</div>
+                        <div class="detail-value"><span class="tag tag-gray">无代理线</span></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">交易记录</div>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>交易时间</th>
+                                    <th>交易类型</th>
+                                    <th>交易品种</th>
+                                    <th class="text-right">交易金额</th>
+                                    <th class="text-right">盈亏</th>
+                                    <th>状态</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="trade in eTradeHistory" :key="trade.id">
+                                    <td>{{ trade.time }}</td>
+                                    <td><span class="tag tag-blue">{{ trade.type }}</span></td>
+                                    <td>{{ trade.product }}</td>
+                                    <td class="text-right">${{ formatNumber(trade.amount) }}</td>
+                                    <td class="text-right" :class="trade.profit >= 0 ? 'text-green' : 'text-red'">${{ formatNumber(trade.profit) }}</td>
+                                    <td><span class="tag tag-green">{{ trade.status }}</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">充值提现记录</div>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>时间</th>
+                                    <th>类型</th>
+                                    <th class="text-right">金额</th>
+                                    <th>状态</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="record in eDepositWithdraw" :key="record.id">
+                                    <td>{{ record.time }}</td>
+                                    <td><span class="tag" :class="record.type === '充值' ? 'tag-green' : 'tag-orange'">{{ record.type }}</span></td>
+                                    <td class="text-right">${{ formatNumber(record.amount) }}</td>
+                                    <td><span class="tag tag-green">{{ record.status }}</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, computed } = Vue;
+
+        createApp({
+            setup() {
+                const accountInfo = ref({
+                    A: { name: '商务A', uid: 'A10001', role: '商务角色' },
+                    B: { name: '代理B', uid: 'B20001', role: '一级代理' },
+                    C: { name: '代理C', uid: 'C30001', role: '二级代理' },
+                    D: { name: '用户D', uid: 'D40001', role: '普通用户' },
+                    E: { name: '用户E', uid: 'E50001', role: '普通用户' }
+                });
+
+                const currentAccount = ref('A');
+
+                // ========== A账号数据 ==========
+                const aStats = ref({
+                    tier1Count: 1, tier2Count: 1, totalUsers: 2,
+                    totalVolume: 1250000, ngrProfit: 45000, pplProfit: 12000,
+                    udProfit: 28000, totalCommission: 18500
+                });
+
+                const aFilter = ref({ tier1Uid: '' });
+
+                const tier1List = ref([
+                    {
+                        uid: 'B20001', username: '代理B', tier2Count: 1, teamUsers: 2,
+                        ngrCommission: 8500, pplCommission: 2200, udCommission: 7800, totalCommission: 18500
+                    }
+                ]);
+
+                const filteredTier1List = computed(() => {
+                    if (!aFilter.value.tier1Uid) return tier1List.value;
+                    return tier1List.value.filter(t1 => t1.uid.includes(aFilter.value.tier1Uid));
+                });
+
+                const searchTier1 = () => {};
+                const viewTier1Detail = (t1) => { currentAccount.value = 'B'; };
+
+                // ========== B账号数据 ==========
+                const bStats = ref({
+                    currentNgr: 8500, currentPpl: 2200, currentUd: 7800,
+                    currentTotal: 18500, totalCommission: 185000
+                });
+
+                const bConfig = ref({ ngrRate: 15, pplRate: 0.5, udRate: 30 });
+
+                const bTier2Contributions = ref([
+                    {
+                        uid: 'C30001', username: '代理C', teamUsers: 1,
+                        ngrBase: 56666, ngrCommission: 8500,
+                        pplBase: 440000, pplCommission: 2200,
+                        udBase: 26000, udCommission: 7800,
+                        totalCommission: 18500
+                    }
+                ]);
+
+                const bCommissionHistory = ref([
+                    { period: '2024-W24', dateRange: '2024-06-10 至 2024-06-16', ngr: 8500, ppl: 2200, ud: 7800, total: 18500, status: '已结算' },
+                    { period: '2024-W23', dateRange: '2024-06-03 至 2024-06-09', ngr: 7200, ppl: 1800, ud: 6500, total: 15500, status: '已结算' },
+                    { period: '2024-W22', dateRange: '2024-05-27 至 2024-06-02', ngr: 9100, ppl: 2400, ud: 8200, total: 19700, status: '已结算' }
+                ]);
+
+                // ========== C账号数据 ==========
+                const cStats = ref({
+                    currentNgr: 5600, currentPpl: 0, currentUd: 4200,
+                    currentTotal: 9800, totalCommission: 98000
+                });
+
+                const cConfig = ref({ inheritMode: 'NGR', inheritRate: 10, udRate: 20 });
+
+                const cTeamContributions = ref([
+                    {
+                        uid: 'D40001', username: '用户D', volume: 125000,
+                        ngrBase: 56000, ngrCommission: 5600,
+                        udBase: 21000, udCommission: 4200,
+                        totalCommission: 9800
+                    }
+                ]);
+
+                const cCommissionHistory = ref([
+                    { period: '2024-W24', dateRange: '2024-06-10 至 2024-06-16', ngr: 5600, ud: 4200, total: 9800, status: '已结算' },
+                    { period: '2024-W23', dateRange: '2024-06-03 至 2024-06-09', ngr: 4800, ud: 3600, total: 8400, status: '已结算' },
+                    { period: '2024-W22', dateRange: '2024-05-27 至 2024-06-02', ngr: 6200, ud: 4650, total: 10850, status: '已结算' }
+                ]);
+
+                // ========== D账号数据 ==========
+                const dStats = ref({
+                    invitedCount: 1, invitedVolume: 85000,
+                    currentCommission: 2550, totalCommission: 25500
+                });
+
+                const dConfig = ref({ commissionRate: 3, registerTime: '2024-03-15 14:30:00' });
+
+                const dInvitedUsers = ref([
+                    {
+                        uid: 'E50001', username: '用户E', registerTime: '2024-04-20 10:15:00',
+                        volume: 85000, commissionBase: 85000, commission: 2550
+                    }
+                ]);
+
+                const dCommissionHistory = ref([
+                    { period: '2024-W24', dateRange: '2024-06-10 至 2024-06-16', commission: 2550, status: '已结算' },
+                    { period: '2024-W23', dateRange: '2024-06-03 至 2024-06-09', commission: 2100, status: '已结算' },
+                    { period: '2024-W22', dateRange: '2024-05-27 至 2024-06-02', commission: 2800, status: '已结算' }
+                ]);
+
+                // ========== E账号数据 ==========
+                const eStats = ref({
+                    balance: 12500, totalDeposit: 50000, totalWithdraw: 37500,
+                    totalVolume: 85000, totalProfit: 3200
+                });
+
+                const eConfig = ref({ registerTime: '2024-04-20 10:15:00' });
+
+                const eTradeHistory = ref([
+                    { id: 1, time: '2024-06-15 14:30:00', type: 'Futures', product: 'BTC/USDT', amount: 5000, profit: 320, status: '已完成' },
+                    { id: 2, time: '2024-06-14 10:15:00', type: 'HighLow', product: 'ETH/USDT', amount: 3000, profit: -150, status: '已完成' },
+                    { id: 3, time: '2024-06-13 16:45:00', type: 'Spread', product: 'BTC/USDT', amount: 8000, profit: 580, status: '已完成' },
+                    { id: 4, time: '2024-06-12 09:20:00', type: 'Futures', product: 'SOL/USDT', amount: 2000, profit: 120, status: '已完成' }
+                ]);
+
+                const eDepositWithdraw = ref([
+                    { id: 1, time: '2024-06-10 11:00:00', type: '充值', amount: 10000, status: '成功' },
+                    { id: 2, time: '2024-06-08 15:30:00', type: '提现', amount: 5000, status: '成功' },
+                    { id: 3, time: '2024-06-05 09:45:00', type: '充值', amount: 20000, status: '成功' },
+                    { id: 4, time: '2024-06-01 14:20:00', type: '提现', amount: 8000, status: '成功' }
+                ]);
+
+                const formatNumber = (num) => {
+                    if (num === null || num === undefined) return '0';
+                    return Number(num).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                };
+
+                return {
+                    accountInfo, currentAccount,
+                    aStats, aFilter, tier1List, filteredTier1List, searchTier1, viewTier1Detail,
+                    bStats, bConfig, bTier2Contributions, bCommissionHistory,
+                    cStats, cConfig, cTeamContributions, cCommissionHistory,
+                    dStats, dConfig, dInvitedUsers, dCommissionHistory,
+                    eStats, eConfig, eTradeHistory, eDepositWithdraw,
+                    formatNumber
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

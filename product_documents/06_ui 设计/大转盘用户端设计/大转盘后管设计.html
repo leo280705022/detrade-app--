@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>运营活动配置后台</title>
+    <!-- Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Element Plus -->
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css" />
+    <script src="https://unpkg.com/element-plus"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Icons -->
+    <script src="https://unpkg.com/@element-plus/icons-vue"></script>
+    <style>
+        .el-menu { border-right: none !important; }
+        .el-sub-menu__title { padding-left: 20px !important; }
+        .el-menu > .el-menu-item { padding-left: 20px !important; }
+        .el-sub-menu .el-menu-item {
+            padding-left: 64px !important;
+            background-color: #000c17 !important;
+            min-width: 200px;
+        }
+        .el-sub-menu .el-menu-item:hover {
+            background-color: #001529 !important;
+            color: #fff !important;
+        }
+        .el-sub-menu .el-menu-item.is-active:hover { background-color: #1890ff !important; }
+        .el-menu-item.is-active {
+            background-color: #1890ff !important;
+            color: #fff !important;
+        }
+        .wheel-container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 10px solid #fcd34d;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            transition: transform 0.5s ease-out;
+        }
+        .wheel-segment {
+            position: absolute;
+            top: 0; left: 50%; width: 50%; height: 50%;
+            transform-origin: 0% 100%;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 12px; color: #fff;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+        .wheel-pointer {
+            position: absolute; top: -20px; left: 50%; transform: translateX(-50%);
+            width: 40px; height: 60px; background: #ef4444;
+            clip-path: polygon(50% 100%, 0 0, 100% 0); z-index: 10;
+        }
+        .wheel-center {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 60px; height: 60px; background: #fcd34d;
+            border-radius: 50%; z-index: 5;
+            display: flex; justify-content: center; align-items: center;
+            font-weight: bold; color: #78350f; cursor: pointer;
+        }
+        [v-cloak] { display: none; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <div id="app" v-cloak class="min-h-screen flex">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-[#001529] text-white flex-shrink-0 flex flex-col">
+            <div class="h-16 flex items-center justify-center border-b border-gray-700">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 bg-gradient-to-tr from-blue-500 to-purple-600 rounded flex items-center justify-center font-bold text-lg">D</div>
+                    <span class="text-xl font-bold tracking-wide">Detrade</span>
+                <!-- Modal: List Config (Whitelist & Blacklist) -->
+    <el-dialog v-model="listConfigVisible" title="名单配置" width="700px" top="10vh">
+        <div class="px-4">
+            <el-tabs v-model="activeListTab">
+                <el-tab-pane label="必中白名单" name="whitelist">
+                    <div class="mb-4 text-sm text-gray-500">配置白名单后，对应用户在抽奖时必中指定奖品。</div>
+                    <div v-for="(rule, idx) in listForm.whitelistRules" :key="idx" class="flex gap-2 mb-3 w-full">
+                        <el-input v-model="rule.uid" placeholder="用户UID" class="w-1/3"></el-input>
+                        <el-select v-model="rule.prizeId" placeholder="选择必中奖品" class="w-1/3">
+                            <el-option v-for="(p, pi) in listForm.prizes" :key="pi" :label="p.name || '未命名奖品'" :value="pi"></el-option>
+                        </el-select>
+                        <el-button type="danger" circle @click="listForm.whitelistRules.splice(idx, 1)"><el-icon><el-icon-minus /></el-icon></el-button>
+                    </div>
+                    <el-button type="primary" plain size="small" @click="listForm.whitelistRules.push({uid:'', prizeId:null})">+ 添加白名单规则</el-button>
+                </el-tab-pane>
+                
+                <el-tab-pane label="必不中黑名单" name="blacklist">
+                    <div class="mb-4 text-sm text-gray-500">配置黑名单后，对应用户在抽奖时强制不中奖（谢谢惠顾）。</div>
+                    <div v-for="(uid, idx) in listForm.blacklist" :key="idx" class="flex gap-2 mb-3 w-full">
+                        <el-input v-model="listForm.blacklist[idx]" placeholder="用户UID" class="w-1/3"></el-input>
+                        <el-button type="danger" circle @click="listForm.blacklist.splice(idx, 1)"><el-icon><el-icon-minus /></el-icon></el-button>
+                    </div>
+                    <el-button type="danger" plain size="small" @click="listForm.blacklist.push('')">+ 添加黑名单用户</el-button>
+                </el-tab-pane>
+            </el-tabs>
+        </div>
+        <template #footer>
+            <el-button @click="listConfigVisible = false">取消</el-button>
+            <el-button type="primary" @click="saveListConfig">保存配置</el-button>
+        </template>
+    </el-dialog>
+
+    </div>
+            </div>
+            
+            <el-scrollbar class="flex-1">
+                <el-menu
+                    :default-active="currentMainView"
+                    background-color="#001529"
+                    text-color="#fff"
+                    active-text-color="#409EFF"
+                    class="border-r-0"
+                    :unique-opened="true"
+                >
+                    <!-- Operations Dashboard -->
+                    <el-sub-menu index="1">
+                        <template #title>
+                            <el-icon><el-icon-data-board /></el-icon>
+                            <span>运营看板</span>
+                        </template>
+                        <el-menu-item index="1-1">数据概览</el-menu-item>
+                    </el-sub-menu>
+
+                    <!-- Reserve Overview -->
+                    <el-menu-item index="2">
+                        <el-icon><el-icon-wallet /></el-icon>
+                        <span>备用金概览</span>
+                    </el-menu-item>
+
+                    <!-- Coin Management -->
+                    <el-sub-menu index="3">
+                        <template #title>
+                            <el-icon><el-icon-coin /></el-icon>
+                            <span>币管理</span>
+                        </template>
+                        <el-menu-item index="3-1">币种列表</el-menu-item>
+                    </el-sub-menu>
+
+                    <!-- Gameplay Management -->
+                    <el-sub-menu index="4">
+                        <template #title>
+                            <el-icon><el-icon-controller /></el-icon>
+                            <span>玩法管理</span>
+                        </template>
+                        <el-menu-item index="4-1">合约配置</el-menu-item>
+                    </el-sub-menu>
+
+                    <!-- Flow Records -->
+                    <el-sub-menu index="5">
+                        <template #title>
+                            <el-icon><el-icon-document /></el-icon>
+                            <span>流水记录</span>
+                        </template>
+                        <el-menu-item index="5-1">资金流水</el-menu-item>
+                    </el-sub-menu>
+
+                    <!-- I18n -->
+                    <el-sub-menu index="6">
+                        <template #title>
+                            <el-icon><el-icon-globe /></el-icon>
+                            <span>国际化管理</span>
+                        </template>
+                        <el-menu-item index="6-1">多语言配置</el-menu-item>
+                    </el-sub-menu>
+
+                    <!-- Message Management -->
+                    <el-sub-menu index="7">
+                        <template #title>
+                            <el-icon><el-icon-message /></el-icon>
+                            <span>消息管理</span>
+                        </template>
+                        <el-menu-item index="7-1">站内信</el-menu-item>
+                    </el-sub-menu>
+
+                    <!-- Popups -->
+                    <el-menu-item index="8">
+                        <el-icon><el-icon-bell /></el-icon>
+                        <span>弹窗管理</span>
+                    </el-menu-item>
+
+                    <!-- Resident -->
+                    <el-menu-item index="9">
+                        <el-icon><el-icon-menu /></el-icon>
+                        <span>常驻管理</span>
+                    </el-menu-item>
+
+                    <!-- Chat -->
+                    <el-sub-menu index="10">
+                        <template #title>
+                            <el-icon><el-icon-chat-dot-square /></el-icon>
+                            <span>聊天管理</span>
+                        </template>
+                        <el-menu-item index="10-1">聊天室监控</el-menu-item>
+                    </el-sub-menu>
+
+                    <!-- Activity Management (Expanded) -->
+                    <el-sub-menu index="activity">
+                        <template #title>
+                            <el-icon><el-icon-present /></el-icon>
+                            <span>活动管理</span>
+                        </template>
+                        <el-menu-item index="reward-manage">发奖管理</el-menu-item>
+                        <el-menu-item index="activity-config">活动配置</el-menu-item>
+                        <el-menu-item index="task-config" @click="currentMainView = 'task-config'">任务配置</el-menu-item>
+                        <el-menu-item index="lucky-wheel" @click="currentMainView = 'lucky-wheel'">幸运大转盘配置</el-menu-item>
+                        <el-menu-item index="coupon-config">优惠券配置</el-menu-item>
+                        <el-menu-item index="tg-invite">TG邀请配置</el-menu-item>
+                    </el-sub-menu>
+
+                    <!-- User Management -->
+                    <el-sub-menu index="12">
+                        <template #title>
+                            <el-icon><el-icon-user /></el-icon>
+                            <span>用户管理</span>
+                        </template>
+                        <el-menu-item index="12-1">用户列表</el-menu-item>
+                    </el-sub-menu>
+
+                    <!-- System Management -->
+                    <el-sub-menu index="13">
+                        <template #title>
+                            <el-icon><el-icon-setting /></el-icon>
+                            <span>系统管理</span>
+                        </template>
+                        <el-menu-item index="13-1">角色权限</el-menu-item>
+                    </el-sub-menu>
+
+                    <!-- Risk Management -->
+                    <el-sub-menu index="14">
+                        <template #title>
+                            <el-icon><el-icon-lock /></el-icon>
+                            <span>风控管理</span>
+                        </template>
+                        <el-menu-item index="14-1">风控规则</el-menu-item>
+                    </el-sub-menu>
+
+                    <!-- Agency Center -->
+                    <el-sub-menu index="15">
+                        <template #title>
+                            <el-icon><el-icon-share /></el-icon>
+                            <span>代理中心</span>
+                        </template>
+                        <el-menu-item index="15-1">代理列表</el-menu-item>
+                    </el-sub-menu>
+                </el-menu>
+            </el-scrollbar>
+        </aside>
+
+        <!-- Main Layout -->
+        <div class="flex-1 flex flex-col min-w-0 bg-gray-50">
+            <!-- Header -->
+            <header class="bg-white shadow-sm sticky top-0 z-50 h-16 flex items-center justify-between px-6">
+                <div class="flex items-center">
+                    <h1 class="text-xl font-bold text-gray-900">{{ getPageTitle }}</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2 ml-4">
+                        <el-avatar size="small" src="https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png"></el-avatar>
+                        <span class="text-sm text-gray-700">Admin</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Main Content -->
+            <main class="flex-1 overflow-y-auto p-6">
+                
+                <!-- VIEW 1: TASK CONFIGURATION -->
+                <div v-if="currentMainView === 'task-config'" class="space-y-4">
+                    <!-- Filter -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="grid grid-cols-4 gap-4 mb-4">
+                            <div class="flex items-center">
+                                <span class="w-20 text-sm text-gray-600 text-right mr-2">任务ID:</span>
+                                <el-input v-model="taskFilter.id" placeholder="请输入任务ID" clearable size="default"></el-input>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="w-20 text-sm text-gray-600 text-right mr-2">任务名称:</span>
+                                <el-input v-model="taskFilter.name" placeholder="请输入任务名称" clearable size="default"></el-input>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="w-20 text-sm text-gray-600 text-right mr-2">任务分类:</span>
+                                <el-select v-model="taskFilter.category" placeholder="请选择任务分类" clearable size="default" class="w-full">
+                                    <el-option label="新手任务" value="newbie"></el-option>
+                                    <el-option label="日常任务" value="daily"></el-option>
+                                    <el-option label="活动任务" value="activity"></el-option>
+                                </el-select>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="w-20 text-sm text-gray-600 text-right mr-2">任务类型:</span>
+                                <el-select v-model="taskFilter.type" placeholder="请选择任务类型" clearable size="default" class="w-full">
+                                    <el-option label="注册" value="register"></el-option>
+                                    <el-option label="充值" value="deposit"></el-option>
+                                    <el-option label="交易" value="trade"></el-option>
+                                </el-select>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center w-1/4 pr-4">
+                                <span class="w-20 text-sm text-gray-600 text-right mr-2">任务状态:</span>
+                                <el-select v-model="taskFilter.status" placeholder="请选择任务状态" clearable size="default" class="w-full">
+                                    <el-option label="进行中" value="active"></el-option>
+                                    <el-option label="暂停中" value="paused"></el-option>
+                                </el-select>
+                            </div>
+                            <div class="flex space-x-2">
+                                <el-button type="primary" @click="searchTasks">查询</el-button>
+                                <el-button @click="resetTaskFilter">重置</el-button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Task List -->
+                    <div class="bg-white rounded-lg shadow">
+                        <div class="p-4 flex justify-end items-center border-b">
+                            <el-button type="primary" @click="openCreateTaskModal">
+                                添加任务
+                            </el-button>
+                        </div>
+                        <el-table :data="taskList" style="width: 100%">
+                            <el-table-column prop="id" label="ID" width="80"></el-table-column>
+                            <el-table-column prop="module" label="模块" width="80"></el-table-column>
+                            <el-table-column prop="name" label="任务名称" min-width="150"></el-table-column>
+                            <el-table-column prop="category" label="任务分类" width="100"></el-table-column>
+                            <el-table-column prop="type" label="任务类型" width="120"></el-table-column>
+                            <el-table-column label="开始时间" width="180">
+                                <template #default="{ row }">
+                                    <div class="text-xs">{{ row.startTime }} (UTC +0)</div>
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="结束时间" width="180">
+                                <template #default="{ row }">
+                                    <div class="text-xs">{{ row.endTime }} (UTC +0)</div>
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="是否推荐" width="100">
+                                <template #default="{ row }">
+                                    {{ row.recommend ? '是' : '否' }}
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="上架状态" width="100">
+                                <template #default="{ row }">
+                                    {{ row.active ? '上架' : '下架' }}
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="状态" width="100">
+                                <template #default="{ row }">
+                                    {{ row.status === 'active' ? '进行中' : '暂停中' }}
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="budget" label="预算" width="150" align="right"></el-table-column>
+                            <el-table-column prop="rewardCurrency" label="币种" width="100"></el-table-column>
+                            <el-table-column label="操作" width="150" fixed="right">
+                                <template #default="{ row }">
+                                    <el-button link type="primary" size="small">编辑</el-button>
+                                    <el-button link type="primary" size="small" @click="viewTaskDetail(row)">详情</el-button>
+                                    <el-dropdown trigger="click">
+                                        <span class="el-dropdown-link text-blue-600 text-xs ml-2 cursor-pointer">
+                                            ...
+                                        </span>
+                                        <template #dropdown>
+                                            <el-dropdown-menu>
+                                                <el-dropdown-item>下架</el-dropdown-item>
+                                                <el-dropdown-item class="text-red-500" @click="handleDeleteTask(row)">删除</el-dropdown-item>
+                                            </el-dropdown-menu>
+                                        </template>
+                                    </el-dropdown>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                        <div class="p-4 flex justify-end">
+                            <el-pagination background layout="prev, pager, next" :total="100"></el-pagination>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VIEW 2: LUCKY WHEEL CONFIGURATION -->
+                <div v-if="currentMainView === 'lucky-wheel'" class="space-y-4">
+                     <!-- Wheel Filter (Matches Task Filter Style) -->
+                     <div class="bg-white rounded-lg shadow p-6">
+                        <div class="grid grid-cols-4 gap-4 mb-4">
+                            <div class="flex items-center">
+                                <span class="w-20 text-sm text-gray-600 text-right mr-2">转盘ID:</span>
+                                <el-input v-model="wheelFilter.id" placeholder="请输入转盘ID" clearable size="default"></el-input>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="w-20 text-sm text-gray-600 text-right mr-2">转盘名称:</span>
+                                <el-input v-model="wheelFilter.name" placeholder="请输入转盘名称" clearable size="default"></el-input>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="w-20 text-sm text-gray-600 text-right mr-2">状态:</span>
+                                <el-select v-model="wheelFilter.status" placeholder="请选择状态" clearable size="default" class="w-full">
+                                    <el-option label="开启" value="active"></el-option>
+                                    <el-option label="关闭" value="inactive"></el-option>
+                                </el-select>
+                            </div>
+                        </div>
+                        <div class="flex justify-end items-center">
+                            <div class="flex space-x-2">
+                                <el-button type="primary" @click="searchWheels">查询</el-button>
+                                <el-button @click="resetWheelFilter">重置</el-button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow">
+                        <div class="p-6 border-b flex justify-end items-center">
+                            <el-button type="primary" @click="createNewWheel">
+                                <el-icon class="mr-1"><el-icon-plus /></el-icon> 新建转盘
+                            </el-button>
+                        </div>
+
+                        <el-table :data="filteredWheels" style="width: 100%" stripe>
+                            <el-table-column prop="id" label="ID" width="80" align="center"></el-table-column>
+                            <el-table-column prop="name" label="转盘名称" min-width="180"></el-table-column>
+                            <el-table-column prop="createTime" label="创建时间" width="180"></el-table-column>
+                            <el-table-column label="关联任务数" width="120" align="center">
+                                <template #default="{ row }">
+                                    <el-popover placement="top" width="300" trigger="hover">
+                                        <template #reference>
+                                            <el-tag type="info" effect="plain" class="cursor-pointer">{{ row.linkedTasks }} 个</el-tag>
+                                        </template>
+                                        <div class="text-sm p-2">
+                                            <div class="font-bold mb-2">关联任务列表:</div>
+                                            <div class="text-gray-700 break-words">
+                                                {{ row.linkedTasksList && row.linkedTasksList.length > 0 
+                                                    ? row.linkedTasksList.map(t => `${t.id} ${t.name}`).join('; ') 
+                                                    : '暂无关联任务' 
+                                                }}
+                                            </div>
+                                        </div>
+                                    </el-popover>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="status" label="状态" width="100" align="center">
+                                <template #default="{ row }">
+                                    <el-switch v-model="row.status" active-value="active" inactive-value="inactive" size="small" />
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="数据统计" width="150">
+                                <template #default="{ row }">
+                                    <el-button link type="primary" @click="viewStats(row)">查看报表</el-button>
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="操作" width="250" align="right">
+                                <template #default="{ row }">
+                                    <el-button link type="primary" size="small" @click="editWheel(row)">配置</el-button>
+                                    <el-button link type="primary" size="small" @click="openListConfig(row)">名单配置</el-button>
+                                    <el-button link type="primary" size="small" @click="viewWinningRecords(row)">中奖记录</el-button>
+                                    <el-button link type="danger" size="small" @click="handleDeleteWheel(row)">删除</el-button>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+
+    <!-- MODAL: TASK CREATE/EDIT -->
+    <div id="task-modal-mount"></div> 
+    
+    <!-- Modal: Create Task -->
+    <el-dialog v-model="taskModalVisible" title="创建任务" width="1000px" top="5vh">
+        <div class="h-[70vh] overflow-y-auto px-4">
+            <el-form :model="taskForm" label-position="top">
+                <div class="grid grid-cols-2 gap-x-8 gap-y-4">
+                    <el-form-item label="任务分类">
+                        <el-select v-model="taskForm.category" placeholder="请选择任务分类" class="w-full">
+                            <el-option label="新手任务" value="newbie"></el-option>
+                            <el-option label="日常任务" value="daily"></el-option>
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item label="任务类型">
+                        <el-select v-model="taskForm.type" placeholder="请选择任务类型" class="w-full">
+                            <el-option label="注册" value="register"></el-option>
+                            <el-option label="充值" value="deposit"></el-option>
+                            <el-option label="交易" value="trade"></el-option>
+                        </el-select>
+                    </el-form-item>
+                </div>
+
+                <el-form-item label="任务Banner (1152*400)">
+                    <div class="w-32 h-32 border border-dashed border-gray-300 rounded flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 bg-gray-50">
+                        <el-icon class="text-xl text-gray-500 mb-1"><el-icon-plus /></el-icon>
+                        <span class="text-gray-500 text-xs">上传</span>
+                    </div>
+                </el-form-item>
+
+                <div class="grid grid-cols-2 gap-x-8 gap-y-4">
+                    <el-form-item label="任务预算">
+                        <el-input v-model="taskForm.budget" placeholder="请输入任务预算"></el-input>
+                    </el-form-item>
+                    <el-form-item label="任务时间" required>
+                        <el-date-picker 
+                            v-model="taskForm.dateRange" 
+                            type="daterange" 
+                            range-separator="→"
+                            start-placeholder="开始日期"
+                            end-placeholder="结束日期"
+                            class="w-full" 
+                        />
+                    </el-form-item>
+                </div>
+
+                <div class="grid grid-cols-2 gap-x-8 gap-y-4">
+                    <el-form-item label="奖励类型" class="col-span-2">
+                        <el-checkbox-group v-model="taskForm.rewardTypes">
+                            <el-checkbox label="usdt">USDT</el-checkbox>
+                            <el-checkbox label="point">积分</el-checkbox>
+                            <el-checkbox label="wheel">大转盘抽奖次数</el-checkbox>
+                        </el-checkbox-group>
+                    </el-form-item>
+                    
+                    <!-- Conditional Fields for Wheel -->
+                    <template v-if="taskForm.rewardTypes.includes('wheel')">
+                        <div class="col-span-2 grid grid-cols-2 gap-x-8 gap-y-4 bg-blue-50 p-4 rounded mb-4">
+                            <div class="col-span-2 font-bold text-sm text-blue-800 mb-2">大转盘配置</div>
+                            <el-form-item label="关联转盘" required>
+                                <el-select v-model="taskForm.linkedWheelId" placeholder="选择转盘活动" class="w-full">
+                                    <el-option v-for="w in wheelList" :key="w.id" :label="`${w.id} - ${w.name}`" :value="w.id"></el-option>
+                                </el-select>
+                            </el-form-item>
+                            <el-form-item label="奖励次数" required>
+                                <el-input-number v-model="taskForm.rewardCount" :min="1" class="w-full" controls-position="right"></el-input-number>
+                            </el-form-item>
+                        </div>
+                    </template>
+
+                    <!-- Conditional Fields for Currency -->
+                    <template v-if="taskForm.rewardTypes.includes('usdt')">
+                        <div class="col-span-2 grid grid-cols-2 gap-x-8 gap-y-4 bg-green-50 p-4 rounded mb-4">
+                            <div class="col-span-2 font-bold text-sm text-green-800 mb-2">USDT配置</div>
+                            <el-form-item label="奖励币种">
+                                <el-select v-model="taskForm.rewardCurrency" placeholder="请选择奖励币种" class="w-full" disabled>
+                                    <el-option label="USDT" value="USDT"></el-option>
+                                </el-select>
+                            </el-form-item>
+                            <el-form-item label="奖励金额">
+                                <el-input v-model="taskForm.rewardAmount" placeholder="请输入奖励金额"></el-input>
+                            </el-form-item>
+                        </div>
+                    </template>
+
+                    <template v-if="taskForm.rewardTypes.includes('point')">
+                        <div class="col-span-2 grid grid-cols-2 gap-x-8 gap-y-4 bg-yellow-50 p-4 rounded mb-4">
+                            <div class="col-span-2 font-bold text-sm text-yellow-800 mb-2">积分配置</div>
+                            <el-form-item label="奖励积分">
+                                <el-input v-model="taskForm.rewardPoints" placeholder="请输入积分数量"></el-input>
+                            </el-form-item>
+                        </div>
+                    </template>
+                </div>
+
+                <div class="grid grid-cols-2 gap-x-8 gap-y-4">
+                    <el-form-item label="立即上架">
+                        <el-switch v-model="taskForm.active" />
+                    </el-form-item>
+                    <el-form-item label="推荐">
+                        <el-switch v-model="taskForm.recommend" />
+                    </el-form-item>
+                </div>
+
+                <el-form-item label="任务外部链接 (内链示例:/trade-center;外链示例:https://www.baidu.com)" required>
+                    <el-input v-model="taskForm.link" placeholder="请输入任务外部链接"></el-input>
+                </el-form-item>
+
+                <el-form-item label="备注" required>
+                    <el-input type="textarea" v-model="taskForm.remark" rows="3" placeholder="请输入备注"></el-input>
+                </el-form-item>
+
+                <div class="mt-8 mb-4">
+                    <div class="text-base font-medium mb-4">多语言内容</div>
+                    <el-button class="mb-4" plain>
+                        <el-icon class="mr-1"><el-icon-globe /></el-icon> 一键翻译所有语言
+                    </el-button>
+                    
+                    <el-tabs v-model="activeLang" class="demo-tabs">
+                        <el-tab-pane label="英语" name="en"></el-tab-pane>
+                        <el-tab-pane label="简体中文" name="zh-cn"></el-tab-pane>
+                        <el-tab-pane label="繁体中文" name="zh-tw"></el-tab-pane>
+                        <el-tab-pane label="越南语" name="vi"></el-tab-pane>
+                        <el-tab-pane label="日语" name="ja"></el-tab-pane>
+                        <el-tab-pane label="阿拉伯语" name="ar"></el-tab-pane>
+                        <el-tab-pane label="孟加拉语" name="bn"></el-tab-pane>
+                        <el-tab-pane label="西班牙语" name="es"></el-tab-pane>
+                        <el-tab-pane label="波斯语" name="fa"></el-tab-pane>
+                        <el-tab-pane label="菲律宾语" name="tl"></el-tab-pane>
+                        <el-tab-pane label="法语" name="fr"></el-tab-pane>
+                        <el-tab-pane label="印地语" name="hi"></el-tab-pane>
+                    </el-tabs>
+
+                    <div class="grid grid-cols-3 gap-x-8 gap-y-4 mt-4">
+                        <el-form-item label="任务名称" required>
+                            <el-input v-model="taskForm.langName" placeholder="请输入任务名称"></el-input>
+                        </el-form-item>
+                        <el-form-item label="任务描述" required>
+                            <el-input v-model="taskForm.langDesc" placeholder="请输入任务描述"></el-input>
+                        </el-form-item>
+                        <el-form-item label="Banner标题(仅推荐勾选有效)">
+                            <el-input v-model="taskForm.langBannerTitle" placeholder="请输入Banner标题"></el-input>
+                        </el-form-item>
+                        <el-form-item label="Banner副标题(仅推荐勾选有效)">
+                            <el-input v-model="taskForm.langBannerSubtitle" placeholder="请输入Banner副标题"></el-input>
+                        </el-form-item>
+                    </div>
+                </div>
+            </el-form>
+        </div>
+        <template #footer>
+            <div class="flex justify-end pt-4 border-t">
+                <el-button @click="taskModalVisible = false">取消</el-button>
+                <el-button type="primary" @click="saveTask">确定</el-button>
+            </div>
+        </template>
+    </el-dialog>
+
+    <!-- Modal: Task Detail -->
+    <el-dialog v-model="taskDetailVisible" title="任务详情" width="1000px" top="5vh">
+        <div class="h-[70vh] overflow-y-auto px-4">
+            <el-descriptions :column="2" border v-if="currentTask">
+                <el-descriptions-item label="任务ID">{{ currentTask.id }}</el-descriptions-item>
+                <el-descriptions-item label="任务名称">{{ currentTask.name }}</el-descriptions-item>
+                
+                <el-descriptions-item label="任务分类">{{ currentTask.category }}</el-descriptions-item>
+                <el-descriptions-item label="任务类型">{{ currentTask.type }}</el-descriptions-item>
+                
+                <el-descriptions-item label="状态">
+                    <el-tag :type="currentTask.status === 'active' ? 'success' : 'info'">
+                        {{ currentTask.status === 'active' ? '进行中' : '暂停中' }}
+                    </el-tag>
+                </el-descriptions-item>
+                <el-descriptions-item label="开始时间">{{ currentTask.startTime }} (UTC +0)</el-descriptions-item>
+                
+                <el-descriptions-item label="结束时间">{{ currentTask.endTime }} (UTC +0)</el-descriptions-item>
+                <el-descriptions-item label="预算">{{ currentTask.budget }}</el-descriptions-item>
+                
+                <el-descriptions-item label="立即上架">{{ currentTask.active ? '是' : '否' }}</el-descriptions-item>
+                <el-descriptions-item label="推荐">{{ currentTask.recommend ? '是' : '否' }}</el-descriptions-item>
+                
+                <el-descriptions-item label="币种">{{ currentTask.rewardCurrency || '-' }}</el-descriptions-item>
+                <el-descriptions-item label="奖励类型">
+                    <template v-if="Array.isArray(currentTask.rewardTypes)">
+                        {{ currentTask.rewardTypes.join(', ') }}
+                    </template>
+                    <template v-else>
+                         {{ currentTask.rewardType === 'wheel' ? '大转盘抽奖次数' : '基础货币' }}
+                    </template>
+                </el-descriptions-item>
+                
+                <el-descriptions-item label="奖励内容" :span="2">
+                    <span v-if="currentTask.rewardType === 'wheel' || (Array.isArray(currentTask.rewardTypes) && currentTask.rewardTypes.includes('wheel'))" class="text-blue-600 font-bold mr-4">
+                        关联转盘 ID: {{ currentTask.linkedWheelId }} (赠送 {{ currentTask.rewardCount }} 次)
+                    </span>
+                    <span v-if="currentTask.rewardType === 'usdt' || (Array.isArray(currentTask.rewardTypes) && currentTask.rewardTypes.includes('usdt'))" class="font-bold">
+                        {{ currentTask.rewardAmount }} {{ currentTask.rewardCurrency }}
+                    </span>
+                </el-descriptions-item>
+                
+                <el-descriptions-item label="任务外部链接" :span="2">{{ currentTask.link || '/trade-center' }}</el-descriptions-item>
+                
+                <el-descriptions-item label="任务描述" :span="2">
+                    {{ currentTask.description || '详情请查看 by-wayfare' }}
+                </el-descriptions-item>
+                
+                <el-descriptions-item label="备注" :span="2">
+                    {{ currentTask.remark || '注册就有钱' }}
+                </el-descriptions-item>
+                
+                <el-descriptions-item label="任务Banner" :span="2">
+                    <img v-if="currentTask.banner" :src="currentTask.banner" alt="Task Banner" class="w-64 h-32 object-cover rounded border">
+                    <div v-else class="w-64 h-32 bg-gray-100 flex items-center justify-center text-gray-400 rounded border">暂无图片</div>
+                </el-descriptions-item>
+            </el-descriptions>
+        </div>
+    </el-dialog>
+
+    <el-dialog v-model="wheelModalVisible" :title="wheelForm.id ? '编辑转盘配置' : '新建转盘'" width="80%" top="5vh" destroy-on-close>
+        <div class="h-[70vh] overflow-y-auto px-4">
+            <el-steps :active="wheelStep" finish-status="success" simple class="mb-6 sticky top-0 bg-white z-10 py-2">
+                <el-step title="基础设置" icon="el-icon-setting"></el-step>
+                <el-step title="奖池配置" icon="el-icon-present"></el-step>
+            </el-steps>
+
+            <!-- Step 1 -->
+            <div v-show="wheelStep === 0" class="p-4">
+                <el-form :model="wheelForm" label-width="120px">
+                    <el-form-item label="转盘名称" required>
+                        <el-input v-model="wheelForm.name" placeholder="后台管理识别名称，如：2024春节奖池" :disabled="!!wheelForm.id && wheelForm.status === 'active'"></el-input>
+                    </el-form-item>
+                    <el-form-item label="转盘样式图">
+                        <div class="w-32 h-32 border border-dashed border-gray-300 rounded flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 bg-gray-50"
+                             :class="{'opacity-50 pointer-events-none': !!wheelForm.id && wheelForm.status === 'active'}">
+                            <el-icon class="text-xl text-gray-500 mb-1"><el-icon-plus /></el-icon>
+                            <span class="text-gray-500 text-xs">上传背景图</span>
+                        </div>
+                    </el-form-item>
+                    <el-form-item label="备注">
+                        <el-input type="textarea" v-model="wheelForm.remark" rows="3" :disabled="!!wheelForm.id && wheelForm.status === 'active'"></el-input>
+                    </el-form-item>
+                    <el-form-item label="状态">
+                        <el-switch v-model="wheelForm.status" active-value="active" inactive-value="inactive" active-text="开启" inactive-text="关闭" />
+                        <span v-if="!!wheelForm.id && wheelForm.status === 'active'" class="text-xs text-orange-500 ml-2"> (开启状态下仅允许修改配置状态)</span>
+                    </el-form-item>
+                    
+                    <el-divider content-position="left">风控配置</el-divider>
+
+                    <el-form-item label="单人总抽奖上限">
+                        <el-radio-group v-model="wheelForm.risk.userLimitType" class="mb-2" :disabled="!!wheelForm.id && wheelForm.status === 'active'">
+                            <el-radio label="unlimited">无限</el-radio>
+                            <el-radio label="limited">有限</el-radio>
+                        </el-radio-group>
+                        <el-input-number v-if="wheelForm.risk.userLimitType === 'limited'" v-model="wheelForm.risk.userMax" :min="1" class="ml-4" :disabled="!!wheelForm.id && wheelForm.status === 'active'"></el-input-number>
+                    </el-form-item>
+                    <el-form-item label="每日抽奖上限">
+                        <el-radio-group v-model="wheelForm.risk.dailyLimitType" class="mb-2" :disabled="!!wheelForm.id && wheelForm.status === 'active'">
+                            <el-radio label="unlimited">无限</el-radio>
+                            <el-radio label="limited">有限</el-radio>
+                        </el-radio-group>
+                        <el-input-number v-if="wheelForm.risk.dailyLimitType === 'limited'" v-model="wheelForm.risk.dailyMax" :min="1" class="ml-4" :disabled="!!wheelForm.id && wheelForm.status === 'active'"></el-input-number>
+                    </el-form-item>
+                </el-form>
+            </div>
+
+            <!-- Step 2 -->
+            <div v-show="wheelStep === 1" class="flex gap-6">
+                <!-- Config -->
+                <div class="w-full">
+                    <div class="flex justify-between mb-2">
+                        <span>格数: {{ wheelForm.prizes.length }}</span>
+                        <el-button size="small" @click="addPrize" :disabled="wheelForm.prizes.length >= 20 || (!!wheelForm.id && wheelForm.status === 'active')">添加奖品</el-button>
+                    </div>
+                    <el-table :data="wheelForm.prizes" size="small" border height="400px">
+                        <el-table-column type="index" width="50"></el-table-column>
+                        <el-table-column label="类型" width="110">
+                            <template #default="{ row }">
+                                <el-select v-model="row.type" size="small" :disabled="(!!wheelForm.id && wheelForm.status === 'active') || (!!wheelForm.id && wheelForm.status === 'inactive' && row._isExisting)">
+                                    <el-option label="实物" value="physical"></el-option>
+                                    <el-option label="奖励金" value="bonus"></el-option>
+                                    <el-option label="优惠券" value="coupon"></el-option>
+                                    <el-option label="谢谢惠顾" value="empty"></el-option>
+                                </el-select>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="名称" min-width="150">
+                            <template #default="{ row }">
+                                <div v-if="row.type === 'coupon'">
+                                    <el-select v-model="row.couponId" placeholder="选择优惠券" size="small" class="w-full" :disabled="(!!wheelForm.id && wheelForm.status === 'active') || (!!wheelForm.id && wheelForm.status === 'inactive' && row._isExisting)">
+                                        <el-option v-for="c in couponList" :key="c.id" :label="c.name" :value="c.id"></el-option>
+                                    </el-select>
+                                </div>
+                                <div v-else-if="row.type === 'physical'" class="flex items-center gap-2">
+                                     <div class="flex-shrink-0 w-8 h-8 border border-dashed border-gray-300 rounded flex items-center justify-center cursor-pointer hover:border-blue-500 bg-white transition-colors" 
+                                          :class="{'opacity-50 pointer-events-none': (!!wheelForm.id && wheelForm.status === 'active') || (!!wheelForm.id && wheelForm.status === 'inactive' && row._isExisting)}"
+                                          title="点击上传图片">
+                                         <el-icon class="text-gray-400"><el-icon-picture /></el-icon>
+                                     </div>
+                                     <el-input v-model="row.name" size="small" placeholder="请输入实物名称" :disabled="(!!wheelForm.id && wheelForm.status === 'active') || (!!wheelForm.id && wheelForm.status === 'inactive' && row._isExisting)"></el-input>
+                                </div>
+                                <el-input v-else v-model="row.name" size="small" placeholder="奖品名称" :disabled="(!!wheelForm.id && wheelForm.status === 'active') || (!!wheelForm.id && wheelForm.status === 'inactive' && row._isExisting)"></el-input>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="价值(U)" width="100">
+                            <template #default="{ row }">
+                                <el-input-number v-model="row.unitPrice" :min="0" :controls="false" size="small" class="w-full" :disabled="!!wheelForm.id && (wheelForm.status === 'active' || (wheelForm.status === 'inactive' && row._isExisting))"></el-input-number>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="库存(总/日)" width="140">
+                            <template #default="{ row }">
+                                <div class="flex items-center gap-1">
+                                    <el-input-number v-model="row.inventory" :min="0" :controls="false" size="small" class="w-1/2" placeholder="总" :disabled="!!wheelForm.id && (wheelForm.status === 'active' || (wheelForm.status === 'inactive' && row._isExisting))"></el-input-number>
+                                    <span class="text-gray-400">/</span>
+                                    <el-input-number v-model="row.dailyInventory" :min="0" :controls="false" size="small" class="w-1/2" placeholder="日" :disabled="!!wheelForm.id && (wheelForm.status === 'active' || (wheelForm.status === 'inactive' && row._isExisting))"></el-input-number>
+                                </div>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="概率(%)" width="100">
+                            <template #default="{ row }">
+                                <el-input-number v-model="row.probability" :min="0" :max="100" :precision="3" :controls="false" size="small" class="w-full" :disabled="!!wheelForm.id && wheelForm.status === 'active'"></el-input-number>
+                            </template>
+                        </el-table-column>
+                         <el-table-column label="累计总价" width="100" align="right">
+                             <template #default="{ row }">
+                                {{ ((row.unitPrice || 0) * (row.inventory || 0)).toFixed(2) }}
+                             </template>
+                        </el-table-column>
+                        <el-table-column width="50" align="center">
+                            <template #default="{ $index, row }">
+                                <el-button type="danger" link @click="removePrize($index)" :disabled="!!wheelForm.id && wheelForm.status === 'active'"><el-icon><el-icon-delete /></el-icon></el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                    <div class="mt-2 text-right text-sm">总概率: {{ totalProb }}%</div>
+                </div>
+            </div>
+
+
+        </div>
+        <template #footer>
+            <el-button @click="wheelStep--" :disabled="wheelStep === 0">上一步</el-button>
+            <el-button type="primary" @click="wheelStep++" v-if="wheelStep < 1">下一步</el-button>
+            <el-button type="success" @click="saveWheel" v-else>保存配置</el-button>
+        </template>
+    </el-dialog>
+
+    <!-- Modal: Stats -->
+    <el-dialog v-model="statsModalVisible" title="转盘数据报表" width="900px">
+        <div class="mb-6 grid grid-cols-3 gap-4">
+            <div class="bg-blue-50 p-4 rounded">
+                <div class="text-gray-500 text-sm">总抽奖次数</div>
+                <div class="text-2xl font-bold">45,920</div>
+            </div>
+            <div class="bg-green-50 p-4 rounded">
+                <div class="text-gray-500 text-sm">已发放金额</div>
+                <div class="text-2xl font-bold">12,450 U</div>
+            </div>
+            <div class="bg-purple-50 p-4 rounded">
+                <div class="text-gray-500 text-sm">产出奖品数</div>
+                <div class="text-2xl font-bold">15,200</div>
+            </div>
+        </div>
+        
+        <h4 class="font-bold mb-3 border-l-4 border-blue-500 pl-2">分活动/任务统计</h4>
+        <el-table :data="statsByTask" border stripe>
+            <el-table-column prop="taskName" label="来源活动(任务)"></el-table-column>
+            <el-table-column prop="taskId" label="来源ID" width="100"></el-table-column>
+            <el-table-column prop="count" label="贡献抽奖次数" width="150" align="right"></el-table-column>
+            <el-table-column prop="cost" label="消耗金额" width="150" align="right"></el-table-column>
+        </el-table>
+    </el-dialog>
+
+    <!-- Modal: Winning Records -->
+    <el-dialog v-model="winningRecordsVisible" :title="`${currentWheelName} - 中奖历史记录`" width="900px">
+        <div class="mb-4">
+            <div class="flex justify-between mb-4">
+                <div class="flex items-center space-x-4">
+                    <el-input v-model="winningFilter.uid" placeholder="用户UID" clearable size="small" style="width: 180px;"></el-input>
+                    <el-select v-model="winningFilter.status" placeholder="发放状态" clearable size="small" style="width: 120px;">
+                        <el-option label="已发放" value="delivered"></el-option>
+                        <el-option label="未发放" value="pending"></el-option>
+                    </el-select>
+                    <el-button type="primary" size="small" @click="searchWinningRecords">查询</el-button>
+                </div>
+            </div>
+            <el-table :data="winningRecords" border stripe style="width: 100%">
+                <el-table-column prop="id" label="记录ID" width="100"></el-table-column>
+                <el-table-column prop="uid" label="用户UID" width="150"></el-table-column>
+                <el-table-column prop="prizeName" label="奖品名称" min-width="180"></el-table-column>
+                <el-table-column prop="winTime" label="中奖时间" width="180"></el-table-column>
+                <el-table-column prop="status" label="发放状态" width="100">
+                    <template #default="{ row }">
+                        <el-tag :type="row.status === 'delivered' ? 'success' : 'warning'">
+                            {{ row.status === 'delivered' ? '已发放' : '未发放' }}
+                        </el-tag>
+                    </template>
+                </el-table-column>
+                <el-table-column label="操作" width="120" align="center">
+                    <template #default="{ row }">
+                        <el-button v-if="row.status === 'pending'" type="primary" size="small" @click="reissueReward(row)">补发奖励</el-button>
+                        <span v-else class="text-gray-400">已发放</span>
+                    </template>
+                </el-table-column>
+            </el-table>
+            <div class="mt-4 flex justify-end">
+                <el-pagination background layout="prev, pager, next" :total="1000"></el-pagination>
+            </div>
+        </div>
+    </el-dialog>
+
+    </div>
+    <script>
+        const { createApp, reactive, ref, computed } = Vue;
+        const { ElMessage, ElMessageBox } = ElementPlus;
+
+        const app = createApp({
+            setup() {
+                // State
+                const currentMainView = ref('task-config');
+                const taskModalVisible = ref(false);
+                const taskDetailVisible = ref(false);
+                const currentTask = ref(null);
+                const wheelModalVisible = ref(false);
+                const statsModalVisible = ref(false);
+                const winningRecordsVisible = ref(false);
+                const currentWheelName = ref('');
+                const wheelStep = ref(0);
+                const activeLang = ref('en');
+                const listConfigVisible = ref(false);
+                const activeListTab = ref('whitelist');
+                const listForm = reactive({
+                    id: null,
+                    prizes: [],
+                    whitelistRules: [],
+                    blacklist: []
+                });
+
+                // Mock Data
+                const couponList = ref([
+                    { id: 'C1001', name: '10% 手续费折扣券' },
+                    { id: 'C1002', name: '5 USDT 体验金券' },
+                    { id: 'C1003', name: '50% 包赔券' }
+                ]);
+
+                const wheelList = ref([
+                    { 
+                        id: 1001, name: '双11大转盘奖池', status: 'active', createTime: '2023-10-20', linkedTasks: 3, 
+                        linkedTasksList: [{id: 212, name: '交易赢大奖'}, {id: 211, name: '赚1000就好'}, {id: 215, name: '注册就有钱'}],
+                        prizes: [], risk: { whitelistRules: [] } 
+                    },
+                    { 
+                        id: 1002, name: '新手福利转盘', status: 'active', createTime: '2023-11-01', linkedTasks: 1, 
+                        linkedTasksList: [{id: 211, name: '赚1000就好'}],
+                        prizes: [], risk: { whitelistRules: [] } 
+                    },
+                    { 
+                        id: 1003, name: '春节预热 (草稿)', status: 'inactive', createTime: '2023-12-15', linkedTasks: 0, 
+                        linkedTasksList: [],
+                        prizes: [], risk: { whitelistRules: [] } 
+                    },
+                ]);
+
+                const taskList = ref([
+                    { 
+                        id: 215, module: '任务', name: '注册就有钱', category: '日常任务', type: '注册', 
+                        startTime: '2026-02-01 00:00:00', endTime: '2026-03-31 23:59:59', 
+                        recommend: false, active: true, status: 'active', budget: '1,000,000.00', 
+                        rewardType: 'usdt', rewardTypes: ['usdt'], rewardAmount: '10', rewardCurrency: 'USDT',
+                        link: '/trade-center', description: '详情请查看 by-wayfare', remark: '注册就有钱',
+                        banner: 'https://via.placeholder.com/300x150?text=Task+Banner'
+                    },
+                    { 
+                        id: 213, module: '任务', name: '100', category: '新手任务', type: '利润绝对值500', 
+                        startTime: '2026-01-14 00:00:00', endTime: '2028-02-12 23:59:59', 
+                        recommend: false, active: false, status: 'active', budget: '1,000', 
+                        rewardType: 'usdt', rewardTypes: ['usdt'], rewardAmount: '10', rewardCurrency: 'USDT',
+                        link: '', description: '', remark: '', banner: ''
+                    },
+                    { 
+                        id: 212, module: '任务', name: '交易赢大奖', category: '新手任务', type: '交易笔数(Up Down)', 
+                        startTime: '2026-02-01 00:00:00', endTime: '2028-03-11 23:59:59', 
+                        recommend: false, active: true, status: 'active', budget: '1,000', 
+                        rewardType: 'wheel', rewardTypes: ['wheel'], rewardCount: 1, linkedWheelId: 1001, rewardCurrency: 'USDC',
+                        link: '', description: '完成交易即可参与抽奖', remark: '新手福利', banner: ''
+                    },
+                    { 
+                        id: 211, module: '任务', name: '赚1000就好', category: '日常任务', type: '利润绝对值1000', 
+                        startTime: '2026-02-01 00:00:00', endTime: '2029-03-24 23:59:59', 
+                        recommend: false, active: true, status: 'active', budget: '100,000', 
+                        rewardType: 'wheel', rewardTypes: ['wheel'], rewardCount: 3, linkedWheelId: 1002, rewardCurrency: 'USDT',
+                        link: '', description: '', remark: '', banner: ''
+                    },
+                    { 
+                        id: 210, module: '任务', name: '安装pwa', category: '日常任务', type: 'PWA触发', 
+                        startTime: '2026-02-01 00:00:00', endTime: '2029-03-17 23:59:59', 
+                        recommend: false, active: true, status: 'active', budget: '100,000', 
+                        rewardType: 'usdt', rewardTypes: ['usdt'], rewardCurrency: 'USDT',
+                        link: '', description: '', remark: '', banner: ''
+                    },
+                ]);
+
+                const statsByTask = ref([
+                    { taskName: '交易赢大奖', taskId: 212, count: 12500, cost: '4,200 U' },
+                    { taskName: '周五狂欢', taskId: 208, count: 5000, cost: '1,100 U' },
+                ]);
+
+                const winningRecords = ref([
+                    { id: 10001, uid: 'USER123456', prizeName: '10 USDT', winTime: '2026-03-28 14:30:00', status: 'delivered' },
+                    { id: 10002, uid: 'USER789012', prizeName: '50积分', winTime: '2026-03-28 15:45:00', status: 'pending' },
+                    { id: 10003, uid: 'USER345678', prizeName: '谢谢惠顾', winTime: '2026-03-28 16:20:00', status: 'delivered' },
+                    { id: 10004, uid: 'USER901234', prizeName: '20 USDT', winTime: '2026-03-29 09:15:00', status: 'pending' },
+                    { id: 10005, uid: 'USER567890', prizeName: '10%手续费折扣券', winTime: '2026-03-29 10:30:00', status: 'delivered' },
+                ]);
+
+                // Forms
+                const taskFilter = reactive({ id: '', name: '', category: '', type: '', status: '' });
+                const wheelFilter = reactive({ id: '', name: '', status: '' });
+                const winningFilter = reactive({ uid: '', status: '' });
+                const taskForm = reactive({
+                    category: '', type: '', budget: '', dateRange: [],
+                    rewardTypes: ['usdt'], rewardCurrency: 'USDT', rewardAmount: '', rewardPoints: '',
+                    rewardCount: 1, linkedWheelId: null,
+                    active: false, recommend: false, link: '', remark: ''
+                });
+
+                const wheelForm = reactive({
+                    id: null, name: '', remark: '', status: 'active',
+                    prizes: Array.from({length: 8}, (_,i)=>({name:`奖品${i+1}`, probability:12.5, type:'empty', unitPrice: 0, inventory: 100, dailyInventory: 10})),
+                    risk: { 
+                        userLimitType: 'limited', userMax: 100, 
+                        dailyLimitType: 'limited', dailyMax: 10
+                    }
+                });
+
+                // Computed
+                const getPageTitle = computed(() => {
+                    return currentMainView.value === 'task-config' ? '任务配置' : '幸运大转盘配置';
+                });
+
+                const filteredWheels = computed(() => {
+                    return wheelList.value.filter(w => {
+                        const matchId = !wheelFilter.id || String(w.id).includes(wheelFilter.id);
+                        const matchName = !wheelFilter.name || w.name.includes(wheelFilter.name);
+                        const matchStatus = !wheelFilter.status || w.status === wheelFilter.status;
+                        return matchId && matchName && matchStatus;
+                    });
+                });
+                
+                const totalProb = computed(() => wheelForm.prizes.reduce((s,p)=>s+(p.probability||0), 0));
+
+                // Actions
+                const openCreateTaskModal = () => {
+                    Object.assign(taskForm, { category: '', type: '', rewardTypes: ['usdt'], rewardCount: 1, linkedWheelId: null });
+                    taskModalVisible.value = true;
+                };
+
+                const viewTaskDetail = (row) => {
+                    currentTask.value = JSON.parse(JSON.stringify(row));
+                    taskDetailVisible.value = true;
+                };
+                
+                const handleDeleteTask = (row) => {
+                    ElMessageBox.confirm('确定要删除该任务吗？', '警告', {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                        type: 'warning'
+                    }).then(() => {
+                        taskList.value = taskList.value.filter(t => t.id !== row.id);
+                        ElMessage.success('删除成功');
+                    });
+                };
+
+                const saveTask = () => {
+                    if(taskForm.rewardTypes.includes('wheel') && !taskForm.linkedWheelId) {
+                        ElMessage.error('请选择关联的转盘');
+                        return;
+                    }
+                    taskList.value.unshift({
+                        id: 216 + Math.floor(Math.random()*100),
+                        module: '任务',
+                        name: '新创建任务',
+                        category: taskForm.category,
+                        type: taskForm.type,
+                        startTime: '2026-01-01', endTime: '2026-02-01',
+                        status: taskForm.active ? 'active' : 'paused',
+                        rewardType: taskForm.rewardTypes.includes('wheel') ? 'wheel' : 'usdt', // legacy support
+                        rewardTypes: [...taskForm.rewardTypes],
+                        rewardCount: taskForm.rewardCount,
+                        linkedWheelId: taskForm.linkedWheelId,
+                        rewardAmount: taskForm.rewardAmount,
+                        rewardCurrency: taskForm.rewardCurrency
+                    });
+                    taskModalVisible.value = false;
+                    ElMessage.success('任务创建成功');
+                };
+
+                const createNewWheel = () => {
+                    wheelStep.value = 0;
+                    Object.assign(wheelForm, { 
+                        id: null, name: '', remark: '', status: 'active',
+                        prizes: Array.from({length: 8}, (_,i)=>({name:`奖品${i+1}`, probability:12.5, type:'empty', unitPrice: 0, inventory: 100, dailyInventory: 10})),
+                        risk: { userLimitType: 'limited', userMax: 100, dailyLimitType: 'limited', dailyMax: 10 }
+                    });
+                    wheelModalVisible.value = true;
+                };
+
+                const editWheel = (row) => {
+                    wheelStep.value = 0;
+                    const data = JSON.parse(JSON.stringify(row));
+                    if(!data.risk) data.risk = { userLimitType: 'limited', userMax: 100, dailyLimitType: 'limited', dailyMax: 10 };
+                    
+                    if(data.prizes) {
+                        data.prizes.forEach(p => {
+                            if(p.unitPrice === undefined) p.unitPrice = 0;
+                            if(p.inventory === undefined) p.inventory = 100;
+                            if(p.dailyInventory === undefined) p.dailyInventory = 10;
+                            // Mark existing prizes so their type/name cannot be edited if wheel is inactive
+                            p._isExisting = true;
+                        });
+                    }
+
+                    Object.assign(wheelForm, data);
+                    if(!wheelForm.prizes || wheelForm.prizes.length === 0) {
+                         wheelForm.prizes = Array.from({length: 8}, (_,i)=>({name:`奖品${i+1}`, probability:12.5, type:'empty', unitPrice: 0, inventory: 100, dailyInventory: 10, _isExisting: true}));
+                    }
+                    wheelModalVisible.value = true;
+                };
+
+                const openListConfig = (row) => {
+                    listForm.id = row.id;
+                    listForm.prizes = row.prizes || [];
+                    listForm.whitelistRules = JSON.parse(JSON.stringify(row.risk?.whitelistRules || []));
+                    listForm.blacklist = JSON.parse(JSON.stringify(row.risk?.blacklist || []));
+                    activeListTab.value = 'whitelist';
+                    listConfigVisible.value = true;
+                };
+
+                const saveListConfig = () => {
+                    const idx = wheelList.value.findIndex(w => w.id === listForm.id);
+                    if(idx !== -1) {
+                        if(!wheelList.value[idx].risk) {
+                            wheelList.value[idx].risk = {};
+                        }
+                        wheelList.value[idx].risk.whitelistRules = JSON.parse(JSON.stringify(listForm.whitelistRules));
+                        wheelList.value[idx].risk.blacklist = JSON.parse(JSON.stringify(listForm.blacklist));
+                        ElMessage.success('名单配置保存成功');
+                        listConfigVisible.value = false;
+                    }
+                };
+                
+                const handleDeleteWheel = (row) => {
+                    ElMessageBox.confirm('确定要删除该转盘吗？', '警告', {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                        type: 'warning'
+                    }).then(() => {
+                        wheelList.value = wheelList.value.filter(w => w.id !== row.id);
+                        ElMessage.success('删除成功');
+                    });
+                };
+
+                const viewWinningRecords = (row) => {
+                    currentWheelName.value = row.name;
+                    winningRecordsVisible.value = true;
+                };
+
+                const searchWinningRecords = () => {
+                    // 模拟查询操作
+                    ElMessage.success('查询成功');
+                };
+
+                const reissueReward = (row) => {
+                    ElMessageBox.confirm('确定要补发该奖励吗？', '确认', {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                        type: 'info'
+                    }).then(() => {
+                        // 模拟补发操作
+                        const record = winningRecords.value.find(r => r.id === row.id);
+                        if (record) {
+                            record.status = 'delivered';
+                        }
+                        ElMessage.success('奖励补发成功');
+                    });
+                };
+
+                const addPrize = () => {
+                    if(wheelForm.prizes.length < 20) wheelForm.prizes.push({name:'新奖品', probability:0, type:'empty', unitPrice: 0, inventory: 100, dailyInventory: 10, _isExisting: false});
+                };
+                const removePrize = (idx) => {
+                    if(wheelForm.prizes.length > 7) wheelForm.prizes.splice(idx, 1);
+                };
+
+                const saveWheel = () => {
+                    if(Math.abs(totalProb.value - 100) > 0.01) {
+                        ElMessage.error('总概率必须为100%');
+                        return;
+                    }
+                    
+                    // clean up _isExisting flag before saving
+                    const cleanPrizes = JSON.parse(JSON.stringify(wheelForm.prizes));
+                    cleanPrizes.forEach(p => delete p._isExisting);
+                    const finalData = { ...JSON.parse(JSON.stringify(wheelForm)), prizes: cleanPrizes };
+
+                    if(!wheelForm.id) {
+                        wheelList.value.unshift({ ...finalData, id: 2000+wheelList.value.length, createTime: new Date().toISOString().split('T')[0], linkedTasks: 0, linkedTasksList: [] });
+                    } else {
+                        // Update existing
+                        const idx = wheelList.value.findIndex(w => w.id === wheelForm.id);
+                        if(idx !== -1) {
+                            wheelList.value[idx] = { ...finalData, linkedTasks: wheelList.value[idx].linkedTasks, linkedTasksList: wheelList.value[idx].linkedTasksList };
+                        }
+                    }
+                    wheelModalVisible.value = false;
+                    ElMessage.success('转盘配置已保存');
+                };
+
+                const viewStats = (row) => {
+                    statsModalVisible.value = true;
+                };
+                
+                const searchTasks = () => { ElMessage.success('查询已执行'); };
+                const resetTaskFilter = () => { Object.assign(taskFilter, { id: '', name: '', category: '', type: '', status: '' }); };
+                const searchWheels = () => { ElMessage.success('查询已执行'); };
+                const resetWheelFilter = () => { Object.assign(wheelFilter, { id: '', name: '', status: '' }); };
+
+                return {
+                    currentMainView, getPageTitle,
+                    taskModalVisible, taskDetailVisible, wheelModalVisible, statsModalVisible, listConfigVisible, winningRecordsVisible,
+                    taskFilter, wheelFilter, winningFilter, taskList, wheelList, filteredWheels, couponList, statsByTask, winningRecords,
+                    taskForm, currentTask, wheelForm, wheelStep, totalProb, activeLang, activeListTab, listForm, currentWheelName,
+                    openCreateTaskModal, viewTaskDetail, saveTask, createNewWheel, editWheel, saveWheel, viewStats, openListConfig, saveListConfig,
+                    addPrize, removePrize, handleDeleteTask, handleDeleteWheel, viewWinningRecords, searchWinningRecords, reissueReward,
+                    searchTasks, resetTaskFilter, searchWheels, resetWheelFilter
+                };
+            }
+        });
+
+        for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+            app.component(key, component);
+        }
+        app.use(ElementPlus);
+        app.mount('#app');
+    </script>
+</body>
+</html>

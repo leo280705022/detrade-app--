@@ -1,0 +1,1883 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DeTrade 充值页面重构 - 交互原型</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+    background: #0d1117;
+    color: #e6edf3;
+    min-height: 100vh;
+  }
+
+  /* ========== View Switcher ========== */
+  .view-switcher {
+    position: fixed;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    display: flex;
+    gap: 4px;
+    background: #21262d;
+    padding: 4px;
+    border-radius: 10px;
+    border: 1px solid #30363d;
+  }
+  .view-switcher button {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: transparent;
+    color: #8b949e;
+  }
+  .view-switcher button.active {
+    background: #00d4aa;
+    color: #0d1117;
+  }
+  .view-switcher button:not(.active):hover {
+    color: #e6edf3;
+  }
+
+  .view-container { display: none; }
+  .view-container.active { display: flex; justify-content: center; padding-top: 70px; }
+
+  /* ========== Shared Components ========== */
+  .top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid #21262d;
+    background: #161b22;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .top-bar .back-btn {
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: #e6edf3; font-size: 18px;
+    border-radius: 8px; transition: background 0.2s;
+  }
+  .top-bar .back-btn:hover { background: #21262d; }
+  .top-bar .title { font-size: 17px; font-weight: 600; }
+  .top-bar .close-btn {
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: #8b949e; font-size: 18px;
+    border-radius: 8px; transition: background 0.2s;
+  }
+  .top-bar .close-btn:hover { background: #21262d; color: #e6edf3; }
+
+  .tab-container {
+    display: flex;
+    padding: 12px 20px 0;
+    gap: 8px;
+  }
+  .tab-btn {
+    flex: 1;
+    padding: 10px 0;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.25s;
+    border: 1px solid #30363d;
+    background: #0d1117;
+    color: #8b949e;
+  }
+  .tab-btn.active {
+    background: #00d4aa;
+    color: #0d1117;
+    border-color: #00d4aa;
+    font-weight: 600;
+  }
+  .tab-btn:not(.active):hover {
+    border-color: #00d4aa;
+    color: #00d4aa;
+  }
+
+  .tab-content { display: none; padding: 16px 20px 24px; }
+  .tab-content.active { display: block; }
+
+  .select-row { display: flex; gap: 12px; margin-bottom: 16px; }
+  .select-group { flex: 1; }
+  .select-label { font-size: 12px; color: #8b949e; margin-bottom: 6px; font-weight: 500; }
+  .select-box {
+    display: flex; align-items: center; gap: 8px;
+    padding: 12px 14px; background: #0d1117;
+    border: 1px solid #30363d; border-radius: 10px;
+    cursor: pointer; transition: border-color 0.2s; position: relative;
+  }
+  .select-box:hover { border-color: #00d4aa; }
+  .select-box .coin-icon {
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700; flex-shrink: 0;
+  }
+  .select-box .coin-info { flex: 1; min-width: 0; }
+  .select-box .coin-name { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .select-box .coin-code { font-size: 11px; color: #8b949e; }
+  .select-box .arrow { color: #8b949e; font-size: 12px; flex-shrink: 0; }
+
+  .network-info {
+    display: flex; align-items: center; gap: 6px;
+    padding: 8px 12px; background: rgba(0,212,170,0.08);
+    border-radius: 8px; margin-top: 8px; font-size: 12px;
+  }
+  .network-info .fee { color: #00d4aa; }
+  .network-info .time { color: #8b949e; margin-left: auto; }
+
+  .reward-banner {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, rgba(0,212,170,0.15), rgba(0,212,170,0.05));
+    border: 1px solid rgba(0,212,170,0.3);
+    border-radius: 10px; margin-bottom: 20px;
+    cursor: pointer; transition: transform 0.2s;
+  }
+  .reward-banner:hover { transform: scale(1.01); }
+  .reward-banner .banner-icon { font-size: 20px; }
+  .reward-banner .banner-text { font-size: 13px; color: #00d4aa; font-weight: 500; }
+
+  .section-label { font-size: 13px; color: #8b949e; margin-bottom: 8px; font-weight: 500; }
+  .amount-input-wrap { position: relative; margin-bottom: 6px; }
+  .amount-input {
+    width: 100%; padding: 14px 60px 14px 16px;
+    background: #0d1117; border: 1px solid #30363d;
+    border-radius: 10px; color: #e6edf3;
+    font-size: 20px; font-weight: 600; outline: none;
+    transition: border-color 0.2s;
+  }
+  .amount-input:focus { border-color: #00d4aa; }
+  .amount-input::placeholder { color: #484f58; font-weight: 400; }
+  .amount-suffix {
+    position: absolute; right: 16px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px; color: #8b949e; font-weight: 500;
+  }
+  .amount-hint { font-size: 12px; color: #8b949e; margin-bottom: 12px; }
+  .amount-hint.error { color: #f85149; }
+
+  .quick-amounts { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .quick-btn {
+    flex: 1; min-width: 0; padding: 10px 4px;
+    background: #0d1117; border: 1px solid #30363d;
+    border-radius: 8px; color: #e6edf3;
+    font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: all 0.2s;
+    text-align: center; position: relative;
+  }
+  .quick-btn:hover { border-color: #00d4aa; color: #00d4aa; }
+  .quick-btn.active { border-color: #00d4aa; background: rgba(0,212,170,0.1); color: #00d4aa; }
+  .quick-btn .badge {
+    position: absolute; top: -6px; right: -4px;
+    background: #f85149; color: #fff;
+    font-size: 9px; padding: 1px 4px;
+    border-radius: 4px; font-weight: 600;
+  }
+
+  .address-card {
+    background: #0d1117; border: 1px solid #30363d;
+    border-radius: 12px; padding: 20px; margin-bottom: 16px;
+  }
+  .address-top { display: flex; gap: 16px; align-items: flex-start; }
+  .qr-code {
+    width: 100px; height: 100px; background: #fff;
+    border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; font-size: 10px; color: #333; position: relative; overflow: hidden;
+  }
+  .qr-code canvas { width: 100%; height: 100%; }
+  .address-info { flex: 1; min-width: 0; }
+  .address-label { font-size: 12px; color: #8b949e; margin-bottom: 6px; }
+  .address-value {
+    font-size: 13px; color: #00d4aa; word-break: break-all;
+    line-height: 1.5; font-family: 'SF Mono', 'Fira Code', monospace;
+  }
+  .copy-btn {
+    display: inline-flex; align-items: center; gap: 4px;
+    margin-top: 8px; padding: 6px 12px;
+    background: rgba(0,212,170,0.1); border: 1px solid rgba(0,212,170,0.3);
+    border-radius: 6px; color: #00d4aa; font-size: 12px;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .copy-btn:hover { background: rgba(0,212,170,0.2); }
+
+  .address-warning {
+    margin-top: 12px; padding-top: 12px;
+    border-top: 1px solid #21262d;
+    font-size: 12px; color: #8b949e; line-height: 1.6;
+  }
+  .address-warning .warn-icon { color: #d29922; }
+
+  .memo-section { margin-top: 12px; padding-top: 12px; border-top: 1px solid #21262d; }
+  .memo-warning {
+    display: flex; align-items: flex-start; gap: 8px;
+    padding: 10px 12px; background: rgba(248,81,73,0.1);
+    border: 1px solid rgba(248,81,73,0.3);
+    border-radius: 8px; margin-bottom: 10px;
+    font-size: 12px; color: #f85149; line-height: 1.5;
+  }
+  .memo-row { display: flex; align-items: center; justify-content: space-between; }
+  .memo-label { font-size: 12px; color: #8b949e; }
+  .memo-value {
+    font-size: 13px; color: #e6edf3;
+    font-family: 'SF Mono', 'Fira Code', monospace; font-weight: 600;
+  }
+
+  .fee-time-row {
+    display: flex; justify-content: space-between;
+    padding: 12px 0; border-top: 1px solid #21262d; font-size: 13px;
+  }
+  .fee-time-row .label { color: #8b949e; }
+  .fee-time-row .value { color: #e6edf3; font-weight: 500; }
+  .fee-time-row .value.green { color: #00d4aa; }
+
+  .record-link {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 0; cursor: pointer; transition: opacity 0.2s;
+  }
+  .record-link:hover { opacity: 0.8; }
+  .record-link .text { font-size: 14px; color: #00d4aa; font-weight: 500; }
+  .record-link .arrow { color: #00d4aa; font-size: 14px; }
+
+  .payment-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+  .payment-card {
+    padding: 14px 12px; background: #0d1117;
+    border: 2px solid #30363d; border-radius: 12px;
+    cursor: pointer; transition: all 0.2s; position: relative;
+  }
+  .payment-card:hover { border-color: #00d4aa; }
+  .payment-card.selected { border-color: #00d4aa; background: rgba(0,212,170,0.05); }
+  .payment-card .pay-icon { font-size: 22px; margin-bottom: 8px; }
+  .payment-card .pay-name { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+  .payment-card .pay-provider { font-size: 11px; color: #8b949e; margin-bottom: 8px; }
+  .payment-card .pay-range { font-size: 11px; color: #8b949e; margin-bottom: 4px; }
+  .payment-card .pay-fee { font-size: 11px; color: #00d4aa; margin-bottom: 2px; }
+  .payment-card .pay-time { font-size: 11px; color: #8b949e; }
+  .payment-card .check-mark {
+    position: absolute; top: 8px; right: 8px;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: #00d4aa; display: none;
+    align-items: center; justify-content: center;
+    font-size: 12px; color: #0d1117; font-weight: 700;
+  }
+  .payment-card.selected .check-mark { display: flex; }
+
+  .notice-box {
+    padding: 14px 16px; background: rgba(210,153,34,0.08);
+    border: 1px solid rgba(210,153,34,0.2);
+    border-radius: 10px; margin-bottom: 20px;
+  }
+  .notice-box .notice-title {
+    font-size: 13px; font-weight: 600; color: #d29922;
+    margin-bottom: 8px; display: flex; align-items: center; gap: 6px;
+  }
+  .notice-box ol { padding-left: 18px; font-size: 12px; color: #8b949e; line-height: 1.8; }
+
+  .cta-btn {
+    width: 100%; padding: 16px; background: #00d4aa;
+    color: #0d1117; border: none; border-radius: 12px;
+    font-size: 16px; font-weight: 700;
+    cursor: pointer; transition: all 0.2s; margin-bottom: 16px;
+  }
+  .cta-btn:hover { background: #00b894; transform: translateY(-1px); }
+  .cta-btn:active { transform: translateY(0); }
+
+  .toast {
+    position: fixed; top: 80px; left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    padding: 10px 24px; background: #00d4aa;
+    color: #0d1117; font-size: 14px; font-weight: 600;
+    border-radius: 8px; z-index: 200;
+    opacity: 0; transition: all 0.3s; pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 2px; }
+
+  .section-divider { height: 1px; background: #21262d; margin: 4px 0 16px; }
+
+  /* ========== APP View ========== */
+  #app-view {
+    padding-bottom: 40px;
+  }
+  .phone-frame {
+    width: 390px;
+    min-height: 844px;
+    background: #161b22;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 0 60px rgba(0,0,0,0.5);
+    border: 1px solid #30363d;
+    position: relative;
+  }
+
+  /* ========== WEB View ========== */
+  #web-view {
+    padding-bottom: 60px;
+    align-items: flex-start;
+  }
+  .web-layout {
+    width: 100%;
+    max-width: 1200px;
+    display: flex;
+    gap: 24px;
+    padding: 0 24px;
+  }
+  .web-main {
+    flex: 1;
+    min-width: 0;
+    background: #161b22;
+    border-radius: 16px;
+    border: 1px solid #30363d;
+    overflow: hidden;
+  }
+  .web-sidebar {
+    width: 340px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* Web Top Bar */
+  .web-top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 28px;
+    border-bottom: 1px solid #21262d;
+    background: #161b22;
+  }
+  .web-top-bar .wtb-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .web-top-bar .wtb-logo {
+    font-size: 20px;
+    font-weight: 700;
+    color: #00d4aa;
+    letter-spacing: -0.5px;
+  }
+  .web-top-bar .wtb-nav {
+    display: flex;
+    gap: 24px;
+  }
+  .web-top-bar .wtb-nav a {
+    color: #8b949e;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+  .web-top-bar .wtb-nav a:hover,
+  .web-top-bar .wtb-nav a.active { color: #e6edf3; }
+  .web-top-bar .wtb-nav a.active { color: #00d4aa; }
+  .web-top-bar .wtb-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .web-top-bar .wtb-user {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background: #21262d;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #e6edf3;
+    cursor: pointer;
+  }
+  .web-top-bar .wtb-avatar {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: #00d4aa;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; color: #0d1117;
+  }
+
+  /* Web Tabs */
+  .web-tab-container {
+    display: flex;
+    padding: 0 28px;
+    border-bottom: 1px solid #21262d;
+    gap: 0;
+  }
+  .web-tab-btn {
+    padding: 14px 24px;
+    font-size: 15px;
+    font-weight: 500;
+    color: #8b949e;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+  }
+  .web-tab-btn:hover { color: #e6edf3; }
+  .web-tab-btn.active {
+    color: #00d4aa;
+    border-bottom-color: #00d4aa;
+    font-weight: 600;
+  }
+
+  /* Web Content */
+  .web-tab-content { display: none; padding: 24px 28px 32px; }
+  .web-tab-content.active { display: block; }
+
+  .web-content-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  .web-panel {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    padding: 24px;
+  }
+  .web-panel-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: #e6edf3;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .web-panel-title .panel-icon { font-size: 18px; }
+
+  .web-select-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .web-amount-input {
+    width: 100%;
+    padding: 16px 80px 16px 20px;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 10px;
+    color: #e6edf3;
+    font-size: 24px;
+    font-weight: 600;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .web-amount-input:focus { border-color: #00d4aa; }
+  .web-amount-input::placeholder { color: #484f58; font-weight: 400; }
+
+  .web-quick-amounts {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .web-quick-btn {
+    padding: 10px 20px;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    color: #e6edf3;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .web-quick-btn:hover { border-color: #00d4aa; color: #00d4aa; }
+  .web-quick-btn.active { border-color: #00d4aa; background: rgba(0,212,170,0.1); color: #00d4aa; }
+  .web-quick-btn .badge {
+    position: absolute;
+    top: -6px; right: -4px;
+    background: #f85149; color: #fff;
+    font-size: 9px; padding: 1px 4px;
+    border-radius: 4px; font-weight: 600;
+  }
+
+  .web-address-card {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+  }
+  .web-qr-code {
+    width: 140px;
+    height: 140px;
+    background: #fff;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .web-qr-code canvas { width: 100%; height: 100%; }
+
+  .web-address-info { flex: 1; min-width: 0; }
+  .web-address-value {
+    font-size: 15px;
+    color: #00d4aa;
+    word-break: break-all;
+    line-height: 1.6;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    background: #161b22;
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 1px solid #30363d;
+    margin-bottom: 10px;
+  }
+  .web-copy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    background: rgba(0,212,170,0.1);
+    border: 1px solid rgba(0,212,170,0.3);
+    border-radius: 8px;
+    color: #00d4aa;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .web-copy-btn:hover { background: rgba(0,212,170,0.2); }
+
+  .web-fee-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-top: 16px;
+  }
+  .web-fee-item {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 10px;
+    padding: 14px 16px;
+    text-align: center;
+  }
+  .web-fee-item .wfi-label { font-size: 12px; color: #8b949e; margin-bottom: 6px; }
+  .web-fee-item .wfi-value { font-size: 16px; font-weight: 600; color: #e6edf3; }
+  .web-fee-item .wfi-value.green { color: #00d4aa; }
+
+  .web-cta-btn {
+    width: 100%;
+    padding: 18px;
+    background: #00d4aa;
+    color: #0d1117;
+    border: none;
+    border-radius: 12px;
+    font-size: 17px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 20px;
+  }
+  .web-cta-btn:hover { background: #00b894; transform: translateY(-1px); }
+
+  /* Web Sidebar Cards */
+  .sidebar-card {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .sidebar-card .sc-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 14px;
+    color: #e6edf3;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .recent-deposit {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid #21262d;
+  }
+  .recent-deposit:last-child { border-bottom: none; }
+  .recent-deposit .rd-coin {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700; color: #fff;
+    flex-shrink: 0;
+  }
+  .recent-deposit .rd-info { flex: 1; min-width: 0; }
+  .recent-deposit .rd-name { font-size: 13px; font-weight: 500; }
+  .recent-deposit .rd-net { font-size: 11px; color: #8b949e; }
+  .recent-deposit .rd-amount { font-size: 13px; font-weight: 600; color: #e6edf3; text-align: right; }
+  .recent-deposit .rd-status { font-size: 11px; text-align: right; }
+  .recent-deposit .rd-status.success { color: #00d4aa; }
+  .recent-deposit .rd-status.pending { color: #d29922; }
+
+  .security-tips li {
+    font-size: 12px;
+    color: #8b949e;
+    line-height: 1.8;
+    padding-left: 4px;
+  }
+  .security-tips {
+    padding-left: 18px;
+  }
+
+  .web-record-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 0;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    border-top: 1px solid #21262d;
+    margin-top: 8px;
+  }
+  .web-record-link:hover { opacity: 0.8; }
+  .web-record-link .text { font-size: 14px; color: #00d4aa; font-weight: 500; }
+  .web-record-link .arrow { color: #00d4aa; font-size: 14px; }
+
+  /* Web Payment Grid */
+  .web-payment-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .web-payment-card {
+    padding: 18px 16px;
+    background: #161b22;
+    border: 2px solid #30363d;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .web-payment-card:hover { border-color: #00d4aa; }
+  .web-payment-card.selected { border-color: #00d4aa; background: rgba(0,212,170,0.05); }
+  .web-payment-card .wpc-top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .web-payment-card .wpc-icon { font-size: 24px; }
+  .web-payment-card .wpc-name { font-size: 15px; font-weight: 600; }
+  .web-payment-card .wpc-provider { font-size: 12px; color: #8b949e; margin-bottom: 10px; }
+  .web-payment-card .wpc-details { display: flex; gap: 16px; }
+  .web-payment-card .wpc-detail { font-size: 12px; color: #8b949e; }
+  .web-payment-card .wpc-detail span { color: #00d4aa; font-weight: 500; }
+  .web-payment-card .check-mark {
+    position: absolute; top: 10px; right: 10px;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: #00d4aa; display: none;
+    align-items: center; justify-content: center;
+    font-size: 13px; color: #0d1117; font-weight: 700;
+  }
+  .web-payment-card.selected .check-mark { display: flex; }
+
+  /* Web Dropdown (center modal style) */
+  .web-dropdown-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 100;
+  }
+  .web-dropdown-overlay.show { display: block; }
+  .web-dropdown-panel {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 480px;
+    max-height: 70vh;
+    background: #161b22;
+    border-radius: 16px;
+    border: 1px solid #30363d;
+    z-index: 101;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .web-dropdown-panel.show { display: flex; }
+
+  /* App bottom sheet dropdowns (keep existing) */
+  .dropdown-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 100;
+  }
+  .dropdown-overlay.show { display: block; }
+  .dropdown-panel {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 390px;
+    max-height: 70vh;
+    background: #161b22;
+    border-radius: 20px 20px 0 0;
+    z-index: 101;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .dropdown-panel.show { display: flex; }
+  .dropdown-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px; border-bottom: 1px solid #21262d;
+  }
+  .dropdown-header .dh-title { font-size: 16px; font-weight: 600; }
+  .dropdown-header .dh-close {
+    width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: #8b949e; border-radius: 50%;
+    background: #21262d; font-size: 14px;
+  }
+  .dropdown-search { padding: 12px 20px; }
+  .dropdown-search input {
+    width: 100%; padding: 10px 14px;
+    background: #0d1117; border: 1px solid #30363d;
+    border-radius: 8px; color: #e6edf3;
+    font-size: 14px; outline: none;
+  }
+  .dropdown-search input:focus { border-color: #00d4aa; }
+  .dropdown-search input::placeholder { color: #484f58; }
+  .dropdown-list { flex: 1; overflow-y: auto; padding: 8px 12px; }
+  .dropdown-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px; border-radius: 10px;
+    cursor: pointer; transition: background 0.15s;
+  }
+  .dropdown-item:hover { background: #21262d; }
+  .dropdown-item .di-icon {
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 700; flex-shrink: 0;
+  }
+  .dropdown-item .di-info { flex: 1; }
+  .dropdown-item .di-name { font-size: 14px; font-weight: 500; }
+  .dropdown-item .di-sub { font-size: 12px; color: #8b949e; }
+  .dropdown-item .di-extra { font-size: 11px; color: #8b949e; text-align: right; }
+
+  /* Web dropdown items reuse dropdown-item styles but in web-dropdown-panel */
+  .web-dropdown-panel .dropdown-header {
+    padding: 20px 24px;
+  }
+  .web-dropdown-panel .dropdown-header .dh-title { font-size: 18px; }
+  .web-dropdown-panel .dropdown-search { padding: 16px 24px; }
+  .web-dropdown-panel .dropdown-list { padding: 12px 16px; }
+  .web-dropdown-panel .dropdown-item { padding: 14px 16px; }
+  .web-dropdown-panel .dropdown-item .di-icon { width: 40px; height: 40px; font-size: 18px; }
+  .web-dropdown-panel .dropdown-item .di-name { font-size: 15px; }
+
+  .web-select-box {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 16px; background: #161b22;
+    border: 1px solid #30363d; border-radius: 10px;
+    cursor: pointer; transition: border-color 0.2s;
+  }
+  .web-select-box:hover { border-color: #00d4aa; }
+  .web-select-box .coin-icon {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 700; flex-shrink: 0;
+  }
+  .web-select-box .coin-info { flex: 1; min-width: 0; }
+  .web-select-box .coin-name { font-size: 15px; font-weight: 500; }
+  .web-select-box .coin-code { font-size: 12px; color: #8b949e; }
+  .web-select-box .arrow { color: #8b949e; font-size: 13px; }
+
+  .web-network-info {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 14px; background: rgba(0,212,170,0.08);
+    border-radius: 8px; margin-top: 10px; font-size: 13px;
+  }
+  .web-network-info .fee { color: #00d4aa; font-weight: 500; }
+  .web-network-info .time { color: #8b949e; margin-left: auto; }
+
+  .web-reward-banner {
+    display: flex; align-items: center; gap: 12px;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, rgba(0,212,170,0.15), rgba(0,212,170,0.05));
+    border: 1px solid rgba(0,212,170,0.3);
+    border-radius: 12px; margin-bottom: 24px;
+    cursor: pointer; transition: transform 0.2s;
+  }
+  .web-reward-banner:hover { transform: scale(1.005); }
+  .web-reward-banner .banner-icon { font-size: 24px; }
+  .web-reward-banner .banner-text { font-size: 14px; color: #00d4aa; font-weight: 500; }
+
+  .web-memo-section { margin-top: 16px; padding-top: 16px; border-top: 1px solid #21262d; }
+  .web-memo-warning {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 12px 16px; background: rgba(248,81,73,0.1);
+    border: 1px solid rgba(248,81,73,0.3);
+    border-radius: 8px; margin-bottom: 12px;
+    font-size: 13px; color: #f85149; line-height: 1.5;
+  }
+  .web-memo-row { display: flex; align-items: center; justify-content: space-between; }
+  .web-memo-label { font-size: 13px; color: #8b949e; }
+  .web-memo-value {
+    font-size: 15px; color: #e6edf3;
+    font-family: 'SF Mono', 'Fira Code', monospace; font-weight: 600;
+  }
+
+  .web-notice-box {
+    padding: 18px 20px; background: rgba(210,153,34,0.08);
+    border: 1px solid rgba(210,153,34,0.2);
+    border-radius: 12px; margin-bottom: 0;
+  }
+  .web-notice-box .notice-title {
+    font-size: 14px; font-weight: 600; color: #d29922;
+    margin-bottom: 10px; display: flex; align-items: center; gap: 6px;
+  }
+  .web-notice-box ol { padding-left: 20px; font-size: 13px; color: #8b949e; line-height: 2; }
+
+  .web-address-warning {
+    margin-top: 16px; padding-top: 16px;
+    border-top: 1px solid #21262d;
+    font-size: 13px; color: #8b949e; line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+
+<!-- View Switcher -->
+<div class="view-switcher">
+  <button class="active" onclick="switchView('app')">App 端</button>
+  <button onclick="switchView('web')">Web 端</button>
+</div>
+
+<!-- ==================== APP VIEW ==================== -->
+<div class="view-container active" id="app-view">
+<div class="phone-frame" id="app">
+  <div class="top-bar">
+    <div class="back-btn" onclick="showToast('返回上一页')">←</div>
+    <div class="title">充值</div>
+    <div class="close-btn" onclick="showToast('关闭充值页面')">✕</div>
+  </div>
+
+  <div class="tab-container">
+    <div class="tab-btn active" data-tab="crypto" onclick="switchTab('crypto')">加密货币</div>
+    <div class="tab-btn" data-tab="fiat" onclick="switchTab('fiat')">法币</div>
+  </div>
+
+  <!-- Crypto Tab -->
+  <div class="tab-content active" id="tab-crypto">
+    <div class="select-row">
+      <div class="select-group">
+        <div class="select-label">币种</div>
+        <div class="select-box" onclick="openDropdown('coin')">
+          <div class="coin-icon" style="background:#26a17b;color:#fff;" id="selected-coin-icon">₮</div>
+          <div class="coin-info">
+            <div class="coin-name" id="selected-coin-name">Tether USD</div>
+            <div class="coin-code" id="selected-coin-code">USDT</div>
+          </div>
+          <div class="arrow">▼</div>
+        </div>
+      </div>
+      <div class="select-group">
+        <div class="select-label">网络</div>
+        <div class="select-box" onclick="openDropdown('network')">
+          <div class="coin-icon" style="background:#eb0029;color:#fff;" id="selected-net-icon">T</div>
+          <div class="coin-info">
+            <div class="coin-name" id="selected-net-name">TRON</div>
+            <div class="coin-code" id="selected-net-code">TRC20</div>
+          </div>
+          <div class="arrow">▼</div>
+        </div>
+        <div class="network-info" id="network-info">
+          <span>费用:</span>
+          <span class="fee" id="net-fee">~1 USDT</span>
+          <span class="time" id="net-time">~3 分钟</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="reward-banner" onclick="showToast('跳转至充值活动详情页')">
+      <span class="banner-icon"></span>
+      <span class="banner-text">首次存款红利最高可达 200%</span>
+    </div>
+
+    <div class="section-label">充值金额</div>
+    <div class="amount-input-wrap">
+      <input type="number" class="amount-input" id="crypto-amount" placeholder="0.00" value="100" oninput="onAmountInput()">
+      <span class="amount-suffix" id="amount-suffix">USDT</span>
+    </div>
+    <div class="amount-hint" id="amount-hint">最低充值：10 USDT</div>
+
+    <div class="quick-amounts" id="quick-amounts">
+      <div class="quick-btn" onclick="setAmount(30, this)">30<span class="badge">+50%</span></div>
+      <div class="quick-btn" onclick="setAmount(50, this)">50<span class="badge">+100%</span></div>
+      <div class="quick-btn active" onclick="setAmount(100, this)">100<span class="badge">+150%</span></div>
+      <div class="quick-btn" onclick="setAmount(200, this)">200<span class="badge">+200%</span></div>
+      <div class="quick-btn" onclick="setAmount(500, this)">500</div>
+    </div>
+
+    <div class="address-card">
+      <div class="address-top">
+        <div class="qr-code"><canvas id="qr-canvas" width="100" height="100"></canvas></div>
+        <div class="address-info">
+          <div class="address-label">充值地址</div>
+          <div class="address-value" id="deposit-address">TN2Y5xK8mP3vR7wQ9sL4jF6hB1cD0eA8gZ</div>
+          <div class="copy-btn" onclick="copyAddress()"><span></span> <span id="copy-text">复制地址</span></div>
+        </div>
+      </div>
+      <div class="address-warning">
+        <span class="warn-icon">️</span> 仅将 <strong id="warn-coin">USDT</strong> 发送到 <strong id="warn-net">TRC20</strong> 网络，需要 <strong>1</strong> 次确认。发送其他资产到此地址可能导致永久丢失。
+      </div>
+      <div class="memo-section" id="memo-section" style="display:none;">
+        <div class="memo-warning">
+          <span>⚠️</span>
+          <span>该币种需要填写 Memo/Tag，否则可能导致资产丢失。请务必在转账时填写正确的 Memo。</span>
+        </div>
+        <div class="memo-row">
+          <div>
+            <div class="memo-label">Memo / Tag</div>
+            <div class="memo-value" id="memo-value">298471653</div>
+          </div>
+          <div class="copy-btn" onclick="copyMemo()"><span>📋</span> <span id="memo-copy-text">复制</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="fee-time-row">
+      <span class="label">网络费用</span>
+      <span class="value green" id="fee-display">~1 USDT</span>
+    </div>
+    <div class="fee-time-row" style="border-top:none; padding-top:0;">
+      <span class="label">预计到账时间</span>
+      <span class="value" id="time-display">~3 分钟</span>
+    </div>
+    <div class="fee-time-row" style="border-top:none; padding-top:0;">
+      <span class="label">所需确认数</span>
+      <span class="value" id="confirm-display">1 次</span>
+    </div>
+
+    <div class="section-divider"></div>
+    <div class="record-link" onclick="showToast('跳转至充值记录页面')">
+      <span class="text">查看充值记录</span>
+      <span class="arrow">→</span>
+    </div>
+  </div>
+
+  <!-- Fiat Tab -->
+  <div class="tab-content" id="tab-fiat">
+    <div class="select-row">
+      <div class="select-group" style="flex:1;">
+        <div class="select-label">法币</div>
+        <div class="select-box" onclick="openDropdown('fiat-currency')">
+          <div class="coin-icon" style="background:#008751;color:#fff;" id="selected-fiat-icon">🇬</div>
+          <div class="coin-info">
+            <div class="coin-name" id="selected-fiat-name">Nigerian Naira</div>
+            <div class="coin-code" id="selected-fiat-code">NGN</div>
+          </div>
+          <div class="arrow">▼</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="reward-banner" onclick="showToast('跳转至充值活动详情页')">
+      <span class="banner-icon">🎁</span>
+      <span class="banner-text">首次存款红利最高可达 200%</span>
+    </div>
+
+    <div class="section-label">充值金额</div>
+    <div class="amount-input-wrap">
+      <input type="number" class="amount-input" id="fiat-amount" placeholder="0.00" value="50000" oninput="onFiatAmountInput()">
+      <span class="amount-suffix" id="fiat-amount-suffix">NGN</span>
+    </div>
+    <div class="amount-hint" id="fiat-amount-hint">最低充值：1,000 NGN</div>
+
+    <div class="section-label" style="margin-top:8px;">选择支付方式</div>
+    <div class="payment-grid" id="payment-grid">
+      <div class="payment-card selected" onclick="selectPayment(this, 'bank')">
+        <div class="check-mark">✓</div>
+        <div class="pay-icon"></div>
+        <div class="pay-name">Bank Transfer</div>
+        <div class="pay-provider">银行转账</div>
+        <div class="pay-range">1,000 - 10,000,000</div>
+        <div class="pay-fee">✅ 免费</div>
+        <div class="pay-time">⏱ ~10 分钟</div>
+      </div>
+      <div class="payment-card" onclick="selectPayment(this, 'card')">
+        <div class="check-mark">✓</div>
+        <div class="pay-icon">💳</div>
+        <div class="pay-name">Card Payment</div>
+        <div class="pay-provider">Visa / Mastercard</div>
+        <div class="pay-range">1,000 - 5,000,000</div>
+        <div class="pay-fee"> 1.5% 手续费</div>
+        <div class="pay-time">⏱ 即时到账</div>
+      </div>
+      <div class="payment-card" onclick="selectPayment(this, 'ewallet')">
+        <div class="check-mark">✓</div>
+        <div class="pay-icon">📱</div>
+        <div class="pay-name">E-Wallet</div>
+        <div class="pay-provider">PalmPay / OPay</div>
+        <div class="pay-range">1,000 - 1,000,000</div>
+        <div class="pay-fee">✅ 免费</div>
+        <div class="pay-time"> ~5 分钟</div>
+      </div>
+      <div class="payment-card" onclick="selectPayment(this, 'p2p')">
+        <div class="check-mark">✓</div>
+        <div class="pay-icon">🔄</div>
+        <div class="pay-name">P2P Trading</div>
+        <div class="pay-provider">点对点交易</div>
+        <div class="pay-range">5,000 - 50,000,000</div>
+        <div class="pay-fee">✅ 平台免费</div>
+        <div class="pay-time">⏱ ~15 分钟</div>
+      </div>
+    </div>
+
+    <div class="notice-box">
+      <div class="notice-title">⚠️ 注意事项</div>
+      <ol>
+        <li>您的转账金额必须与提交的金额完全一致</li>
+        <li>每个订单 ID 只能使用一次，以避免重复</li>
+        <li>请按照充值指南进行充值，否则您的款项可能会丢失</li>
+        <li>充值到账后，资金将自动转入您的现货账户</li>
+      </ol>
+    </div>
+
+    <button class="cta-btn" id="fiat-cta-btn" onclick="onFiatDeposit()">通过 Bank Transfer 充值</button>
+
+    <div class="record-link" onclick="showToast('跳转至充值记录页面')">
+      <span class="text">查看充值记录</span>
+      <span class="arrow">→</span>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ==================== WEB VIEW ==================== -->
+<div class="view-container" id="web-view">
+<div class="web-layout">
+  <!-- Main Content -->
+  <div class="web-main">
+    <!-- Web Top Bar -->
+    <div class="web-top-bar">
+      <div class="wtb-left">
+        <div class="wtb-logo">DeTrade</div>
+        <div class="wtb-nav">
+          <a href="#">市场</a>
+          <a href="#">交易</a>
+          <a href="#" class="active">资产</a>
+          <a href="#">理财</a>
+        </div>
+      </div>
+      <div class="wtb-right">
+        <div class="wtb-user">
+          <div class="wtb-avatar">U</div>
+          <span>User***88</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Web Tabs -->
+    <div class="web-tab-container">
+      <div class="web-tab-btn active" data-tab="crypto" onclick="switchWebTab('crypto')">加密货币充值</div>
+      <div class="web-tab-btn" data-tab="fiat" onclick="switchWebTab('fiat')">法币充值</div>
+    </div>
+
+    <!-- Web Crypto Tab -->
+    <div class="web-tab-content active" id="web-tab-crypto">
+      <div class="web-content-grid">
+        <!-- Left: Selection & Amount -->
+        <div>
+          <div class="web-select-row">
+            <div class="select-group">
+              <div class="select-label">币种</div>
+              <div class="web-select-box" onclick="openWebDropdown('coin')">
+                <div class="coin-icon" style="background:#26a17b;color:#fff;" id="w-selected-coin-icon">₮</div>
+                <div class="coin-info">
+                  <div class="coin-name" id="w-selected-coin-name">Tether USD</div>
+                  <div class="coin-code" id="w-selected-coin-code">USDT</div>
+                </div>
+                <div class="arrow">▼</div>
+              </div>
+            </div>
+            <div class="select-group">
+              <div class="select-label">网络</div>
+              <div class="web-select-box" onclick="openWebDropdown('network')">
+                <div class="coin-icon" style="background:#eb0029;color:#fff;" id="w-selected-net-icon">T</div>
+                <div class="coin-info">
+                  <div class="coin-name" id="w-selected-net-name">TRON</div>
+                  <div class="coin-code" id="w-selected-net-code">TRC20</div>
+                </div>
+                <div class="arrow">▼</div>
+              </div>
+              <div class="web-network-info">
+                <span>费用:</span>
+                <span class="fee" id="w-net-fee">~1 USDT</span>
+                <span class="time" id="w-net-time">~3 分钟</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="web-reward-banner" onclick="showToast('跳转至充值活动详情页')">
+            <span class="banner-icon"></span>
+            <span class="banner-text">首次存款红利最高可达 200% — 立即参与 →</span>
+          </div>
+
+          <div class="section-label">充值金额</div>
+          <div class="amount-input-wrap">
+            <input type="number" class="web-amount-input" id="w-crypto-amount" placeholder="0.00" value="100" oninput="onWebAmountInput()">
+            <span class="amount-suffix" id="w-amount-suffix">USDT</span>
+          </div>
+          <div class="amount-hint" id="w-amount-hint">最低充值：10 USDT</div>
+
+          <div class="web-quick-amounts">
+            <div class="web-quick-btn" onclick="setWebAmount(30, this)">30<span class="badge">+50%</span></div>
+            <div class="web-quick-btn" onclick="setWebAmount(50, this)">50<span class="badge">+100%</span></div>
+            <div class="web-quick-btn active" onclick="setWebAmount(100, this)">100<span class="badge">+150%</span></div>
+            <div class="web-quick-btn" onclick="setWebAmount(200, this)">200<span class="badge">+200%</span></div>
+            <div class="web-quick-btn" onclick="setWebAmount(500, this)">500</div>
+            <div class="web-quick-btn" onclick="setWebAmount(1000, this)">1,000</div>
+          </div>
+
+          <button class="web-cta-btn" onclick="showToast('地址已生成，请复制并前往外部钱包转账')">复制充值地址并继续</button>
+        </div>
+
+        <!-- Right: Address & Info -->
+        <div>
+          <div class="web-panel">
+            <div class="web-panel-title"><span class="panel-icon"></span> 充值地址</div>
+            <div class="web-address-card">
+              <div class="web-qr-code"><canvas id="w-qr-canvas" width="140" height="140"></canvas></div>
+              <div class="web-address-info">
+                <div class="address-label" style="margin-bottom:8px;">充值地址</div>
+                <div class="web-address-value" id="w-deposit-address">TN2Y5xK8mP3vR7wQ9sL4jF6hB1cD0eA8gZ</div>
+                <div class="web-copy-btn" onclick="copyWebAddress()"> 复制地址</div>
+              </div>
+            </div>
+            <div class="web-address-warning">
+              <span class="warn-icon">⚠️</span> 仅将 <strong id="w-warn-coin">USDT</strong> 发送到 <strong id="w-warn-net">TRC20</strong> 网络，需要 <strong>1</strong> 次确认。发送其他资产到此地址可能导致永久丢失。
+            </div>
+            <div class="web-memo-section" id="w-memo-section" style="display:none;">
+              <div class="web-memo-warning">
+                <span>⚠️</span>
+                <span>该币种需要填写 Memo/Tag，否则可能导致资产丢失。请务必在转账时填写正确的 Memo。</span>
+              </div>
+              <div class="web-memo-row">
+                <div>
+                  <div class="web-memo-label">Memo / Tag</div>
+                  <div class="web-memo-value" id="w-memo-value">298471653</div>
+                </div>
+                <div class="web-copy-btn" onclick="copyWebMemo()">📋 复制 Memo</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="web-fee-grid">
+            <div class="web-fee-item">
+              <div class="wfi-label">网络费用</div>
+              <div class="wfi-value green" id="w-fee-display">~1 USDT</div>
+            </div>
+            <div class="web-fee-item">
+              <div class="wfi-label">预计到账</div>
+              <div class="wfi-value" id="w-time-display">~3 分钟</div>
+            </div>
+            <div class="web-fee-item">
+              <div class="wfi-label">确认次数</div>
+              <div class="wfi-value" id="w-confirm-display">1 次</div>
+            </div>
+          </div>
+
+          <div class="web-record-link" onclick="showToast('跳转至充值记录页面')">
+            <span class="text">查看充值记录</span>
+            <span class="arrow">→</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Web Fiat Tab -->
+    <div class="web-tab-content" id="web-tab-fiat">
+      <div class="web-content-grid">
+        <!-- Left -->
+        <div>
+          <div class="web-select-row" style="grid-template-columns:1fr;">
+            <div class="select-group">
+              <div class="select-label">法币</div>
+              <div class="web-select-box" onclick="openWebDropdown('fiat-currency')">
+                <div class="coin-icon" style="background:#008751;color:#fff;font-size:18px;" id="w-selected-fiat-icon">🇳🇬</div>
+                <div class="coin-info">
+                  <div class="coin-name" id="w-selected-fiat-name">Nigerian Naira</div>
+                  <div class="coin-code" id="w-selected-fiat-code">NGN</div>
+                </div>
+                <div class="arrow">▼</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="web-reward-banner" onclick="showToast('跳转至充值活动详情页')">
+            <span class="banner-icon">🎁</span>
+            <span class="banner-text">首次存款红利最高可达 200% — 立即参与 →</span>
+          </div>
+
+          <div class="section-label">充值金额</div>
+          <div class="amount-input-wrap">
+            <input type="number" class="web-amount-input" id="w-fiat-amount" placeholder="0.00" value="50000" oninput="onWebFiatAmountInput()">
+            <span class="amount-suffix" id="w-fiat-amount-suffix">NGN</span>
+          </div>
+          <div class="amount-hint" id="w-fiat-amount-hint">最低充值：1,000 NGN</div>
+
+          <div class="section-label" style="margin-top:12px;">选择支付方式</div>
+          <div class="web-payment-grid">
+            <div class="web-payment-card selected" onclick="selectWebPayment(this, 'bank')">
+              <div class="check-mark">✓</div>
+              <div class="wpc-top">
+                <span class="wpc-icon"></span>
+                <span class="wpc-name">Bank Transfer</span>
+              </div>
+              <div class="wpc-provider">银行转账</div>
+              <div class="wpc-details">
+                <div class="wpc-detail">范围: <span>1K-10M</span></div>
+                <div class="wpc-detail">费率: <span>免费</span></div>
+                <div class="wpc-detail">到账: <span>~10min</span></div>
+              </div>
+            </div>
+            <div class="web-payment-card" onclick="selectWebPayment(this, 'card')">
+              <div class="check-mark">✓</div>
+              <div class="wpc-top">
+                <span class="wpc-icon">💳</span>
+                <span class="wpc-name">Card Payment</span>
+              </div>
+              <div class="wpc-provider">Visa / Mastercard</div>
+              <div class="wpc-details">
+                <div class="wpc-detail">范围: <span>1K-5M</span></div>
+                <div class="wpc-detail">费率: <span>1.5%</span></div>
+                <div class="wpc-detail">到账: <span>即时</span></div>
+              </div>
+            </div>
+            <div class="web-payment-card" onclick="selectWebPayment(this, 'ewallet')">
+              <div class="check-mark">✓</div>
+              <div class="wpc-top">
+                <span class="wpc-icon">📱</span>
+                <span class="wpc-name">E-Wallet</span>
+              </div>
+              <div class="wpc-provider">PalmPay / OPay</div>
+              <div class="wpc-details">
+                <div class="wpc-detail">范围: <span>1K-1M</span></div>
+                <div class="wpc-detail">费率: <span>免费</span></div>
+                <div class="wpc-detail">到账: <span>~5min</span></div>
+              </div>
+            </div>
+            <div class="web-payment-card" onclick="selectWebPayment(this, 'p2p')">
+              <div class="check-mark">✓</div>
+              <div class="wpc-top">
+                <span class="wpc-icon"></span>
+                <span class="wpc-name">P2P Trading</span>
+              </div>
+              <div class="wpc-provider">点对点交易</div>
+              <div class="wpc-details">
+                <div class="wpc-detail">范围: <span>5K-50M</span></div>
+                <div class="wpc-detail">费率: <span>免费</span></div>
+                <div class="wpc-detail">到账: <span>~15min</span></div>
+              </div>
+            </div>
+          </div>
+
+          <button class="web-cta-btn" id="w-fiat-cta-btn" onclick="onWebFiatDeposit()">通过 Bank Transfer 充值</button>
+        </div>
+
+        <!-- Right: Notice -->
+        <div>
+          <div class="web-notice-box">
+            <div class="notice-title">⚠️ 注意事项</div>
+            <ol>
+              <li>您的转账金额必须与提交的金额完全一致</li>
+              <li>每个订单 ID 只能使用一次，以避免重复</li>
+              <li>请按照充值指南进行充值，否则您的款项可能会丢失</li>
+              <li>充值到账后，资金将自动转入您的现货账户</li>
+              <li>如遇到任何问题，请联系 7×24 小时在线客服</li>
+            </ol>
+          </div>
+
+          <div class="web-record-link" onclick="showToast('跳转至充值记录页面')" style="margin-top:16px;">
+            <span class="text">查看充值记录</span>
+            <span class="arrow">→</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="web-sidebar">
+    <!-- Recent Deposits -->
+    <div class="sidebar-card">
+      <div class="sc-title">📊 最近充值记录</div>
+      <div class="recent-deposit">
+        <div class="rd-coin" style="background:#26a17b;">₮</div>
+        <div class="rd-info">
+          <div class="rd-name">USDT</div>
+          <div class="rd-net">TRC20 · 2分钟前</div>
+        </div>
+        <div>
+          <div class="rd-amount">100.00</div>
+          <div class="rd-status pending">处理中</div>
+        </div>
+      </div>
+      <div class="recent-deposit">
+        <div class="rd-coin" style="background:#f7931a;">₿</div>
+        <div class="rd-info">
+          <div class="rd-name">BTC</div>
+          <div class="rd-net">BTC · 1小时前</div>
+        </div>
+        <div>
+          <div class="rd-amount">0.005</div>
+          <div class="rd-status success">已到账</div>
+        </div>
+      </div>
+      <div class="recent-deposit">
+        <div class="rd-coin" style="background:#627eea;">Ξ</div>
+        <div class="rd-info">
+          <div class="rd-name">ETH</div>
+          <div class="rd-net">ERC20 · 昨天</div>
+        </div>
+        <div>
+          <div class="rd-amount">0.50</div>
+          <div class="rd-status success">已到账</div>
+        </div>
+      </div>
+      <div class="recent-deposit">
+        <div class="rd-coin" style="background:#0085c0;"></div>
+        <div class="rd-info">
+          <div class="rd-name">XRP</div>
+          <div class="rd-net">XRP · 3天前</div>
+        </div>
+        <div>
+          <div class="rd-amount">500.00</div>
+          <div class="rd-status success">已到账</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Security Tips -->
+    <div class="sidebar-card">
+      <div class="sc-title">🔒 安全提示</div>
+      <ul class="security-tips">
+        <li>请确认网络与发送方一致，错误网络可能导致资产永久丢失</li>
+        <li>大额充值建议先小额测试，确认到账后再进行大额转账</li>
+        <li>不要将 NFT 或其他非标准代币发送至充值地址</li>
+        <li>充值地址仅对当前账户有效，请勿分享给他人</li>
+        <li>如遇问题请联系 7×24 小时在线客服</li>
+      </ul>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="sidebar-card">
+      <div class="sc-title">📈 充值统计</div>
+      <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+        <div>
+          <div style="font-size:12px; color:#8b949e; margin-bottom:4px;">本月充值</div>
+          <div style="font-size:20px; font-weight:700; color:#00d4aa;">$12,580</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:12px; color:#8b949e; margin-bottom:4px;">充值次数</div>
+          <div style="font-size:20px; font-weight:700; color:#e6edf3;">8 次</div>
+        </div>
+      </div>
+      <div style="font-size:12px; color:#8b949e;">
+        较上月 <span style="color:#00d4aa; font-weight:600;">+23.5%</span>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ==================== DROPDOWNS (App bottom sheet) ==================== -->
+<div class="dropdown-overlay" id="dropdown-overlay" onclick="closeDropdown()"></div>
+
+<div class="dropdown-panel" id="dropdown-coin">
+  <div class="dropdown-header">
+    <span class="dh-title">选择币种</span>
+    <div class="dh-close" onclick="closeDropdown()">✕</div>
+  </div>
+  <div class="dropdown-search">
+    <input type="text" placeholder="搜索币种名称或代码..." id="coin-search" oninput="filterCoins()">
+  </div>
+  <div class="dropdown-list" id="coin-list"></div>
+</div>
+
+<div class="dropdown-panel" id="dropdown-network">
+  <div class="dropdown-header">
+    <span class="dh-title">选择网络</span>
+    <div class="dh-close" onclick="closeDropdown()">✕</div>
+  </div>
+  <div class="dropdown-list" id="network-list"></div>
+</div>
+
+<div class="dropdown-panel" id="dropdown-fiat-currency">
+  <div class="dropdown-header">
+    <span class="dh-title">选择法币</span>
+    <div class="dh-close" onclick="closeDropdown()">✕</div>
+  </div>
+  <div class="dropdown-search">
+    <input type="text" placeholder="搜索法币名称或代码..." id="fiat-search" oninput="filterFiatCurrencies()">
+  </div>
+  <div class="dropdown-list" id="fiat-currency-list"></div>
+</div>
+
+<!-- ==================== DROPDOWNS (Web center modal) ==================== -->
+<div class="web-dropdown-overlay" id="web-dropdown-overlay" onclick="closeWebDropdown()"></div>
+
+<div class="web-dropdown-panel" id="web-dropdown-coin">
+  <div class="dropdown-header">
+    <span class="dh-title">选择币种</span>
+    <div class="dh-close" onclick="closeWebDropdown()">✕</div>
+  </div>
+  <div class="dropdown-search">
+    <input type="text" placeholder="搜索币种名称或代码..." id="w-coin-search" oninput="filterWebCoins()">
+  </div>
+  <div class="dropdown-list" id="w-coin-list"></div>
+</div>
+
+<div class="web-dropdown-panel" id="web-dropdown-network">
+  <div class="dropdown-header">
+    <span class="dh-title">选择网络</span>
+    <div class="dh-close" onclick="closeWebDropdown()">✕</div>
+  </div>
+  <div class="dropdown-list" id="w-network-list"></div>
+</div>
+
+<div class="web-dropdown-panel" id="web-dropdown-fiat-currency">
+  <div class="dropdown-header">
+    <span class="dh-title">选择法币</span>
+    <div class="dh-close" onclick="closeWebDropdown()">✕</div>
+  </div>
+  <div class="dropdown-search">
+    <input type="text" placeholder="搜索法币名称或代码..." id="w-fiat-search" oninput="filterWebFiatCurrencies()">
+  </div>
+  <div class="dropdown-list" id="w-fiat-currency-list"></div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ==================== DATA ====================
+const coins = [
+  { code: 'USDT', name: 'Tether USD', icon: '₮', color: '#26a17b', networks: [
+    { name: 'TRON', code: 'TRC20', icon: 'T', color: '#eb0029', fee: '~1 USDT', time: '~3 分钟', confirms: 1, address: 'TN2Y5xK8mP3vR7wQ9sL4jF6hB1cD0eA8gZ', memo: null },
+    { name: 'Ethereum', code: 'ERC20', icon: 'Ξ', color: '#627eea', fee: '~5 USDT', time: '~10 分钟', confirms: 12, address: '0xE84a0f99A5747A9a623EFEaaeD6667a45BeBbf5', memo: null },
+    { name: 'BNB Smart Chain', code: 'BEP20', icon: 'B', color: '#f3ba2f', fee: '~0.3 USDT', time: '~3 分钟', confirms: 15, address: '0x742d35Cc6634C0532925a3b844Bc9e7595f2bD18', memo: null },
+    { name: 'Solana', code: 'SOL', icon: 'S', color: '#9945ff', fee: '~0.01 USDT', time: '~1 分钟', confirms: 1, address: 'DxkoTwdFR8hb4L92ayv4jj6RaCzW3ATSvwG4gjQfKgat', memo: null },
+    { name: 'Arbitrum One', code: 'ARETH', icon: 'A', color: '#28a0f0', fee: '~0.1 USDT', time: '~5 分钟', confirms: 1, address: '0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063', memo: null },
+  ]},
+  { code: 'BTC', name: 'Bitcoin', icon: '₿', color: '#f7931a', networks: [
+    { name: 'Bitcoin', code: 'BTC', icon: '', color: '#f7931a', fee: '~0.0001 BTC', time: '~30 分钟', confirms: 3, address: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh', memo: null },
+    { name: 'Lightning', code: 'Lightning', icon: '⚡', color: '#f7931a', fee: '~0', time: '即时', confirms: 0, address: 'lnbc1pvjluez...', memo: null },
+  ]},
+  { code: 'ETH', name: 'Ethereum', icon: 'Ξ', color: '#627eea', networks: [
+    { name: 'Ethereum', code: 'ERC20', icon: 'Ξ', color: '#627eea', fee: '~0.005 ETH', time: '~10 分钟', confirms: 12, address: '0x742d35Cc6634C0532925a3b844Bc9e7595f2bD18', memo: null },
+    { name: 'Arbitrum One', code: 'ARETH', icon: 'A', color: '#28a0f0', fee: '~0.001 ETH', time: '~5 分钟', confirms: 1, address: '0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063', memo: null },
+  ]},
+  { code: 'XRP', name: 'Ripple', icon: '✕', color: '#0085c0', networks: [
+    { name: 'XRP Ledger', code: 'XRP', icon: '✕', color: '#0085c0', fee: '~0.0002 XRP', time: '~5 秒', confirms: 1, address: 'rN7n7473784XmBcbBtc4S63q9Kq3486YRN', memo: '298471653' },
+  ]},
+  { code: 'SOL', name: 'Solana', icon: 'S', color: '#9945ff', networks: [
+    { name: 'Solana', code: 'SOL', icon: 'S', color: '#9945ff', fee: '~0.01 SOL', time: '~1 分钟', confirms: 1, address: '7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU', memo: null },
+  ]},
+  { code: 'BNB', name: 'BNB', icon: 'B', color: '#f3ba2f', networks: [
+    { name: 'BNB Smart Chain', code: 'BEP20', icon: 'B', color: '#f3ba2f', fee: '~0.001 BNB', time: '~3 分钟', confirms: 15, address: '0x742d35Cc6634C0532925a3b844Bc9e7595f2bD18', memo: null },
+  ]},
+  { code: 'USDC', name: 'USD Coin', icon: '$', color: '#2775ca', networks: [
+    { name: 'Ethereum', code: 'ERC20', icon: 'Ξ', color: '#627eea', fee: '~3 USDC', time: '~10 分钟', confirms: 12, address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', memo: null },
+    { name: 'TRON', code: 'TRC20', icon: 'T', color: '#eb0029', fee: '~1 USDC', time: '~3 分钟', confirms: 1, address: 'TN2Y5xK8mP3vR7wQ9sL4jF6hB1cD0eA8gZ', memo: null },
+    { name: 'Solana', code: 'SPL', icon: 'S', color: '#9945ff', fee: '~0.01 USDC', time: '~1 分钟', confirms: 1, address: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', memo: null },
+  ]},
+  { code: 'DOGE', name: 'Dogecoin', icon: 'Ð', color: '#c2a633', networks: [
+    { name: 'Dogecoin', code: 'DOGE', icon: 'Ð', color: '#c2a633', fee: '~1 DOGE', time: '~5 分钟', confirms: 6, address: 'DH5yaieqoZN36fDVciNyRueRGvGLR3mr7L', memo: null },
+  ]},
+  { code: 'ADA', name: 'Cardano', icon: 'A', color: '#0033ad', networks: [
+    { name: 'Cardano', code: 'ADA', icon: 'A', color: '#0033ad', fee: '~1 ADA', time: '~5 分钟', confirms: 15, address: 'addr1qx2kd28nq8ac5prwg32hhvudlwggpgfp8utlyqxu6wqgz62f79qsdmm5dsknt9ecr5w468r9ey0fxwkdrwh08ly3tu9sy0f4qd', memo: null },
+  ]},
+  { code: 'TRX', name: 'TRON', icon: 'T', color: '#eb0029', networks: [
+    { name: 'TRON', code: 'TRC20', icon: 'T', color: '#eb0029', fee: '~1 TRX', time: '~3 分钟', confirms: 1, address: 'TN2Y5xK8mP3vR7wQ9sL4jF6hB1cD0eA8gZ', memo: null },
+  ]},
+];
+
+const fiatCurrencies = [
+  { code: 'NGN', name: 'Nigerian Naira', flag: '🇬', color: '#008751', min: 1000 },
+  { code: 'USD', name: 'US Dollar', flag: '🇺', color: '#3c3b6e', min: 15 },
+  { code: 'EUR', name: 'Euro', flag: '🇺', color: '#003399', min: 10 },
+  { code: 'GBP', name: 'British Pound', flag: '🇬🇧', color: '#c8102e', min: 10 },
+  { code: 'BRL', name: 'Brazilian Real', flag: '🇷', color: '#009c3b', min: 50 },
+  { code: 'TRY', name: 'Turkish Lira', flag: '🇹🇷', color: '#e30a17', min: 100 },
+  { code: 'INR', name: 'Indian Rupee', flag: '🇮🇳', color: '#ff9932', min: 500 },
+  { code: 'MXN', name: 'Mexican Peso', flag: '🇲', color: '#006847', min: 100 },
+];
+
+// ==================== STATE ====================
+let currentTab = 'crypto';
+let selectedCoinIndex = 0;
+let selectedNetworkIndex = 0;
+let selectedPayment = 'bank';
+let currentDropdown = null;
+
+// ==================== VIEW SWITCHER ====================
+function switchView(view) {
+  document.querySelectorAll('.view-switcher button').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  document.querySelectorAll('.view-container').forEach(c => c.classList.remove('active'));
+  document.getElementById(`${view}-view`).classList.add('active');
+  if (view === 'web') {
+    updateWebNetwork();
+    drawWebQR(coins[selectedCoinIndex].networks[selectedNetworkIndex].address);
+  }
+}
+
+// ==================== APP TAB SWITCHING ====================
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('#app .tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`#app .tab-btn[data-tab="${tab}"]`).classList.add('active');
+  document.querySelectorAll('#app .tab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById(`tab-${tab}`).classList.add('active');
+}
+
+// ==================== WEB TAB SWITCHING ====================
+function switchWebTab(tab) {
+  document.querySelectorAll('.web-tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.web-tab-btn[data-tab="${tab}"]`).classList.add('active');
+  document.querySelectorAll('.web-tab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById(`web-tab-${tab}`).classList.add('active');
+}
+
+// ==================== APP DROPDOWNS ====================
+function openDropdown(type) {
+  currentDropdown = type;
+  document.getElementById('dropdown-overlay').classList.add('show');
+  document.getElementById(`dropdown-${type}`).classList.add('show');
+  if (type === 'coin') renderCoinList(coins, 'coin-list');
+  if (type === 'network') renderNetworkList('network-list');
+  if (type === 'fiat-currency') renderFiatCurrencyList(fiatCurrencies, 'fiat-currency-list');
+}
+function closeDropdown() {
+  document.getElementById('dropdown-overlay').classList.remove('show');
+  document.querySelectorAll('.dropdown-panel').forEach(p => p.classList.remove('show'));
+  currentDropdown = null;
+}
+function renderCoinList(list, containerId) {
+  document.getElementById(containerId).innerHTML = list.map(coin => {
+    const idx = coins.indexOf(coin);
+    return `<div class="dropdown-item" onclick="selectCoin(${idx})"><div class="di-icon" style="background:${coin.color};color:#fff;">${coin.icon}</div><div class="di-info"><div class="di-name">${coin.name}</div><div class="di-sub">${coin.code} · ${coin.networks.length} 个网络</div></div></div>`;
+  }).join('');
+}
+function filterCoins() {
+  const q = document.getElementById('coin-search').value.toLowerCase();
+  renderCoinList(coins.filter(c => c.name.toLowerCase().includes(q) || c.code.toLowerCase().includes(q)), 'coin-list');
+}
+function selectCoin(index) {
+  selectedCoinIndex = index; selectedNetworkIndex = 0;
+  const coin = coins[index];
+  document.getElementById('selected-coin-icon').textContent = coin.icon;
+  document.getElementById('selected-coin-icon').style.background = coin.color;
+  document.getElementById('selected-coin-name').textContent = coin.name;
+  document.getElementById('selected-coin-code').textContent = coin.code;
+  document.getElementById('amount-suffix').textContent = coin.code;
+  document.getElementById('warn-coin').textContent = coin.code;
+  updateNetwork(); closeDropdown();
+}
+function renderNetworkList(containerId) {
+  const coin = coins[selectedCoinIndex];
+  document.getElementById(containerId).innerHTML = coin.networks.map((net, i) =>
+    `<div class="dropdown-item" onclick="selectNetwork(${i})"><div class="di-icon" style="background:${net.color};color:#fff;">${net.icon}</div><div class="di-info"><div class="di-name">${net.name}</div><div class="di-sub">${net.code}</div></div><div class="di-extra"><div style="color:#00d4aa;">${net.fee}</div><div>${net.time}</div></div></div>`
+  ).join('');
+}
+function selectNetwork(index) { selectedNetworkIndex = index; updateNetwork(); closeDropdown(); }
+function updateNetwork() {
+  const coin = coins[selectedCoinIndex]; const net = coin.networks[selectedNetworkIndex];
+  document.getElementById('selected-net-icon').textContent = net.icon;
+  document.getElementById('selected-net-icon').style.background = net.color;
+  document.getElementById('selected-net-name').textContent = net.name;
+  document.getElementById('selected-net-code').textContent = net.code;
+  document.getElementById('net-fee').textContent = net.fee;
+  document.getElementById('net-time').textContent = net.time;
+  document.getElementById('deposit-address').textContent = net.address;
+  document.getElementById('warn-net').textContent = net.code;
+  document.getElementById('fee-display').textContent = net.fee;
+  document.getElementById('time-display').textContent = net.time;
+  document.getElementById('confirm-display').textContent = net.confirms + ' 次';
+  const ms = document.getElementById('memo-section');
+  if (net.memo) { ms.style.display = 'block'; document.getElementById('memo-value').textContent = net.memo; }
+  else { ms.style.display = 'none'; }
+  drawQR(net.address);
+}
+function renderFiatCurrencyList(list, containerId) {
+  document.getElementById(containerId).innerHTML = list.map(cur => {
+    const idx = fiatCurrencies.indexOf(cur);
+    return `<div class="dropdown-item" onclick="selectFiatCurrency(${idx})"><div class="di-icon" style="background:${cur.color};color:#fff;font-size:20px;">${cur.flag}</div><div class="di-info"><div class="di-name">${cur.name}</div><div class="di-sub">${cur.code}</div></div></div>`;
+  }).join('');
+}
+function filterFiatCurrencies() {
+  const q = document.getElementById('fiat-search').value.toLowerCase();
+  renderFiatCurrencyList(fiatCurrencies.filter(c => c.name.toLowerCase().includes(q) || c.code.toLowerCase().includes(q)), 'fiat-currency-list');
+}
+function selectFiatCurrency(index) {
+  const cur = fiatCurrencies[index];
+  document.getElementById('selected-fiat-icon').textContent = cur.flag;
+  document.getElementById('selected-fiat-icon').style.background = cur.color;
+  document.getElementById('selected-fiat-name').textContent = cur.name;
+  document.getElementById('selected-fiat-code').textContent = cur.code;
+  document.getElementById('fiat-amount-suffix').textContent = cur.code;
+  document.getElementById('fiat-amount-hint').textContent = `最低充值：${cur.min.toLocaleString()} ${cur.code}`;
+  closeDropdown();
+}
+
+// ==================== WEB DROPDOWNS ====================
+function openWebDropdown(type) {
+  document.getElementById('web-dropdown-overlay').classList.add('show');
+  document.getElementById(`web-dropdown-${type}`).classList.add('show');
+  if (type === 'coin') renderCoinList(coins, 'w-coin-list');
+  if (type === 'network') renderNetworkList('w-network-list');
+  if (type === 'fiat-currency') renderFiatCurrencyList(fiatCurrencies, 'w-fiat-currency-list');
+}
+function closeWebDropdown() {
+  document.getElementById('web-dropdown-overlay').classList.remove('show');
+  document.querySelectorAll('.web-dropdown-panel').forEach(p => p.classList.remove('show'));
+}
+function filterWebCoins() {
+  const q = document.getElementById('w-coin-search').value.toLowerCase();
+  renderCoinList(coins.filter(c => c.name.toLowerCase().includes(q) || c.code.toLowerCase().includes(q)), 'w-coin-list');
+}
+function filterWebFiatCurrencies() {
+  const q = document.getElementById('w-fiat-search').value.toLowerCase();
+  renderFiatCurrencyList(fiatCurrencies.filter(c => c.name.toLowerCase().includes(q) || c.code.toLowerCase().includes(q)), 'w-fiat-currency-list');
+}
+
+// Override selectCoin/selectNetwork/selectFiatCurrency to also update web
+const _origSelectCoin = selectCoin;
+selectCoin = function(index) {
+  _origSelectCoin(index);
+  updateWebCoin();
+};
+const _origSelectNetwork = selectNetwork;
+selectNetwork = function(index) {
+  _origSelectNetwork(index);
+  updateWebNetwork();
+};
+const _origSelectFiat = selectFiatCurrency;
+selectFiatCurrency = function(index) {
+  _origSelectFiat(index);
+  updateWebFiat();
+};
+
+function updateWebCoin() {
+  const coin = coins[selectedCoinIndex];
+  document.getElementById('w-selected-coin-icon').textContent = coin.icon;
+  document.getElementById('w-selected-coin-icon').style.background = coin.color;
+  document.getElementById('w-selected-coin-name').textContent = coin.name;
+  document.getElementById('w-selected-coin-code').textContent = coin.code;
+  document.getElementById('w-amount-suffix').textContent = coin.code;
+  document.getElementById('w-warn-coin').textContent = coin.code;
+}
+function updateWebNetwork() {
+  const coin = coins[selectedCoinIndex]; const net = coin.networks[selectedNetworkIndex];
+  document.getElementById('w-selected-net-icon').textContent = net.icon;
+  document.getElementById('w-selected-net-icon').style.background = net.color;
+  document.getElementById('w-selected-net-name').textContent = net.name;
+  document.getElementById('w-selected-net-code').textContent = net.code;
+  document.getElementById('w-net-fee').textContent = net.fee;
+  document.getElementById('w-net-time').textContent = net.time;
+  document.getElementById('w-deposit-address').textContent = net.address;
+  document.getElementById('w-warn-net').textContent = net.code;
+  document.getElementById('w-fee-display').textContent = net.fee;
+  document.getElementById('w-time-display').textContent = net.time;
+  document.getElementById('w-confirm-display').textContent = net.confirms + ' 次';
+  const ms = document.getElementById('w-memo-section');
+  if (net.memo) { ms.style.display = 'block'; document.getElementById('w-memo-value').textContent = net.memo; }
+  else { ms.style.display = 'none'; }
+  drawWebQR(net.address);
+}
+function updateWebFiat() {
+  const cur = fiatCurrencies.find(c => c.code === document.getElementById('selected-fiat-code').textContent);
+  if (cur) {
+    document.getElementById('w-selected-fiat-icon').textContent = cur.flag;
+    document.getElementById('w-selected-fiat-icon').style.background = cur.color;
+    document.getElementById('w-selected-fiat-name').textContent = cur.name;
+    document.getElementById('w-selected-fiat-code').textContent = cur.code;
+    document.getElementById('w-fiat-amount-suffix').textContent = cur.code;
+    document.getElementById('w-fiat-amount-hint').textContent = `最低充值：${cur.min.toLocaleString()} ${cur.code}`;
+  }
+}
+
+// ==================== AMOUNT ====================
+function setAmount(val, el) {
+  document.getElementById('crypto-amount').value = val;
+  document.querySelectorAll('#quick-amounts .quick-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active'); onAmountInput();
+}
+function onAmountInput() {
+  const val = parseFloat(document.getElementById('crypto-amount').value);
+  const hint = document.getElementById('amount-hint');
+  if (val && val < 10) { hint.textContent = '最低充值：10 USDT'; hint.classList.add('error'); }
+  else { hint.classList.remove('error'); }
+  document.querySelectorAll('#quick-amounts .quick-btn').forEach(b => b.classList.remove('active'));
+}
+function onFiatAmountInput() {
+  const val = parseFloat(document.getElementById('fiat-amount').value);
+  const hint = document.getElementById('fiat-amount-hint');
+  const cur = fiatCurrencies.find(c => c.code === document.getElementById('selected-fiat-code').textContent);
+  if (cur) {
+    if (val && val < cur.min) { hint.textContent = `最低充值：${cur.min.toLocaleString()} ${cur.code}`; hint.classList.add('error'); }
+    else { hint.classList.remove('error'); }
+  }
+}
+function setWebAmount(val, el) {
+  document.getElementById('w-crypto-amount').value = val;
+  document.querySelectorAll('.web-quick-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active'); onWebAmountInput();
+}
+function onWebAmountInput() {
+  const val = parseFloat(document.getElementById('w-crypto-amount').value);
+  const hint = document.getElementById('w-amount-hint');
+  if (val && val < 10) { hint.textContent = '最低充值：10 USDT'; hint.classList.add('error'); }
+  else { hint.classList.remove('error'); }
+  document.querySelectorAll('.web-quick-btn').forEach(b => b.classList.remove('active'));
+}
+function onWebFiatAmountInput() {
+  const val = parseFloat(document.getElementById('w-fiat-amount').value);
+  const hint = document.getElementById('w-fiat-amount-hint');
+  const cur = fiatCurrencies.find(c => c.code === document.getElementById('w-selected-fiat-code').textContent);
+  if (cur) {
+    if (val && val < cur.min) { hint.textContent = `最低充值：${cur.min.toLocaleString()} ${cur.code}`; hint.classList.add('error'); }
+    else { hint.classList.remove('error'); }
+  }
+}
+
+// ==================== PAYMENT ====================
+function selectPayment(el, type) {
+  selectedPayment = type;
+  document.querySelectorAll('#payment-grid .payment-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  const names = { bank: 'Bank Transfer', card: 'Card Payment', ewallet: 'E-Wallet', p2p: 'P2P Trading' };
+  document.getElementById('fiat-cta-btn').textContent = `通过 ${names[type]} 充值`;
+}
+function onFiatDeposit() {
+  const names = { bank: 'Bank Transfer', card: 'Card Payment', ewallet: 'E-Wallet', p2p: 'P2P Trading' };
+  showToast(`正在跳转至 ${names[selectedPayment]} 支付流程...`);
+}
+function selectWebPayment(el, type) {
+  selectedPayment = type;
+  document.querySelectorAll('.web-payment-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  const names = { bank: 'Bank Transfer', card: 'Card Payment', ewallet: 'E-Wallet', p2p: 'P2P Trading' };
+  document.getElementById('w-fiat-cta-btn').textContent = `通过 ${names[type]} 充值`;
+}
+function onWebFiatDeposit() {
+  const names = { bank: 'Bank Transfer', card: 'Card Payment', ewallet: 'E-Wallet', p2p: 'P2P Trading' };
+  showToast(`正在跳转至 ${names[selectedPayment]} 支付流程...`);
+}
+
+// ==================== COPY ====================
+function copyAddress() {
+  const addr = document.getElementById('deposit-address').textContent;
+  navigator.clipboard?.writeText(addr);
+  document.getElementById('copy-text').textContent = '已复制 ✓';
+  setTimeout(() => document.getElementById('copy-text').textContent = '复制地址', 2000);
+  showToast('地址已复制');
+}
+function copyMemo() {
+  const memo = document.getElementById('memo-value').textContent;
+  navigator.clipboard?.writeText(memo);
+  document.getElementById('memo-copy-text').textContent = '已复制 ✓';
+  setTimeout(() => document.getElementById('memo-copy-text').textContent = '复制', 2000);
+  showToast('Memo 已复制');
+}
+function copyWebAddress() {
+  const addr = document.getElementById('w-deposit-address').textContent;
+  navigator.clipboard?.writeText(addr);
+  showToast('地址已复制');
+}
+function copyWebMemo() {
+  const memo = document.getElementById('w-memo-value').textContent;
+  navigator.clipboard?.writeText(memo);
+  showToast('Memo 已复制');
+}
+
+// ==================== TOAST ====================
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+// ==================== QR CODE ====================
+function drawQR(text) {
+  const canvas = document.getElementById('qr-canvas');
+  const ctx = canvas.getContext('2d');
+  const size = 100;
+  ctx.clearRect(0, 0, size, size);
+  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, size, size);
+  const cellSize = 4; const cells = Math.floor(size / cellSize);
+  let seed = 0;
+  for (let i = 0; i < text.length; i++) seed = ((seed << 5) - seed + text.charCodeAt(i)) | 0;
+  ctx.fillStyle = '#000';
+  for (let y = 0; y < cells; y++) {
+    for (let x = 0; x < cells; x++) {
+      const inFinder = (x < 7 && y < 7) || (x >= cells-7 && y < 7) || (x < 7 && y >= cells-7);
+      if (inFinder) {
+        const fx = x < 7 ? x : x - (cells - 7);
+        const fy = y < 7 ? y : y - (cells - 7);
+        const isBorder = fx === 0 || fx === 6 || fy === 0 || fy === 6;
+        const isCenter = fx >= 2 && fx <= 4 && fy >= 2 && fy <= 4;
+        if (isBorder || isCenter) ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+      } else {
+        seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+        if (seed % 3 !== 0) ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+      }
+    }
+  }
+}
+function drawWebQR(text) {
+  const canvas = document.getElementById('w-qr-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const size = 140;
+  ctx.clearRect(0, 0, size, size);
+  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, size, size);
+  const cellSize = 5; const cells = Math.floor(size / cellSize);
+  let seed = 0;
+  for (let i = 0; i < text.length; i++) seed = ((seed << 5) - seed + text.charCodeAt(i)) | 0;
+  ctx.fillStyle = '#000';
+  for (let y = 0; y < cells; y++) {
+    for (let x = 0; x < cells; x++) {
+      const inFinder = (x < 7 && y < 7) || (x >= cells-7 && y < 7) || (x < 7 && y >= cells-7);
+      if (inFinder) {
+        const fx = x < 7 ? x : x - (cells - 7);
+        const fy = y < 7 ? y : y - (cells - 7);
+        const isBorder = fx === 0 || fx === 6 || fy === 0 || fy === 6;
+        const isCenter = fx >= 2 && fx <= 4 && fy >= 2 && fy <= 4;
+        if (isBorder || isCenter) ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+      } else {
+        seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+        if (seed % 3 !== 0) ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+      }
+    }
+  }
+}
+
+// ==================== INIT ====================
+updateNetwork();
+</script>
+</body>
+</html>

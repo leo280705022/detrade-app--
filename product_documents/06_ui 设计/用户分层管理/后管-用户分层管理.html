@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户分层管理 - DeTrade 后管</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css" />
+    <script src="https://unpkg.com/element-plus"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@element-plus/icons-vue"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        .el-menu { border-right: none !important; }
+        .el-sub-menu__title { padding-left: 20px !important; }
+        .el-menu > .el-menu-item { padding-left: 20px !important; }
+        .el-sub-menu .el-menu-item { padding-left: 64px !important; background-color: #000c17 !important; min-width: 200px; }
+        .el-sub-menu .el-menu-item:hover { background-color: #001529 !important; color: #fff !important; }
+        .el-menu-item.is-active { background-color: #1890ff !important; color: #fff !important; }
+        [v-cloak] { display: none; }
+        .stat-card { border-radius: 10px; padding: 20px 24px; background: #fff; box-shadow: 0 1px 6px rgba(0,0,0,0.06); position: relative; transition: transform 0.2s; cursor: pointer; }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .stat-card.active { border: 2px solid #1890ff; }
+        .stat-card .tier-icon { position: absolute; right: 16px; top: 16px; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: bold; color: #fff; }
+        .tier-ss .tier-icon { background: linear-gradient(135deg, #1a1a2e, #e94560); }
+        .tier-s .tier-icon { background: linear-gradient(135deg, #2d3436, #6c5ce7); }
+        .tier-a .tier-icon { background: linear-gradient(135deg, #0984e3, #74b9ff); }
+        .tier-b .tier-icon { background: linear-gradient(135deg, #00b894, #55efc4); }
+        .tier-c .tier-icon { background: linear-gradient(135deg, #636e72, #b2bec3); }
+        .tier-r .tier-icon { background: linear-gradient(135deg, #d63031, #ff7675); }
+        .vip-tag { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+        .vip-tag.low { background: #f0f0f0; color: #666; }
+        .vip-tag.mid { background: #fff8e1; color: #f9a825; }
+        .vip-tag.high { background: #ede7f6; color: #5e35b1; }
+        .vip-tag.elite { background: linear-gradient(135deg, #1a1a2e, #e94560); color: #fff; }
+        .lifecycle-tag { padding: 2px 10px; border-radius: 12px; font-size: 12px; }
+        .lifecycle-onboard { background: #e3f2fd; color: #1565c0; }
+        .lifecycle-growth { background: #e8f5e9; color: #2e7d32; }
+        .lifecycle-mature { background: #fff3e0; color: #e65100; }
+        .lifecycle-dormant { background: #fce4ec; color: #c62828; }
+        .lifecycle-churn { background: #f3e5f5; color: #6a1b9a; }
+        .detail-drawer .el-drawer__body { padding: 0 24px 24px; }
+        .timeline-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+        .timeline-dot.up { background: #52c41a; }
+        .timeline-dot.down { background: #ff4d4f; }
+        .timeline-dot.manual { background: #faad14; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <div id="app" v-cloak class="min-h-screen flex">
+        <!-- 侧边栏 -->
+        <aside class="w-52 bg-[#001529] text-white flex-shrink-0 flex flex-col">
+            <div class="h-14 flex items-center justify-center border-b border-gray-700">
+                <div class="flex items-center space-x-2">
+                    <div class="w-7 h-7 bg-gradient-to-tr from-blue-500 to-purple-600 rounded flex items-center justify-center font-bold text-sm">D</div>
+                    <span class="text-lg font-bold">Detrade</span>
+                </div>
+            </div>
+            <el-scrollbar class="flex-1">
+                <el-menu :default-active="currentPage" background-color="#001529" text-color="#fff" active-text-color="#409EFF" class="border-r-0">
+                    <el-sub-menu index="user" :default-openeds="['user']">
+                        <template #title><el-icon><User /></el-icon><span>用户管理</span></template>
+                        <el-menu-item index="tier-overview" @click="currentPage='tier-overview'">分层总览</el-menu-item>
+                        <el-menu-item index="tier-list" @click="currentPage='tier-list'">用户列表</el-menu-item>
+                        <el-menu-item index="manual-adjust" @click="currentPage='manual-adjust'">手动调整</el-menu-item>
+                        <el-menu-item index="config" @click="currentPage='config'">分层配置</el-menu-item>
+                        <el-menu-item index="log" @click="currentPage='log'">变更日志</el-menu-item>
+                    </el-sub-menu>
+                </el-menu>
+            </el-scrollbar>
+        </aside>
+
+        <!-- 主内容 -->
+        <main class="flex-1 flex flex-col overflow-hidden">
+            <header class="h-14 bg-white border-b flex items-center justify-between px-6 shrink-0">
+                <div class="flex items-center gap-3">
+                    <h1 class="text-lg font-semibold text-gray-800">
+                        {{ pageTitle }}
+                    </h1>
+                    <el-tag v-if="currentPage==='tier-overview'" size="small" type="info">实时刷新</el-tag>
+                </div>
+                <div class="flex items-center gap-4 text-sm text-gray-500">
+                    <span>上次更新: {{ lastUpdate }}</span>
+                    <el-button size="small" :icon="Refresh" @click="refreshData">刷新数据</el-button>
+                </div>
+            </header>
+
+            <div class="flex-1 overflow-auto p-6" v-if="currentPage==='tier-overview'">
+                <!-- ============ 分层总览 ============ -->
+                <!-- 统计卡片 - 价值分层 -->
+                <h3 class="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wide">用户价值分层</h3>
+                <div class="grid grid-cols-6 gap-4 mb-6">
+                    <div v-for="t in valueTiers" :key="t.key" :class="['stat-card', t.key, selectedValueTier===t.key ? 'active' : '']" @click="selectValueTier(t.key)">
+                        <div class="text-xs text-gray-400 mb-1">{{ t.label }}</div>
+                        <div class="text-2xl font-bold text-gray-800 mb-1">{{ t.count.toLocaleString() }}</div>
+                        <div class="text-xs text-gray-400">{{ t.percent }}% 占比</div>
+                        <div :class="['text-xs mt-1', t.change>0?'text-green-500':t.change<0?'text-red-500':'text-gray-400']">
+                            {{ t.change>=0?'↑':'↓' }}{{ Math.abs(t.change) }}%
+                        </div>
+                        <div class="tier-icon">{{ t.key === 'SS' ? '★' : t.key }}</div>
+                    </div>
+                </div>
+
+                <!-- 统计卡片 - VIP 等级 -->
+                <h3 class="text-sm font-semibold text-gray-500 mb-3 uppercase tracking-wide">VIP 等级分布</h3>
+                <div class="grid grid-cols-6 gap-4 mb-6">
+                    <div v-for="v in vipSummaryCards" :key="v.range" class="stat-card" @click="selectVipRange(v.range)">
+                        <div class="text-xs text-gray-400 mb-1">{{ v.label }}</div>
+                        <div class="text-2xl font-bold text-gray-800 mb-1">{{ v.count.toLocaleString() }}</div>
+                        <div class="text-xs text-gray-400">{{ v.percent }}% 占比</div>
+                        <div class="flex items-center gap-1 mt-2">
+                            <span :class="['vip-tag', v.style]">VIP {{ v.range }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 图表区域 -->
+                <div class="grid grid-cols-2 gap-6 mb-6">
+                    <div class="bg-white rounded-lg shadow p-5">
+                        <h4 class="text-sm font-semibold text-gray-600 mb-3">近 30 天分层趋势</h4>
+                        <div id="trend-chart" style="height: 280px;"></div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-5">
+                        <h4 class="text-sm font-semibold text-gray-600 mb-3">生命周期分布</h4>
+                        <div id="lifecycle-chart" style="height: 280px;"></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="bg-white rounded-lg shadow p-5">
+                        <h4 class="text-sm font-semibold text-gray-600 mb-3">VIP 等级趋势</h4>
+                        <div id="vip-trend-chart" style="height: 280px;"></div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-5">
+                        <h4 class="text-sm font-semibold text-gray-600 mb-3">升降级统计（本月）</h4>
+                        <div class="flex items-center justify-center h-[280px]">
+                            <div class="text-center w-1/2">
+                                <div class="text-green-500 text-3xl font-bold mb-1">↑ {{ upgradeCount }}</div>
+                                <div class="text-xs text-gray-400">升级用户</div>
+                            </div>
+                            <div class="border-l h-20 mx-4"></div>
+                            <div class="text-center w-1/2">
+                                <div class="text-red-500 text-3xl font-bold mb-1">↓ {{ downgradeCount }}</div>
+                                <div class="text-xs text-gray-400">降级用户</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============ 用户列表 ============ -->
+            <div class="flex-1 overflow-auto p-6" v-if="currentPage==='tier-list'">
+                <div class="bg-white rounded-lg shadow p-5 mb-4">
+                    <el-form :inline="true" size="small">
+                        <el-form-item label="搜索"><el-input v-model="searchQuery" placeholder="UID / 手机号 / 邮箱" clearable style="width:200px" /></el-form-item>
+                        <el-form-item label="价值分层">
+                            <el-select v-model="filterValueTier" placeholder="全部" clearable style="width:110px">
+                                <el-option v-for="t in valueTiers" :key="t.key" :label="t.label" :value="t.key" />
+                            </el-select>
+                        </el-form-item>
+                        <el-form-item label="VIP 等级">
+                            <el-select v-model="filterVip" placeholder="全部" clearable style="width:110px">
+                                <el-option v-for="i in 11" :key="i-1" :label="'VIP '+(i-1)" :value="i-1" />
+                            </el-select>
+                        </el-form-item>
+                        <el-form-item label="生命周期">
+                            <el-select v-model="filterLifecycle" placeholder="全部" clearable style="width:120px">
+                                <el-option label="引入期" value="onboarding" /><el-option label="成长期" value="growth" />
+                                <el-option label="成熟期" value="mature" /><el-option label="休眠期" value="dormant" />
+                                <el-option label="流失期" value="churn" />
+                            </el-select>
+                        </el-form-item>
+                        <el-form-item label="风险标签"><el-checkbox v-model="filterRisk" />仅看风险用户</el-form-item>
+                        <el-form-item><el-button type="primary" @click="searchUsers">查询</el-button></el-form-item>
+                    </el-form>
+                </div>
+
+                <div class="bg-white rounded-lg shadow">
+                    <el-table :data="userTableData" stripe style="width:100%" @row-click="openUserDetail" row-class-name="cursor-pointer">
+                        <el-table-column prop="uid" label="UID" width="100" />
+                        <el-table-column prop="nickname" label="昵称" width="130" />
+                        <el-table-column prop="valueTier" label="价值分层" width="90">
+                            <template #default="{row}"><span :class="'font-semibold '+(row.valueTier==='SS'||row.valueTier==='S'?'text-purple-600':row.valueTier==='A'?'text-blue-600':row.valueTier==='R'?'text-red-600':'text-gray-600')">{{ row.valueTier }}级</span></template>
+                        </el-table-column>
+                        <el-table-column prop="vipLevel" label="VIP" width="70">
+                            <template #default="{row}"><span :class="['vip-tag', row.vipLevel<=1?'low':row.vipLevel<=3?'mid':row.vipLevel<=7?'high':'elite']">VIP {{ row.vipLevel }}</span></template>
+                        </el-table-column>
+                        <el-table-column prop="lifecycle" label="生命周期" width="100">
+                            <template #default="{row}"><span :class="['lifecycle-tag', 'lifecycle-'+row.lifecycle]">{{ lifecycleLabel(row.lifecycle) }}</span></template>
+                        </el-table-column>
+                        <el-table-column prop="aum" label="净资产(USDT)" width="130" sortable>
+                            <template #default="{row}">{{ row.aum.toLocaleString() }}</template>
+                        </el-table-column>
+                        <el-table-column prop="monthlyFee" label="月手续费(USDT)" width="140" sortable>
+                            <template #default="{row}">{{ row.monthlyFee.toLocaleString() }}</template>
+                        </el-table-column>
+                        <el-table-column prop="activeDays" label="30天活跃" width="90">
+                            <template #default="{row}">{{ row.activeDays }}天</template>
+                        </el-table-column>
+                        <el-table-column prop="riskTags" label="风险标签" min-width="150">
+                            <template #default="{row}">
+                                <el-tag v-for="tag in row.riskTags" :key="tag" size="small" type="danger" class="mr-1">{{ tag }}</el-tag>
+                                <span v-if="!row.riskTags.length" class="text-gray-400">无</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="updatedAt" label="更新时间" width="110" />
+                    </el-table>
+                    <div class="flex justify-between items-center p-4 border-t">
+                        <span class="text-sm text-gray-500">共 {{ userTableData.length }} 条记录</span>
+                        <el-pagination small layout="prev,pager,next" :total="userTableData.length" :page-size="15" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============ 手动调整 ============ -->
+            <div class="flex-1 overflow-auto p-6" v-if="currentPage==='manual-adjust'">
+                <div class="bg-white rounded-lg shadow p-6 max-w-lg mx-auto">
+                    <h3 class="text-lg font-semibold mb-4">手动分层调整</h3>
+                    <el-form label-width="100px">
+                        <el-form-item label="用户 UID"><el-input v-model="adjust.uid" placeholder="请输入 UID" /></el-form-item>
+                        <el-form-item label="调整类型">
+                            <el-radio-group v-model="adjust.action">
+                                <el-radio label="manual_upgrade">手动升级</el-radio>
+                                <el-radio label="manual_downgrade">手动降级</el-radio>
+                                <el-radio label="freeze">分层冻结</el-radio>
+                                <el-radio label="whitelist">白名单</el-radio>
+                            </el-radio-group>
+                        </el-form-item>
+                        <el-form-item label="目标分层" v-if="adjust.action==='manual_upgrade'||adjust.action==='manual_downgrade'">
+                            <el-select v-model="adjust.targetTier" placeholder="选择目标分层" style="width:160px">
+                                <el-option v-for="t in valueTiers.filter(x=>x.key!=='R'||adjust.action==='manual_downgrade')" :key="t.key" :label="t.label+' ('+t.key+'级)'" :value="t.key" />
+                            </el-select>
+                        </el-form-item>
+                        <el-form-item label="目标 VIP" v-if="adjust.action==='manual_upgrade'||adjust.action==='manual_downgrade'">
+                            <el-select v-model="adjust.targetVip" placeholder="选择 VIP 等级" style="width:160px">
+                                <el-option v-for="i in 10" :key="i" :label="'VIP '+i" :value="i" />
+                            </el-select>
+                        </el-form-item>
+                        <el-form-item label="调整原因"><el-input v-model="adjust.reason" type="textarea" :rows="3" placeholder="请详细说明调整原因" /></el-form-item>
+                        <el-form-item><el-button type="primary" @click="submitAdjust">提交调整（待审批）</el-button></el-form-item>
+                    </el-form>
+                </div>
+            </div>
+
+            <!-- ============ 分层配置 ============ -->
+            <div class="flex-1 overflow-auto p-6" v-if="currentPage==='config'">
+                <div class="bg-white rounded-lg shadow">
+                    <el-tabs v-model="configTab">
+                        <el-tab-pane label="价值分层阈值" name="value">
+                            <el-table :data="configValueTier" style="width:100%" class="p-4">
+                                <el-table-column prop="tier" label="层级" width="80" />
+                                <el-table-column prop="assetMin" label="资产门槛(USDT)">
+                                    <template #default="{row}"><el-input-number v-model="row.assetMin" size="small" controls-position="right" :min="0" /></template>
+                                </el-table-column>
+                                <el-table-column prop="feeMin" label="月手续费门槛(USDT)">
+                                    <template #default="{row}"><el-input-number v-model="row.feeMin" size="small" controls-position="right" :min="0" /></template>
+                                </el-table-column>
+                                <el-table-column prop="activeDays" label="活跃天数">
+                                    <template #default="{row}"><el-input-number v-model="row.activeDays" size="small" controls-position="right" :min="0" :max="30" /></template>
+                                </el-table-column>
+                            </el-table>
+                            <div class="p-4 border-t"><el-button type="primary" size="small">保存配置</el-button></div>
+                        </el-tab-pane>
+                        <el-tab-pane label="VIP 升级条件" name="vip">
+                            <el-table :data="configVipUpgrade" style="width:100%" class="p-4">
+                                <el-table-column prop="level" label="升至" width="80" />
+                                <el-table-column prop="assetReq" label="净资产要求(USDT)">
+                                    <template #default="{row}"><el-input-number v-model="row.assetReq" size="small" controls-position="right" :min="0" /></template>
+                                </el-table-column>
+                                <el-table-column prop="feeReq" label="月手续费要求(USDT)">
+                                    <template #default="{row}"><el-input-number v-model="row.feeReq" size="small" controls-position="right" :min="0" /></template>
+                                </el-table-column>
+                                <el-table-column prop="daysReq" label="持续天数">
+                                    <template #default="{row}"><el-input-number v-model="row.daysReq" size="small" controls-position="right" :min="1" :max="90" /></template>
+                                </el-table-column>
+                            </el-table>
+                            <div class="p-4 border-t"><el-button type="primary" size="small">保存配置</el-button></div>
+                        </el-tab-pane>
+                        <el-tab-pane label="权益配置" name="benefits">
+                            <el-table :data="configBenefits" style="width:100%" class="p-4" max-height="400">
+                                <el-table-column prop="vipRange" label="VIP范围" width="100" />
+                                <el-table-column prop="makerFee" label="Maker费率(%)">
+                                    <template #default="{row}"><el-input-number v-model="row.makerFee" size="small" :min="0" :max="0.1" :precision="3" :step="0.001" /></template>
+                                </el-table-column>
+                                <el-table-column prop="takerFee" label="Taker费率(%)">
+                                    <template #default="{row}"><el-input-number v-model="row.takerFee" size="small" :min="0" :max="0.1" :precision="3" :step="0.001" /></template>
+                                </el-table-column>
+                                <el-table-column prop="rebate" label="返水比例(%)">
+                                    <template #default="{row}"><el-input-number v-model="row.rebate" size="small" :min="0" :max="50" /></template>
+                                </el-table-column>
+                            </el-table>
+                            <div class="p-4 border-t"><el-button type="primary" size="small">保存配置</el-button></div>
+                        </el-tab-pane>
+                    </el-tabs>
+                </div>
+            </div>
+
+            <!-- ============ 变更日志 ============ -->
+            <div class="flex-1 overflow-auto p-6" v-if="currentPage==='log'">
+                <div class="bg-white rounded-lg shadow p-4 mb-4">
+                    <el-form :inline="true" size="small">
+                        <el-form-item label="变更类型">
+                            <el-select v-model="logFilter.type" placeholder="全部" clearable style="width:140px">
+                                <el-option label="自动升级" value="auto_upgrade" /><el-option label="自动降级" value="auto_downgrade" />
+                                <el-option label="手动升级" value="manual_upgrade" /><el-option label="手动降级" value="manual_downgrade" />
+                                <el-option label="分层冻结" value="freeze" /><el-option label="白名单" value="whitelist" />
+                            </el-select>
+                        </el-form-item>
+                        <el-form-item label="日期范围"><el-date-picker v-model="logFilter.dateRange" type="daterange" range-separator="至" start-placeholder="开始" end-placeholder="结束" size="small" /></el-form-item>
+                        <el-form-item><el-button type="primary" size="small">查询</el-button><el-button size="small">导出 CSV</el-button></el-form-item>
+                    </el-form>
+                </div>
+                <div class="bg-white rounded-lg shadow">
+                    <el-table :data="logData" stripe style="width:100%">
+                        <el-table-column type="expand">
+                            <template #default="{row}"><div class="p-4 text-sm text-gray-600"><strong>快照数据：</strong>{{ JSON.stringify(row.snapshot) }}</div></template>
+                        </el-table-column>
+                        <el-table-column prop="time" label="时间" width="160" />
+                        <el-table-column prop="uid" label="UID" width="100" />
+                        <el-table-column label="类型" width="100">
+                            <template #default="{row}"><span class="timeline-dot" :class="row.type.includes('upgrade')?'up':row.type.includes('downgrade')?'down':'manual'"></span> {{ logTypeLabel(row.type) }}</template>
+                        </el-table-column>
+                        <el-table-column label="变更" width="180">
+                            <template #default="{row}">{{ row.fromTier }}→{{ row.toTier }} / VIP {{ row.fromVip }}→{{ row.toVip }}</template>
+                        </el-table-column>
+                        <el-table-column prop="reason" label="原因" min-width="200" />
+                        <el-table-column prop="operator" label="操作人" width="100" />
+                        <el-table-column prop="approver" label="审批人" width="100" />
+                    </el-table>
+                </div>
+            </div>
+        </main>
+
+        <!-- 用户详情抽屉 -->
+        <el-drawer v-model="userDetailVisible" title="用户分层详情" size="500px" class="detail-drawer">
+            <template v-if="selectedUser">
+                <div class="mb-6">
+                    <div class="flex items-center gap-3 mb-4">
+                        <el-avatar :size="48">{{ selectedUser.nickname?.charAt(0) }}</el-avatar>
+                        <div>
+                            <div class="text-lg font-semibold">{{ selectedUser.nickname }} <span class="text-sm text-gray-400 font-normal">UID: {{ selectedUser.uid }}</span></div>
+                            <div class="text-xs text-gray-400 mt-1">{{ selectedUser.phone }} | {{ selectedUser.email }} | 注册: {{ selectedUser.registerDate }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <el-descriptions title="分层信息" :column="2" border size="small" class="mb-4">
+                    <el-descriptions-item label="价值分层"><span class="font-bold text-lg">{{ selectedUser.valueTier }}级</span></el-descriptions-item>
+                    <el-descriptions-item label="VIP 等级"><span :class="['vip-tag', selectedUser.vipLevel<=1?'low':selectedUser.vipLevel<=3?'mid':selectedUser.vipLevel<=7?'high':'elite']">VIP {{ selectedUser.vipLevel }}</span></el-descriptions-item>
+                    <el-descriptions-item label="生命周期"><span :class="['lifecycle-tag','lifecycle-'+selectedUser.lifecycle]">{{ lifecycleLabel(selectedUser.lifecycle) }}</span></el-descriptions-item>
+                    <el-descriptions-item label="综合评分">{{ selectedUser.tierScore }} 分</el-descriptions-item>
+                </el-descriptions>
+
+                <el-descriptions title="资产数据" :column="2" border size="small" class="mb-4">
+                    <el-descriptions-item label="净资产">{{ selectedUser.aum?.toLocaleString() }} USDT</el-descriptions-item>
+                    <el-descriptions-item label="净入金">{{ selectedUser.netDeposit?.toLocaleString() }} USDT</el-descriptions-item>
+                    <el-descriptions-item label="钱包余额">{{ selectedUser.wallet?.toLocaleString() }} USDT</el-descriptions-item>
+                    <el-descriptions-item label="未结盈亏">{{ selectedUser.pnl > 0 ? '+' : '' }}{{ selectedUser.pnl?.toLocaleString() }} USDT</el-descriptions-item>
+                </el-descriptions>
+
+                <el-descriptions title="交易数据" :column="2" border size="small" class="mb-4">
+                    <el-descriptions-item label="月手续费">{{ selectedUser.monthlyFee?.toLocaleString() }} USDT</el-descriptions-item>
+                    <el-descriptions-item label="月交易量">{{ selectedUser.monthlyVolume?.toLocaleString() }} USDT</el-descriptions-item>
+                    <el-descriptions-item label="平均杠杆">{{ selectedUser.avgLeverage }}x</el-descriptions-item>
+                    <el-descriptions-item label="爆仓次数">{{ selectedUser.liquidationCount }}</el-descriptions-item>
+                </el-descriptions>
+
+                <div class="mb-4">
+                    <h4 class="text-sm font-semibold text-gray-500 mb-2">风险标签</h4>
+                    <div v-if="selectedUser.riskTags?.length">
+                        <el-tag v-for="tag in selectedUser.riskTags" :key="tag" type="danger" class="mr-1 mb-1">{{ tag }}</el-tag>
+                    </div>
+                    <span v-else class="text-gray-400 text-sm">无风险标签</span>
+                </div>
+
+                <div class="mb-4">
+                    <h4 class="text-sm font-semibold text-gray-500 mb-2">分层变更历史</h4>
+                    <el-timeline>
+                        <el-timeline-item v-for="h in selectedUser.tierHistory" :key="h.time" :timestamp="h.time" placement="top" :color="h.type==='upgrade'?'#52c41a':h.type==='downgrade'?'#ff4d4f':'#faad14'">
+                            <span :class="h.type==='upgrade'?'text-green-600':h.type==='downgrade'?'text-red-600':'text-orange-600'">{{ h.desc }}</span>
+                        </el-timeline-item>
+                    </el-timeline>
+                </div>
+
+                <div class="flex gap-2 pt-4 border-t">
+                    <el-button type="warning" size="small">手动调整分层</el-button>
+                    <el-button type="danger" size="small" plain>标记冻结</el-button>
+                    <el-button type="success" size="small" plain>加入白名单</el-button>
+                </div>
+            </template>
+        </el-drawer>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, reactive, watch, onMounted, nextTick } = Vue;
+        const { ElMessage, ElMessageBox } = ElementPlus;
+
+        const app = createApp({
+            setup() {
+                // ---- 全局状态 ----
+                const currentPage = ref('tier-overview');
+                const selectedValueTier = ref(null);
+                const searchQuery = ref('');
+                const filterValueTier = ref('');
+                const filterVip = ref('');
+                const filterLifecycle = ref('');
+                const filterRisk = ref(false);
+                const userDetailVisible = ref(false);
+                const selectedUser = ref(null);
+                const configTab = ref('value');
+
+                const pageTitle = computed(() => {
+                    const map = { 'tier-overview':'用户分层总览', 'tier-list':'用户列表', 'manual-adjust':'手动分层调整', 'config':'分层配置管理', 'log':'分层变更日志' };
+                    return map[currentPage.value] || '用户分层管理';
+                });
+
+                const lastUpdate = computed(() => new Date().toLocaleTimeString('zh-CN', { hour:'2-digit', minute:'2-digit', second:'2-digit' }));
+
+                // ---- 数据 ----
+                const valueTiers = reactive([
+                    { key:'SS', label:'超级鲸鱼', count:23, percent:0.5, change:2.1, color:'#e94560' },
+                    { key:'S', label:'鲸鱼用户', count:89, percent:1.8, change:-1.2, color:'#6c5ce7' },
+                    { key:'A', label:'主力用户', count:623, percent:12.5, change:5.3, color:'#0984e3' },
+                    { key:'B', label:'散户用户', count:1856, percent:37.1, change:3.8, color:'#00b894' },
+                    { key:'C', label:'新手用户', count:2103, percent:42.1, change:-8.5, color:'#636e72' },
+                    { key:'R', label:'风险用户', count:306, percent:6.0, change:0.5, color:'#d63031' },
+                ]);
+
+                const vipSummaryCards = reactive([
+                    { range:'0-1', label:'入门级', count:2820, percent:56.4, style:'low' },
+                    { range:'2-3', label:'活跃级', count:1150, percent:23.0, style:'mid' },
+                    { range:'4-5', label:'专业级', count:520, percent:10.4, style:'mid' },
+                    { range:'6-7', label:'精英级', count:310, percent:6.2, style:'high' },
+                    { range:'8', label:'钻石级', count:150, percent:3.0, style:'high' },
+                    { range:'9-10', label:'至尊级', count:50, percent:1.0, style:'elite' },
+                ]);
+
+                const upgradeCount = ref(156);
+                const downgradeCount = ref(43);
+
+                const userTableData = ref([
+                    { uid:'10002341', nickname:'CryptoWhale', valueTier:'SS', vipLevel:10, lifecycle:'mature', aum:1850000, monthlyFee:72000, activeDays:30, riskTags:[], tierScore:98, tierHistory:[{time:'2025-06-15',type:'upgrade',desc:'自动升级 SS级 VIP10'},{time:'2025-05-20',type:'upgrade',desc:'自动升级 S级 VIP9'}], phone:'138****8888', email:'wh***@gmail.com', registerDate:'2024-01-15', netDeposit:1500000, wallet:1200000, pnl:650000, monthlyVolume:85000000, avgLeverage:8, liquidationCount:0, updatedAt:'06-15 08:30' },
+                    { uid:'10005782', nickname:'TraderLeo', valueTier:'S', vipLevel:7, lifecycle:'mature', aum:235000, monthlyFee:8500, activeDays:28, riskTags:[], tierScore:88, tierHistory:[{time:'2025-06-10',type:'upgrade',desc:'自动升级 S级 VIP7'}], phone:'186****6789', email:'le***@outlook.com', registerDate:'2024-03-22', netDeposit:200000, wallet:180000, pnl:55000, monthlyVolume:12500000, avgLeverage:15, liquidationCount:0, updatedAt:'06-15 08:30' },
+                    { uid:'10012389', nickname:'BitMaster', valueTier:'A', vipLevel:5, lifecycle:'mature', aum:48000, monthlyFee:1800, activeDays:22, riskTags:[], tierScore:76, tierHistory:[{time:'2025-05-28',type:'upgrade',desc:'自动升级 A级 VIP5'}], phone:'139****2345', email:'bi***@qq.com', registerDate:'2024-06-10', netDeposit:35000, wallet:32000, pnl:16000, monthlyVolume:2800000, avgLeverage:25, liquidationCount:0, updatedAt:'06-15 08:30' },
+                    { uid:'10028901', nickname:'NewTrader99', valueTier:'B', vipLevel:2, lifecycle:'growth', aum:3200, monthlyFee:280, activeDays:18, riskTags:[], tierScore:55, tierHistory:[{time:'2025-06-01',type:'upgrade',desc:'自动升级 B级 VIP2'}], phone:'150****9012', email:'ne***@163.com', registerDate:'2025-05-01', netDeposit:2500, wallet:2800, pnl:400, monthlyVolume:350000, avgLeverage:35, liquidationCount:1, updatedAt:'06-15 08:30' },
+                    { uid:'10045890', nickname:'TestAccount', valueTier:'C', vipLevel:0, lifecycle:'onboarding', aum:120, monthlyFee:8, activeDays:3, riskTags:[], tierScore:20, tierHistory:[], phone:'187****3456', email:'te***@test.com', registerDate:'2025-06-12', netDeposit:0, wallet:120, pnl:0, monthlyVolume:8000, avgLeverage:5, liquidationCount:0, updatedAt:'06-15 08:30' },
+                    { uid:'10055901', nickname:'BonusHunter', valueTier:'R', vipLevel:0, lifecycle:'dormant', aum:0, monthlyFee:0, activeDays:2, riskTags:['薅羊毛','多设备关联','快进快出'], tierScore:5, tierHistory:[{time:'2025-05-15',type:'downgrade',desc:'风控自动标记 R级'}], phone:'132****7890', email:'bo***@temp.com', registerDate:'2025-04-20', netDeposit:100, wallet:0, pnl:0, monthlyVolume:500, avgLeverage:100, liquidationCount:3, updatedAt:'06-15 08:30' },
+                    { uid:'10067234', nickname:'SmartMoney', valueTier:'A', vipLevel:4, lifecycle:'mature', aum:23000, monthlyFee:920, activeDays:20, riskTags:[], tierScore:68, tierHistory:[{time:'2025-04-10',type:'upgrade',desc:'自动升级 A级 VIP4'}], phone:'155****5678', email:'sm***@gmail.com', registerDate:'2024-09-05', netDeposit:18000, wallet:17000, pnl:6000, monthlyVolume:1600000, avgLeverage:20, liquidationCount:0, updatedAt:'06-15 08:30' },
+                    { uid:'10078123', nickname:'RocketBoy', valueTier:'B', vipLevel:3, lifecycle:'dormant', aum:1800, monthlyFee:150, activeDays:8, riskTags:['流失风险'], tierScore:40, tierHistory:[{time:'2025-06-08',type:'downgrade',desc:'活跃度不足自动降级'}], phone:'176****8901', email:'ro***@qq.com', registerDate:'2025-02-15', netDeposit:1500, wallet:1200, pnl:600, monthlyVolume:220000, avgLeverage:50, liquidationCount:2, updatedAt:'06-15 08:30' },
+                ]);
+
+                const logData = ref([
+                    { time:'2025-06-15 08:30', uid:'10002341', type:'auto_upgrade', fromTier:'S级', toTier:'SS级', fromVip:9, toVip:10, reason:'净资产突破200万U，月手续费≥6万U', operator:'系统', approver:'-', snapshot:{aum:2100000,fee:72000} },
+                    { time:'2025-06-14 10:15', uid:'10028901', type:'auto_upgrade', fromTier:'C级', toTier:'B级', fromVip:1, toVip:2, reason:'首充完成+月手续费达150U', operator:'系统', approver:'-', snapshot:{aum:3200,fee:280} },
+                    { time:'2025-06-12 16:45', uid:'10055901', type:'auto_downgrade', fromTier:'B级', toTier:'R级', fromVip:2, toVip:0, reason:'风控检测多设备关联>3 + 薅羊毛指数>3', operator:'风控引擎', approver:'-', snapshot:{abuseScore:4.2,deviceCount:5} },
+                    { time:'2025-06-10 09:00', uid:'10005782', type:'auto_upgrade', fromTier:'A级', toTier:'S级', fromVip:6, toVip:7, reason:'净资产突破10万U，月手续费≥6千U', operator:'系统', approver:'-', snapshot:{aum:125000,fee:6500} },
+                    { time:'2025-06-08 14:30', uid:'10078123', type:'auto_downgrade', fromTier:'B级', toTier:'B级', fromVip:3, toVip:2, reason:'活跃度不足，连续15天活跃天数<10天', operator:'系统', approver:'-', snapshot:{activeDays:8} },
+                    { time:'2025-06-05 11:20', uid:'10055001', type:'manual_upgrade', fromTier:'C级', toTier:'B级', fromVip:0, toVip:2, reason:'高价值渠道用户，GM手动升级以提供体验卡', operator:'GM_Zhang', approver:'Director_Li', snapshot:{} },
+                ]);
+
+                const adjust = reactive({ uid:'', action:'manual_upgrade', targetTier:'A', targetVip:4, reason:'' });
+
+                const configValueTier = reactive([
+                    { tier:'SS级', assetMin:200000, feeMin:5000, activeDays:20 },
+                    { tier:'S级', assetMin:50000, feeMin:1000, activeDays:15 },
+                    { tier:'A级', assetMin:5000, feeMin:300, activeDays:10 },
+                ]);
+
+                const configVipUpgrade = reactive([
+                    { level:'VIP 1', assetReq:1000, feeReq:50, daysReq:7 },
+                    { level:'VIP 2', assetReq:3000, feeReq:150, daysReq:15 },
+                    { level:'VIP 3', assetReq:5000, feeReq:300, daysReq:20 },
+                    { level:'VIP 4', assetReq:10000, feeReq:600, daysReq:20 },
+                ]);
+
+                const configBenefits = reactive([
+                    { vipRange:'VIP 0', makerFee:0.020, takerFee:0.060, rebate:0 },
+                    { vipRange:'VIP 1', makerFee:0.020, takerFee:0.058, rebate:5 },
+                    { vipRange:'VIP 2-3', makerFee:0.018, takerFee:0.052, rebate:10 },
+                    { vipRange:'VIP 4-5', makerFee:0.014, takerFee:0.045, rebate:15 },
+                ]);
+
+                const selectValueTier = (key) => {
+                    selectedValueTier.value = selectedValueTier.value === key ? null : key;
+                };
+                const selectVipRange = (range) => {};
+
+                const lifecycleLabel = (s) => ({ onboarding:'引入期', growth:'成长期', mature:'成熟期', dormant:'休眠期', churn:'流失期' }[s] || s);
+
+                const logTypeLabel = (t) => ({ auto_upgrade:'自动升级', auto_downgrade:'自动降级', manual_upgrade:'手动升级', manual_downgrade:'手动降级', freeze:'分层冻结', whitelist:'白名单' }[t] || t);
+
+                const openUserDetail = (row) => { selectedUser.value = row; userDetailVisible.value = true; };
+
+                const searchUsers = () => { ElMessage.success('查询完成'); };
+
+                const submitAdjust = () => {
+                    if (!adjust.uid || !adjust.reason) { ElMessage.warning('请填写完整信息'); return; }
+                    ElMessage.success('调整申请已提交，待审批'); adjust.uid = ''; adjust.reason = '';
+                };
+
+                const refreshData = () => { ElMessage.success('数据已刷新'); };
+
+                const User = ElementPlusIconsVue.User;
+                const Refresh = ElementPlusIconsVue.Refresh;
+
+                // ---- 图表渲染 ----
+                watch(currentPage, async (val) => {
+                    if (val === 'tier-overview') {
+                        await nextTick();
+                        renderCharts();
+                    }
+                });
+
+                const renderCharts = () => {
+                    // 趋势图
+                    const trendDom = document.getElementById('trend-chart');
+                    if (trendDom) {
+                        const chart = echarts.init(trendDom);
+                        const dates = Array.from({length:30},(_,i)=>`06/${String(i+1).padStart(2,'0')}`);
+                        chart.setOption({
+                            tooltip:{trigger:'axis'}, legend:{data:['SS','S','A','B','C','R'],bottom:0}, grid:{left:50,right:20,top:20,bottom:30},
+                            xAxis:{type:'category',data:dates,axisLabel:{rotate:45,fontSize:10}},
+                            yAxis:{type:'value'}, series:['SS','S','A','B','C','R'].map((n,i)=>({name:n,type:'line',smooth:true,data:Array.from({length:30},()=>Math.round([20+i*5,85+i*10,600+i*30,1800+i*50,2000+i*80,300+i*15][i]+Math.random()*50))}))
+                        }); chart.resize(); window.addEventListener('resize',()=>chart.resize());
+                    }
+                    // 生命周期饼图
+                    const lcDom = document.getElementById('lifecycle-chart');
+                    if (lcDom) {
+                        const chart = echarts.init(lcDom);
+                        chart.setOption({
+                            tooltip:{trigger:'item'}, legend:{bottom:0},
+                            series:[{type:'pie',radius:['40%','70%'],center:['50%','50%'],itemStyle:{borderRadius:6,borderColor:'#fff',borderWidth:2},
+                                data:[{value:2103,name:'引入期'},{value:1230,name:'成长期'},{value:2890,name:'成熟期'},{value:456,name:'休眠期'},{value:321,name:'流失期'}],
+                                label:{formatter:'{b}\n{d}%'}}]
+                        });
+                    }
+                    // VIP 趋势
+                    const vipDom = document.getElementById('vip-trend-chart');
+                    if (vipDom) {
+                        const chart = echarts.init(vipDom);
+                        const cats = ['VIP0','VIP1','VIP2','VIP3','VIP4-5','VIP6-7','VIP8+'];
+                        chart.setOption({
+                            tooltip:{trigger:'axis'}, grid:{left:50,right:20,top:20,bottom:30},
+                            xAxis:{type:'category',data:cats}, yAxis:{type:'value',name:'用户数'},
+                            series:[{type:'bar',barWidth:'50%',data:[1800,1200,700,450,520,310,200],itemStyle:{borderRadius:[4,4,0,0],color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#1890ff'},{offset:1,color:'#69c0ff'}])}}]
+                        });
+                    }
+                };
+
+                return {
+                    currentPage,pageTitle,lastUpdate,selectedValueTier,valueTiers,vipSummaryCards,upgradeCount,downgradeCount,
+                    searchQuery,filterValueTier,filterVip,filterLifecycle,filterRisk,userTableData,userDetailVisible,selectedUser,
+                    configTab,configValueTier,configVipUpgrade,configBenefits,logData,logFilter:reactive({type:'',dateRange:[]}),
+                    adjust, lifecycleLabel,logTypeLabel,openUserDetail,searchUsers,submitAdjust,refreshData,
+                    selectValueTier,selectVipRange,User,Refresh
+                };
+            }
+        });
+
+        for (const [key, comp] of Object.entries(ElementPlusIconsVue)) { app.component(key, comp); }
+        app.use(ElementPlus);
+        app.mount('#app');
+    </script>
+</body>
+</html>

@@ -1,0 +1,4564 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DeTrade - 个人中心</title>
+<link href="https://fonts.loli.net/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ========== DESIGN SYSTEM (ui-ux-pro-max) ==========
+   Style: Dark Mode (OLED) + Financial Dashboard
+   Colors: Fintech/Crypto - Gold trust + deep dark
+   Typography: Fira Code (data) / Fira Sans (UI)
+   Effects: Minimal glow, high contrast, smooth transitions
+   ================================================ */
+
+:root {
+  /* Background layers */
+  --bg-base: #020617;
+  --bg-primary: #0F172A;
+  --bg-secondary: #1E293B;
+  --bg-tertiary: #283548;
+  --bg-elevated: #1a2740;
+  --bg-hover: rgba(248, 250, 252, 0.04);
+  --bg-active: rgba(248, 250, 252, 0.08);
+
+  /* Text */
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-tertiary: #64748B;
+  --text-inverse: #0F172A;
+
+  /* Accent */
+  --accent-gold: #F59E0B;
+  --accent-gold-hover: #FBBF24;
+  --accent-gold-dim: rgba(245, 158, 11, 0.12);
+  --accent-purple: #8B5CF6;
+  --accent-purple-dim: rgba(139, 92, 246, 0.12);
+
+  /* Semantic */
+  --green: #22C55E;
+  --green-dim: rgba(34, 197, 94, 0.10);
+  --green-glow: rgba(34, 197, 94, 0.25);
+  --red: #EF4444;
+  --red-dim: rgba(239, 68, 68, 0.10);
+  --red-glow: rgba(239, 68, 68, 0.25);
+  --blue: #3B82F6;
+  --blue-dim: rgba(59, 130, 246, 0.10);
+  --yellow: #F59E0B;
+  --yellow-dim: rgba(245, 158, 11, 0.10);
+
+  /* Border */
+  --border-subtle: rgba(148, 163, 184, 0.08);
+  --border-default: rgba(148, 163, 184, 0.12);
+  --border-strong: rgba(148, 163, 184, 0.20);
+
+  /* Spacing */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+  --shadow-glow-green: 0 0 20px rgba(34,197,94,0.15);
+  --shadow-glow-gold: 0 0 20px rgba(245,158,11,0.15);
+}
+
+/* Light Theme */
+body.light-theme {
+  --bg-base: #FFFFFF;
+  --bg-primary: #F8F9FA;
+  --bg-secondary: #F0F2F5;
+  --bg-tertiary: #E8EBEF;
+  --bg-elevated: #FFFFFF;
+  --bg-hover: rgba(0, 0, 0, 0.04);
+  --bg-active: rgba(0, 0, 0, 0.08);
+
+  --text-primary: #1A1A1A;
+  --text-secondary: #4A5568;
+  --text-tertiary: #718096;
+  --text-inverse: #FFFFFF;
+
+  --accent-gold: #F59E0B;
+  --accent-gold-hover: #D97706;
+  --accent-gold-dim: rgba(245, 158, 11, 0.12);
+
+  --green: #16A34A;
+  --green-dim: rgba(22, 163, 74, 0.10);
+  --green-glow: rgba(22, 163, 74, 0.25);
+  --red: #DC2626;
+  --red-dim: rgba(220, 38, 38, 0.10);
+  --red-glow: rgba(220, 38, 38, 0.25);
+  --blue: #2563EB;
+  --blue-dim: rgba(37, 99, 235, 0.10);
+  --yellow: #F59E0B;
+  --yellow-dim: rgba(245, 158, 11, 0.10);
+
+  --border-subtle: rgba(0, 0, 0, 0.08);
+  --border-default: rgba(0, 0, 0, 0.12);
+  --border-strong: rgba(0, 0, 0, 0.20);
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 14px; }
+body {
+  font-family: 'Fira Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ========== LAYOUT ========== */
+.app-container { display: flex; min-height: 100vh; }
+
+/* Sidebar */
+.sidebar {
+  width: 240px;
+  background: var(--bg-primary);
+  border-right: 1px solid var(--border-subtle);
+  padding: 0;
+  flex-shrink: 0;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+}
+.sidebar-header {
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.sidebar-logo {
+  font-family: 'Fira Code', monospace;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--accent-gold);
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sidebar-logo svg { width: 22px; height: 22px; }
+.sidebar-nav { flex: 1; padding: 8px 0; overflow-y: auto; }
+.sidebar-footer {
+  padding: 16px 20px;
+  border-top: 1px solid var(--border-subtle);
+  background: var(--bg-primary);
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+}
+.nav-section-label {
+  padding: 12px 20px 6px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 13px;
+  font-weight: 400;
+  position: relative;
+  border-left: 3px solid transparent;
+}
+.nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+.nav-item.active {
+  background: var(--accent-gold-dim);
+  color: var(--accent-gold);
+  border-left-color: var(--accent-gold);
+  font-weight: 500;
+}
+.nav-item svg { width: 18px; height: 18px; flex-shrink: 0; opacity: 0.7; }
+.nav-item.active svg { opacity: 1; }
+.sidebar-footer {
+  padding: 16px 20px;
+  border-top: 1px solid var(--border-subtle);
+}
+.sidebar-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-subtle);
+}
+.sidebar-actions .lang-btn,
+.sidebar-actions .theme-btn {
+  flex: 1;
+}
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.user-avatar {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--accent-gold-dim);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--accent-gold);
+  font-weight: 600;
+  font-size: 13px;
+}
+.user-name { font-size: 13px; font-weight: 500; }
+.user-level { font-size: 11px; color: var(--text-tertiary); }
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  margin-left: 240px;
+  padding: 0;
+  min-height: 100vh;
+}
+.page-section { display: none; }
+.page-section.active { display: block; }
+
+/* Top Bar */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 32px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-primary);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  backdrop-filter: blur(12px);
+}
+.page-title {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+}
+.top-bar-actions { display: flex; gap: 8px; align-items: center; }
+.top-bar-actions .btn-icon { width: 36px; height: 36px; }
+.lang-btn {
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-default);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'Fira Code', monospace;
+  transition: all 0.15s ease;
+}
+.lang-btn:hover { border-color: var(--accent-gold); color: var(--accent-gold); }
+.theme-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-default);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+.theme-btn:hover { border-color: var(--accent-gold); color: var(--accent-gold); }
+.theme-btn svg { width: 18px; height: 18px; }
+
+/* Buttons */
+.btn {
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  border: none;
+  cursor: pointer;
+  font-family: 'Fira Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1;
+}
+.btn svg { width: 16px; height: 16px; }
+.btn-primary { background: var(--accent-gold); color: var(--text-inverse); }
+.btn-primary:hover { background: var(--accent-gold-hover); box-shadow: var(--shadow-glow-gold); }
+.btn-secondary { background: var(--bg-tertiary); color: var(--text-primary); }
+.btn-secondary:hover { background: rgba(148,163,184,0.15); }
+.btn-ghost { background: transparent; color: var(--text-secondary); border: 1px solid var(--border-default); }
+.btn-ghost:hover { border-color: var(--text-secondary); color: var(--text-primary); }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+.btn-icon { width: 32px; height: 32px; padding: 0; justify-content: center; border-radius: var(--radius-sm); }
+
+/* Content Area */
+.content-area { padding: 24px 32px; }
+
+/* ========== ASSET CENTER ========== */
+
+/* Total Asset Hero */
+.asset-hero {
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 50%, var(--bg-secondary) 100%);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  padding: 32px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.asset-hero::before {
+  content: '';
+  position: absolute;
+  top: -100px; right: -60px;
+  width: 280px; height: 280px;
+  background: radial-gradient(circle, rgba(245,158,11,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+.asset-hero::after {
+  content: '';
+  position: absolute;
+  bottom: -80px; left: 40%;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(34,197,94,0.04) 0%, transparent 70%);
+  pointer-events: none;
+}
+.asset-hero-grid { display: grid; grid-template-columns: 1fr auto; gap: 24px; position: relative; z-index: 1; }
+.asset-total-label {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  font-weight: 500;
+}
+.asset-total-value {
+  font-family: 'Fira Code', monospace;
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: -1px;
+  line-height: 1.1;
+  margin-bottom: 4px;
+}
+.asset-total-value .currency { font-size: 20px; color: var(--text-tertiary); font-weight: 400; margin-left: 4px; }
+.asset-total-sub {
+  font-family: 'Fira Code', monospace;
+  font-size: 13px;
+  color: var(--text-tertiary);
+  margin-bottom: 16px;
+}
+.asset-pnl {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-family: 'Fira Code', monospace;
+  font-size: 13px;
+  font-weight: 500;
+}
+.asset-pnl.positive { background: var(--green-dim); color: var(--green); }
+.asset-pnl.negative { background: var(--red-dim); color: var(--red); }
+.asset-pnl svg { width: 14px; height: 14px; }
+.asset-actions { display: flex; gap: 8px; align-items: flex-start; padding-top: 4px; }
+.asset-action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 20px;
+  border-radius: var(--radius-md);
+  background: rgba(248,250,252,0.04);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 12px;
+  font-weight: 500;
+  min-width: 80px;
+}
+.asset-action-btn:hover {
+  background: var(--accent-gold-dim);
+  border-color: rgba(245,158,11,0.3);
+  color: var(--accent-gold);
+}
+.asset-action-btn svg { width: 20px; height: 20px; opacity: 0.8; }
+.asset-action-btn:hover svg { opacity: 1; }
+.toggle-visibility-btn {
+  background: none; border: none; cursor: pointer;
+  color: var(--text-tertiary);
+  padding: 4px;
+  transition: color 0.15s;
+  display: flex; align-items: center;
+}
+.toggle-visibility-btn:hover { color: var(--text-secondary); }
+.toggle-visibility-btn svg { width: 16px; height: 16px; }
+
+/* Trend Chart */
+.trend-card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
+  margin-bottom: 20px;
+}
+.trend-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.trend-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+.trend-period-tabs { display: flex; gap: 2px; }
+.trend-period-tab {
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.trend-period-tab:hover { color: var(--text-secondary); }
+.trend-period-tab.active { background: var(--accent-gold-dim); color: var(--accent-gold); }
+.trend-chart-area {
+  height: 140px;
+  position: relative;
+  overflow: hidden;
+}
+.trend-chart-svg { width: 100%; height: 100%; }
+
+/* Account Cards */
+.account-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 20px; }
+.account-card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+.account-card:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+.account-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+.account-card-icon {
+  width: 36px; height: 36px;
+  border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center;
+}
+.account-card-icon svg { width: 18px; height: 18px; }
+.account-card-icon.trading { background: var(--green-dim); color: var(--green); }
+.account-card-icon.earn { background: var(--blue-dim); color: var(--blue); }
+.account-card-icon.coupon { background: var(--accent-gold-dim); color: var(--accent-gold); }
+.account-card-icon.experience { background: var(--accent-purple-dim); color: var(--accent-purple); }
+.account-card-badge {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-family: 'Fira Code', monospace;
+}
+.account-card-badge.positive { background: var(--green-dim); color: var(--green); }
+.account-card-badge.warning { background: var(--yellow-dim); color: var(--yellow); }
+.account-card-label {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+.account-card-value {
+  font-family: 'Fira Code', monospace;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+.account-card-unit {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+  font-weight: 400;
+}
+
+/* Asset Table */
+.data-card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+.data-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.data-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.data-card-actions { display: flex; gap: 8px; align-items: center; }
+.search-input-sm {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px 6px 30px;
+  color: var(--text-primary);
+  font-size: 12px;
+  font-family: 'Fira Sans', sans-serif;
+  outline: none;
+  width: 180px;
+  transition: border-color 0.15s;
+}
+.search-input-sm:focus { border-color: var(--accent-gold); }
+.search-input-sm::placeholder { color: var(--text-tertiary); }
+.search-input-wrapper { position: relative; }
+.search-input-wrapper svg {
+  position: absolute;
+  left: 9px; top: 50%;
+  transform: translateY(-50%);
+  width: 14px; height: 14px;
+  color: var(--text-tertiary);
+  pointer-events: none;
+}
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  user-select: none;
+}
+.toggle-switch {
+  width: 28px; height: 16px;
+  border-radius: 8px;
+  background: var(--bg-tertiary);
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.toggle-switch.on { background: var(--accent-gold); }
+.toggle-switch::after {
+  content: '';
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: var(--text-primary);
+  position: absolute;
+  top: 2px; left: 2px;
+  transition: left 0.2s;
+}
+.toggle-switch.on::after { left: 14px; }
+
+/* Table */
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th {
+  text-align: left;
+  padding: 10px 16px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-subtle);
+  white-space: nowrap;
+}
+.data-table td {
+  padding: 12px 16px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border-subtle);
+  white-space: nowrap;
+}
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tbody tr { transition: background 0.1s; cursor: default; }
+.data-table tbody tr:hover { background: var(--bg-hover); }
+.data-table .num {
+  font-family: 'Fira Code', monospace;
+  font-weight: 500;
+}
+.data-table .num.positive { color: var(--green); }
+.data-table .num.negative { color: var(--red); }
+.data-table .text-right { text-align: right; }
+.data-table .text-center { text-align: center; }
+
+/* Coin Cell */
+.coin-cell { display: flex; align-items: center; gap: 10px; }
+.coin-icon-wrap {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Fira Code', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.coin-name { font-weight: 600; font-size: 13px; }
+.coin-full { font-size: 11px; color: var(--text-tertiary); }
+.coin-actions { display: flex; gap: 4px; }
+.coin-action-btn {
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 11px;
+  font-family: 'Fira Sans', sans-serif;
+  transition: all 0.15s;
+}
+.coin-action-btn:hover { border-color: var(--accent-gold); color: var(--accent-gold); }
+
+/* Recent Trades */
+.recent-trade-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  transition: background 0.1s;
+  cursor: pointer;
+}
+.recent-trade-item:hover { background: var(--bg-hover); }
+.recent-trade-item:last-child { border-bottom: none; }
+.recent-trade-icon {
+  width: 32px; height: 32px;
+  border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+.recent-trade-icon svg { width: 16px; height: 16px; }
+.recent-trade-info { flex: 1; }
+.recent-trade-type { font-size: 13px; font-weight: 500; }
+.recent-trade-time { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
+.recent-trade-amount {
+  text-align: right;
+  font-family: 'Fira Code', monospace;
+  font-weight: 600;
+  font-size: 13px;
+}
+.recent-trade-status { font-size: 11px; margin-top: 2px; text-align: right; }
+
+/* ========== TRADE HISTORY ========== */
+
+/* Tabs */
+.trade-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 20px;
+  overflow-x: auto;
+}
+.trade-tab {
+  padding: 12px 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.trade-tab:hover { color: var(--text-secondary); }
+.trade-tab.active { color: var(--accent-gold); border-bottom-color: var(--accent-gold); }
+
+/* Filter Bar */
+.filter-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.filter-select {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 7px 28px 7px 10px;
+  color: var(--text-primary);
+  font-size: 12px;
+  font-family: 'Fira Sans', sans-serif;
+  cursor: pointer;
+  appearance: none;
+  outline: none;
+  transition: border-color 0.15s;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+}
+.filter-select:focus { border-color: var(--accent-gold); }
+.filter-search {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 7px 10px 7px 30px;
+  color: var(--text-primary);
+  font-size: 12px;
+  font-family: 'Fira Sans', sans-serif;
+  outline: none;
+  width: 180px;
+  transition: border-color 0.15s;
+}
+.filter-search:focus { border-color: var(--accent-gold); }
+.filter-search::placeholder { color: var(--text-tertiary); }
+.filter-search-wrap { position: relative; }
+.filter-search-wrap svg {
+  position: absolute; left: 9px; top: 50%; transform: translateY(-50%);
+  width: 14px; height: 14px; color: var(--text-tertiary); pointer-events: none;
+}
+.filter-reset {
+  background: none; border: none;
+  color: var(--text-tertiary);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 7px 12px;
+  font-family: 'Fira Sans', sans-serif;
+  transition: color 0.15s;
+}
+.filter-reset:hover { color: var(--accent-gold); }
+
+/* Stats */
+.stats-card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.stats-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.stats-card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.stats-card-title svg { width: 16px; height: 16px; color: var(--accent-gold); }
+.stats-card-period { font-size: 11px; color: var(--text-tertiary); font-family: 'Fira Code', monospace; }
+.stats-main-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+.stats-main-item { text-align: center; padding: 8px; }
+.stats-main-label { font-size: 11px; color: var(--text-tertiary); margin-bottom: 6px; font-weight: 500; }
+.stats-main-value {
+  font-family: 'Fira Code', monospace;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+.stats-main-unit { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
+.stats-divider { height: 1px; background: var(--border-subtle); margin: 12px 0; }
+.stats-type-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.stats-type-item { text-align: center; }
+.stats-type-label { font-size: 11px; color: var(--text-tertiary); margin-bottom: 4px; }
+.stats-type-value { font-family: 'Fira Code', monospace; font-size: 14px; font-weight: 600; }
+
+/* Type Badges */
+.type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+.type-badge.futures { background: var(--green-dim); color: var(--green); }
+.type-badge.predict { background: var(--accent-gold-dim); color: var(--accent-gold); }
+.type-badge.deposit { background: var(--blue-dim); color: var(--blue); }
+.type-badge.withdraw { background: var(--red-dim); color: var(--red); }
+.type-badge.earn { background: var(--accent-purple-dim); color: var(--accent-purple); }
+.type-badge.transfer { background: rgba(148,163,184,0.08); color: var(--text-secondary); }
+.type-badge.tap { background: rgba(251,146,60,0.10); color: #FB923C; }
+.type-badge.fee { background: rgba(148,163,184,0.05); color: var(--text-tertiary); }
+
+/* Status */
+.status-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; }
+.status-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.status-dot.completed { background: var(--green); box-shadow: 0 0 6px var(--green-glow); }
+.status-dot.pending { background: var(--yellow); }
+.status-dot.failed { background: var(--red); }
+
+/* Pagination */
+.pagination-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border-subtle);
+}
+.pagination-info { font-size: 12px; color: var(--text-tertiary); }
+.pagination-info strong { color: var(--text-secondary); }
+.pagination-controls { display: flex; gap: 2px; }
+.page-btn {
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  font-size: 12px;
+  font-family: 'Fira Code', monospace;
+  transition: all 0.15s;
+}
+.page-btn:hover { border-color: var(--accent-gold); color: var(--accent-gold); }
+.page-btn.active { background: var(--accent-gold); color: var(--text-inverse); border-color: var(--accent-gold); }
+.page-size-select {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 3px 6px;
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-family: 'Fira Sans', sans-serif;
+  outline: none;
+  margin-left: 8px;
+}
+
+/* ========== POSITION CARDS ========== */
+.position-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.position-summary-item {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  text-align: center;
+}
+.position-summary-label {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-bottom: 8px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.position-summary-value {
+  font-family: 'Fira Code', monospace;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+.position-summary-unit {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+}
+
+/* Position Sub Tabs */
+.position-sub-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.position-sub-tab {
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.position-sub-tab:hover { color: var(--text-secondary); }
+.position-sub-tab.active { color: var(--accent-gold); border-bottom-color: var(--accent-gold); }
+.position-sub-tab .count {
+  font-family: 'Fira Code', monospace;
+  font-size: 10px;
+  background: var(--bg-tertiary);
+  padding: 1px 5px;
+  border-radius: 8px;
+  color: var(--text-tertiary);
+}
+.position-sub-tab.active .count { background: var(--accent-gold-dim); color: var(--accent-gold); }
+
+/* Position Card */
+.position-card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  margin-bottom: 12px;
+  transition: all 0.15s;
+}
+.position-card:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-sm);
+}
+.position-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.position-card-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.position-card-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.position-card-actions {
+  display: flex;
+  gap: 6px;
+}
+.position-card-actions .btn { font-size: 11px; padding: 4px 10px; }
+.position-card-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.position-card-grid-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+.position-field-label {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  font-weight: 500;
+}
+.position-field-value {
+  font-family: 'Fira Code', monospace;
+  font-size: 13px;
+  font-weight: 600;
+}
+.position-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-subtle);
+}
+.position-card-time {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-family: 'Fira Code', monospace;
+}
+.position-pnl-banner {
+  font-family: 'Fira Code', monospace;
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.position-pnl-banner.positive { color: var(--green); }
+.position-pnl-banner.negative { color: var(--red); }
+
+.position-card-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  color: var(--accent-gold);
+  line-height: 1.5;
+}
+.position-card-notice svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* Predict countdown */
+.predict-countdown {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'Fira Code', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent-gold);
+  background: var(--accent-gold-dim);
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+}
+.predict-countdown svg { width: 12px; height: 12px; }
+
+/* Earn progress */
+.earn-progress-bar {
+  width: 100%;
+  height: 4px;
+  background: var(--bg-tertiary);
+  border-radius: 2px;
+  margin-top: 8px;
+  overflow: hidden;
+}
+.earn-progress-fill {
+  height: 100%;
+  background: var(--accent-purple);
+  border-radius: 2px;
+  transition: width 0.3s;
+}
+
+/* Empty position state */
+.position-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-tertiary);
+}
+.position-empty svg { width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.3; }
+.position-empty-text { font-size: 14px; margin-bottom: 4px; }
+.position-empty-sub { font-size: 12px; }
+
+/* ========== DRAWER ========== */
+.drawer-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 1000;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+.drawer-overlay.show { display: block; opacity: 1; }
+.drawer-panel {
+  position: fixed; top: 0; right: -520px;
+  width: 520px; height: 100vh;
+  background: var(--bg-primary);
+  border-left: 1px solid var(--border-subtle);
+  z-index: 1001;
+  transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow-y: auto;
+  box-shadow: -8px 0 32px rgba(0,0,0,0.4);
+}
+.drawer-panel.show { right: 0; }
+.drawer-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  background: var(--bg-primary);
+  z-index: 1;
+}
+.drawer-title { font-size: 15px; font-weight: 600; }
+.drawer-close {
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--radius-sm);
+  background: none; border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.drawer-close:hover { background: var(--bg-hover); color: var(--text-primary); }
+.drawer-close svg { width: 18px; height: 18px; }
+.drawer-body { padding: 24px; }
+.detail-pnl-banner {
+  text-align: center;
+  padding: 20px;
+  border-radius: var(--radius-lg);
+  margin-bottom: 20px;
+  font-family: 'Fira Code', monospace;
+  font-size: 28px;
+  font-weight: 700;
+}
+.detail-pnl-banner.positive { background: var(--green-dim); color: var(--green); }
+.detail-pnl-banner.negative { background: var(--red-dim); color: var(--red); }
+.detail-group { margin-bottom: 20px; }
+.detail-group-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  font-size: 13px;
+}
+.detail-row-label { color: var(--text-tertiary); }
+.detail-row-value { font-weight: 500; text-align: right; font-family: 'Fira Code', monospace; font-size: 12px; }
+
+/* ========== MODAL ========== */
+.modal-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.65);
+  z-index: 1000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.show { display: flex; }
+.modal-box {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  width: 440px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+}
+.modal-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.modal-title { font-size: 15px; font-weight: 600; }
+.modal-close {
+  width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--radius-sm);
+  background: none; border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.modal-close:hover { background: var(--bg-hover); color: var(--text-primary); }
+.modal-close svg { width: 18px; height: 18px; }
+.modal-body { padding: 24px; }
+.form-group { margin-bottom: 16px; }
+.form-label { font-size: 12px; color: var(--text-tertiary); display: block; margin-bottom: 6px; font-weight: 500; }
+.form-select, .form-input {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: 'Fira Sans', sans-serif;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.form-select:focus, .form-input:focus { border-color: var(--accent-gold); }
+.form-hint {
+  background: var(--accent-gold-dim);
+  border: 1px solid rgba(245,158,11,0.15);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 12px;
+}
+.form-hint svg { width: 16px; height: 16px; color: var(--accent-gold); flex-shrink: 0; margin-top: 1px; }
+
+/* ========== ANIMATIONS ========== */
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+.anim-in { animation: fadeInUp 0.35s ease forwards; }
+.anim-delay-1 { animation-delay: 0.05s; opacity: 0; }
+.anim-delay-2 { animation-delay: 0.1s; opacity: 0; }
+.anim-delay-3 { animation-delay: 0.15s; opacity: 0; }
+.anim-delay-4 { animation-delay: 0.2s; opacity: 0; }
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .main-content { margin-left: 0; }
+  .content-area { padding: 16px; }
+  .top-bar { padding: 12px 16px; }
+  .account-grid { grid-template-columns: 1fr; }
+  .asset-hero-grid { grid-template-columns: 1fr; }
+  .asset-total-value { font-size: 28px; }
+  .drawer-panel { width: 100%; right: -100%; }
+  .filter-bar { flex-direction: column; align-items: stretch; }
+}
+
+/* ========== PRD ANNOTATION SYSTEM ========== */
+.prd-badge {
+  display: inline-block;
+  vertical-align: top;
+  background: rgb(250, 173, 20);
+  color: white;
+  font-size: 10px;
+  font-weight: bold;
+  line-height: 14px;
+  padding: 0px 4px;
+  border-radius: 2px;
+  cursor: pointer;
+  position: fixed;
+  z-index: 99999;
+  user-select: none;
+  pointer-events: auto;
+}
+.prd-tooltip {
+  position: fixed;
+  background: #f0efef;
+  border-radius: 4px;
+  width: 450px;
+  max-height: 500px;
+  overflow-y: auto;
+  z-index: 9998;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  font-family: 'Fira Sans', sans-serif;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #333;
+}
+.prd-tooltip-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid #ddd;
+  background: #fff;
+  border-radius: 4px 4px 0 0;
+  cursor: move;
+}
+.prd-tooltip-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 14px;
+}
+.prd-tooltip-title .prd-badge {
+  position: static;
+}
+.prd-tooltip-close {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: #666;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  z-index: 10001;
+  position: relative;
+}
+.prd-tooltip-close:hover {
+  background: #e0e0e0;
+}
+.prd-tooltip-content {
+  padding: 16px;
+}
+.prd-tooltip-content h4 {
+  margin: 12px 0 8px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+.prd-tooltip-content h4:first-child {
+  margin-top: 0;
+}
+.prd-tooltip-content p {
+  margin: 0 0 12px 0;
+}
+.prd-tooltip-content ul,
+.prd-tooltip-content ol {
+  margin: 0 0 12px 0;
+  padding-left: 20px;
+}
+.prd-tooltip-content li {
+  margin-bottom: 4px;
+}
+.prd-tooltip-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 8px 0 12px 0;
+  font-size: 12px;
+}
+.prd-tooltip-content th,
+.prd-tooltip-content td {
+  border: 1px solid #ddd;
+  padding: 6px 8px;
+  text-align: left;
+}
+.prd-tooltip-content th {
+  background: #f5f5f5;
+  font-weight: 600;
+}
+.prd-tooltip-content code {
+  background: #e8e8e8;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: 'Fira Code', monospace;
+  font-size: 12px;
+}
+.prd-tooltip-content blockquote {
+  border-left: 3px solid #ccc;
+  padding-left: 12px;
+  margin: 8px 0 12px 0;
+  color: #666;
+}
+.prd-tooltip-content .status-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-right: 4px;
+}
+.prd-tooltip-content .status-dot.green { background: #22C55E; }
+.prd-tooltip-content .status-dot.red { background: #EF4444; }
+.prd-tooltip-content .status-dot.yellow { background: #F59E0B; }
+.prd-tooltip-content .status-dot.blue { background: #3B82F6; }
+
+/* PRD Annotation System - Additional Styles */
+.prd-badge-container {
+  position: absolute;
+  top: -8px;
+  right: -4px;
+  z-index: 100;
+}
+</style>
+</head>
+<body>
+<div class="app-container">
+  <!-- ===== SIDEBAR ===== -->
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        DeTrade
+      </div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-section-label" data-i18n="资产">资产</div>
+      <div class="nav-item active" onclick="switchPage('asset')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12V7H5a2 2 0 010-4h14v4"/><path d="M3 5v14a2 2 0 002 2h16v-5"/><path d="M18 12a2 2 0 000 4h4v-4h-4z"/></svg>
+        <span data-i18n="资产中心">资产中心</span>
+      </div>
+      <div class="nav-item" onclick="switchPage('position')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        <span data-i18n="持仓记录">持仓记录</span>
+      </div>
+      <div class="nav-item" onclick="switchPage('trade')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+        <span data-i18n="历史交易">历史交易</span>
+      </div>
+      <div class="nav-section-label" data-i18n="账户">账户</div>
+      <div class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span data-i18n="个人资料">个人资料</span>
+      </div>
+      <div class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+        <span data-i18n="安全中心">安全中心</span>
+      </div>
+      <div class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span data-i18n="KYC 认证">KYC 认证</span>
+      </div>
+      <div class="nav-section-label" data-i18n="更多">更多</div>
+      <div class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        <span data-i18n="联盟伙伴">联盟伙伴</span>
+      </div>
+      <div class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        <span data-i18n="设置">设置</span>
+      </div>
+    </div>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar">U</div>
+        <div>
+          <div class="user-name">User_8827</div>
+          <div class="user-level">VIP 1</div>
+        </div>
+      </div>
+      <div class="sidebar-actions">
+        <button class="lang-btn" onclick="toggleLanguage()" id="langBtn">EN/中</button>
+        <button class="theme-btn" onclick="toggleTheme()" id="themeBtn">
+          <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <main class="main-content">
+
+    <!-- ==================== ASSET CENTER ==================== -->
+    <div class="page-section active" id="page-asset">
+      <div class="top-bar">
+        <div class="page-title" data-i18n="资产中心">资产中心</div>
+        <div class="top-bar-actions">
+          <button class="btn btn-ghost btn-sm" onclick="showModal('depositModal')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+            <span data-i18n="充币">充币</span>
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="showModal('withdrawModal')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+            <span data-i18n="提币">提币</span>
+          </button>
+        </div>
+      </div>
+      <div class="content-area">
+        <!-- Asset Hero -->
+        <div class="asset-hero anim-in">
+          <div class="asset-hero-grid">
+            <div>
+              <div class="asset-total-label">
+                <span data-i18n="总资产估值">总资产估值</span>
+                <button class="toggle-visibility-btn" onclick="toggleVisibility()" id="toggleBtn" data-i18n-title="隐藏/显示金额" title="隐藏/显示金额">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+              <div class="asset-total-value" id="totalValue">12,345.67<span class="currency">USDT</span></div>
+              <div class="asset-total-sub" id="totalUsd">≈ $12,345.67</div>
+              <div class="asset-pnl positive">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17l5-5 4 4 5-6"/><path d="M13 7h8v8"/></svg>
+                <span data-i18n="今日">今日</span> +234.56 USDT (+1.94%)
+              </div>
+            </div>
+            <div class="asset-actions">
+              <button class="asset-action-btn" onclick="showModal('depositModal')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+                <span data-i18n="充币">充币</span>
+              </button>
+              <button class="asset-action-btn" onclick="showModal('withdrawModal')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+                <span data-i18n="提币">提币</span>
+              </button>
+              <button class="asset-action-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                <span data-i18n="交易">交易</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Trend Chart -->
+        <div class="trend-card anim-in anim-delay-1">
+          <div class="trend-header">
+            <div class="trend-title" data-i18n="资产趋势">资产趋势</div>
+            <div class="trend-period-tabs">
+              <div class="trend-period-tab active" onclick="switchTrend(this)">7D</div>
+              <div class="trend-period-tab" onclick="switchTrend(this)">30D</div>
+              <div class="trend-period-tab" onclick="switchTrend(this)">90D</div>
+            </div>
+          </div>
+          <div class="trend-chart-area">
+            <svg class="trend-chart-svg" id="trendSvg" viewBox="0 0 800 140" preserveAspectRatio="none"></svg>
+          </div>
+        </div>
+
+        <!-- Account Cards -->
+        <div class="account-grid anim-in anim-delay-2">
+          <div class="account-card">
+            <div class="account-card-header">
+              <div class="account-card-icon trading">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+              </div>
+              <span class="account-card-badge positive">+1.2%</span>
+            </div>
+            <div class="account-card-label" data-i18n="交易账户">交易账户</div>
+            <div class="account-card-value">8,234.56</div>
+            <div class="account-card-unit">USDT</div>
+          </div>
+          <div class="account-card">
+            <div class="account-card-header">
+              <div class="account-card-icon earn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+              </div>
+              <span class="account-card-badge positive">APY 5.2%</span>
+            </div>
+            <div class="account-card-label" data-i18n="理财账户">理财账户</div>
+            <div class="account-card-value">3,000.00</div>
+            <div class="account-card-unit">USDT</div>
+          </div>
+          <div class="account-card">
+            <div class="account-card-header">
+              <div class="account-card-icon coupon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12V8H6a2 2 0 010-4h12v4"/><path d="M4 6v12c0 1.1.9 2 2 2h14v-4"/><circle cx="18" cy="12" r="2"/></svg>
+              </div>
+              <span class="account-card-badge warning"><span data-i18n="张">1</span> <span data-i18n="张即将过期">张即将过期</span></span>
+            </div>
+            <div class="account-card-label" data-i18n="卡券中心">卡券中心</div>
+            <div class="account-card-value">2 <span style="font-size:14px;font-weight:400;color:var(--text-tertiary)" data-i18n="张">张</span></div>
+            <div class="account-card-unit" data-i18n="可用卡券">可用卡券</div>
+          </div>
+          <div class="account-card">
+            <div class="account-card-header">
+              <div class="account-card-icon experience">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+              </div>
+            </div>
+            <div class="account-card-label" data-i18n="奖励金">奖励金</div>
+            <div class="account-card-value">500.00</div>
+            <div class="account-card-unit">USDT</div>
+          </div>
+        </div>
+
+        <!-- Asset Table -->
+        <div class="data-card anim-in anim-delay-3">
+          <div class="data-card-header">
+            <div class="data-card-title">
+              <span data-i18n="资产明细">资产明细</span>
+              <label class="toggle-label" onclick="toggleHideSmall()">
+                <div class="toggle-switch" id="hideSmallToggle"></div>
+                <span data-i18n="隐藏小额">隐藏小额</span>
+              </label>
+            </div>
+            <div class="data-card-actions">
+              <div class="search-input-wrapper">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                <input type="text" class="search-input-sm" placeholder="搜索币种..." id="coinSearch" oninput="filterCoins()" data-i18n-placeholder="搜索币种">
+              </div>
+            </div>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th data-i18n="币种">币种</th>
+                  <th class="text-right" data-i18n="总量">总量</th>
+                  <th class="text-right" data-i18n="可用">可用</th>
+                  <th class="text-right" data-i18n="持仓中">持仓中</th>
+                  <th class="text-right" data-i18n="估值">估值</th>
+                  <th class="text-center" data-i18n="操作">操作</th>
+                </tr>
+              </thead>
+              <tbody id="assetTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Recent Trades -->
+        <div class="data-card anim-in anim-delay-4">
+          <div class="data-card-header">
+            <div class="data-card-title" data-i18n="最近交易">最近交易</div>
+            <button class="btn btn-ghost btn-sm" onclick="switchPage('trade')" style="font-size:12px;">
+              <span data-i18n="查看全部">查看全部</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </button>
+          </div>
+          <div id="recentTradesList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== POSITION RECORDS ==================== -->
+    <div class="page-section" id="page-position">
+      <div class="top-bar">
+        <div class="page-title" data-i18n="持仓记录">持仓记录</div>
+        <div class="top-bar-actions">
+          <button class="btn btn-ghost btn-sm">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span data-i18n="导出 CSV">导出 CSV</span>
+          </button>
+        </div>
+      </div>
+      <div class="content-area">
+        <!-- Position Sub Tabs -->
+        <div class="position-sub-tabs">
+          <div class="position-sub-tab active" data-postype="futures" onclick="switchPositionTab(this)"><span data-i18n="合约">合约</span> <span class="count" id="posCountFutures">2</span></div>
+          <div class="position-sub-tab" data-postype="predict" onclick="switchPositionTab(this)"><span data-i18n="预测">预测</span> <span class="count" id="posCountPredict">2</span></div>
+          <div class="position-sub-tab" data-postype="earn" onclick="switchPositionTab(this)"><span data-i18n="理财">理财</span> <span class="count" id="posCountEarn">1</span></div>
+        </div>
+
+        <!-- Position Summary -->
+        <div class="position-summary">
+          <div class="position-summary-item">
+            <div class="position-summary-label" data-i18n="总持仓金额">总持仓金额</div>
+            <div class="position-summary-value" id="posTotalValue">15,234.56</div>
+            <div class="position-summary-unit">USDT</div>
+          </div>
+          <div class="position-summary-item">
+            <div class="position-summary-label" data-i18n="总未实现盈亏">总未实现盈亏</div>
+            <div class="position-summary-value" id="posTotalPnl" style="color:var(--green)">+1,234.56</div>
+            <div class="position-summary-unit">(+8.78%)</div>
+          </div>
+          <div class="position-summary-item">
+            <div class="position-summary-label" data-i18n="持仓数量">持仓数量</div>
+            <div class="position-summary-value" id="posTotalCount">5</div>
+            <div class="position-summary-unit" data-i18n="笔">笔</div>
+          </div>
+        </div>
+
+        <!-- Position Cards List -->
+        <div id="positionList"></div>
+      </div>
+    </div>
+
+    <!-- ==================== TRADE HISTORY ==================== -->
+    <div class="page-section" id="page-trade">
+      <div class="top-bar">
+        <div class="page-title" data-i18n="历史交易">历史交易</div>
+        <div class="top-bar-actions">
+          <button class="btn btn-ghost btn-sm" onclick="exportCSV()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span data-i18n="导出 CSV">导出 CSV</span>
+          </button>
+        </div>
+      </div>
+      <div class="content-area">
+        <!-- Tabs -->
+        <div class="trade-tabs" id="mainTabs">
+          <div class="trade-tab active" data-type="all" onclick="switchTab(this)" data-i18n="资金流水">资金流水</div>
+          <div class="trade-tab" data-type="predict" onclick="switchTab(this)" data-i18n="预测交易">预测交易</div>
+          <div class="trade-tab" data-type="futures" onclick="switchTab(this)" data-i18n="合约交易">合约交易</div>
+          <div class="trade-tab" data-type="updown" onclick="switchTab(this)" data-i18n="涨跌预测">涨跌预测</div>
+          <div class="trade-tab" data-type="highlow" onclick="switchTab(this)" data-i18n="高低价预测">高低价预测</div>
+          <div class="trade-tab" data-type="spread" onclick="switchTab(this)" data-i18n="差价预测">差价预测</div>
+          <div class="trade-tab" data-type="tap" onclick="switchTab(this)" data-i18n="点击交易">点击交易</div>
+          <div class="trade-tab" data-type="deposit" onclick="switchTab(this)" data-i18n="充提">充提</div>
+          <div class="trade-tab" data-type="fee" onclick="switchTab(this)" data-i18n="手续费">手续费</div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filter-bar" id="tradeFilterBar">
+          <select class="filter-select" id="coinFilter" onchange="applyFilters()">
+            <option value="" data-i18n="全部币种">全部币种</option>
+            <option value="USDT">USDT</option>
+            <option value="BTC">BTC</option>
+            <option value="ETH">ETH</option>
+            <option value="BNB">BNB</option>
+            <option value="SOL">SOL</option>
+          </select>
+          <select class="filter-select" id="typeFilter" onchange="applyFilters()">
+            <option value="" data-i18n="全部类型">全部类型</option>
+          </select>
+          <select class="filter-select" id="directionFilter" onchange="applyFilters()">
+            <option value="" data-i18n="全部方向">全部方向</option>
+            <option value="buy" data-i18n="买入/做多">买入/做多</option>
+            <option value="sell" data-i18n="卖出/做空">卖出/做空</option>
+          </select>
+          <select class="filter-select" id="timeFilter" onchange="applyFilters()">
+            <option value="24h" data-i18n="最近24小时">最近24小时</option>
+            <option value="7d" selected data-i18n="最近7天">最近7天</option>
+            <option value="30d" data-i18n="最近30天">最近30天</option>
+            <option value="90d" data-i18n="最近90天">最近90天</option>
+          </select>
+          <select class="filter-select" id="statusFilter" onchange="applyFilters()">
+            <option value="" data-i18n="全部状态">全部状态</option>
+            <option value="completed" data-i18n="已完成">已完成</option>
+            <option value="pending" data-i18n="处理中">处理中</option>
+            <option value="failed" data-i18n="失败">失败</option>
+          </select>
+          <div class="filter-search-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            <input type="text" class="filter-search" placeholder="搜索订单ID..." id="orderSearch" oninput="applyFilters()" data-i18n-placeholder="搜索订单ID">
+          </div>
+          <button class="filter-reset" onclick="resetFilters()" data-i18n="重置筛选">重置筛选</button>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-card" id="tradeStatsCard">
+          <div class="stats-card-header">
+            <div class="stats-card-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+              <span id="statsTitle" data-i18n="资金流水统计">资金流水统计</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div style="display:flex;gap:4px;" id="statsTimeTabs">
+                <button class="trend-period-tab" data-stats="1d" onclick="switchStatsTab(this)" data-i18n="今日">今日</button>
+                <button class="trend-period-tab active" data-stats="7d" onclick="switchStatsTab(this)" data-i18n="7 天">7 天</button>
+                <button class="trend-period-tab" data-stats="30d" onclick="switchStatsTab(this)" data-i18n="30 天">30 天</button>
+              </div>
+            </div>
+          </div>
+          <div class="stats-main-grid" id="statsMainGrid">
+            <!-- 动态内容 -->
+          </div>
+        </div>
+
+        <!-- Trade Table -->
+        <div class="data-card" id="tradeTableCard">
+          <div style="overflow-x:auto;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th data-i18n="时间">时间</th>
+                  <th data-i18n="类型">类型</th>
+                  <th data-i18n="交易对">交易对</th>
+                  <th data-i18n="方向">方向</th>
+                  <th class="text-right" data-i18n="数量">数量</th>
+                  <th class="text-right" data-i18n="价格">价格</th>
+                  <th class="text-right" data-i18n="盈亏">盈亏</th>
+                  <th class="text-right" data-i18n="手续费">手续费</th>
+                  <th data-i18n="状态">状态</th>
+                </tr>
+              </thead>
+              <tbody id="tradeTableBody"></tbody>
+            </table>
+          </div>
+          <div class="pagination-bar">
+            <div class="pagination-info">
+              <span data-i18n="显示">显示</span> <strong>1-20</strong> / <strong id="totalCount">128</strong> <span data-i18n="条">条</span>
+              <select class="page-size-select" onchange="changePageSize(this.value)">
+                <option value="20" data-i18n="20条/页">20条/页</option>
+                <option value="50" data-i18n="50条/页">50条/页</option>
+                <option value="100" data-i18n="100条/页">100条/页</option>
+              </select>
+            </div>
+            <div class="pagination-controls">
+              <button class="page-btn" onclick="changePage('prev')">‹</button>
+              <button class="page-btn active">1</button>
+              <button class="page-btn" onclick="changePage(2)">2</button>
+              <button class="page-btn" onclick="changePage(3)">3</button>
+              <button class="page-btn" onclick="changePage(4)">4</button>
+              <button class="page-btn" onclick="changePage(5)">5</button>
+              <button class="page-btn" style="border:none;cursor:default;color:var(--text-tertiary);">···</button>
+              <button class="page-btn" onclick="changePage(7)">7</button>
+              <button class="page-btn" onclick="changePage('next')">›</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ===== DETAIL DRAWER ===== -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer-panel" id="detailDrawer">
+  <div class="drawer-header">
+    <div class="drawer-title" data-i18n="交易详情">交易详情</div>
+    <button class="drawer-close" onclick="closeDrawer()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+</div>
+
+<!-- ===== MODALS ===== -->
+<!-- Deposit -->
+<div class="modal-overlay" id="depositModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" data-i18n="充币">充币</div>
+      <button class="modal-close" onclick="hideModal('depositModal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label" data-i18n="选择币种">选择币种</label>
+        <select class="form-select"><option>USDT - Tether</option><option>BTC - Bitcoin</option><option>ETH - Ethereum</option></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="充值网络">充值网络</label>
+        <select class="form-select"><option>TRC20</option><option>ERC20</option><option>BEP20</option></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="充值地址">充值地址</label>
+        <div style="display:flex;gap:8px;">
+          <input type="text" class="form-input" value="TJYx9rK2mEq3K5XZsL8pN7mR4vWbQcA1eF" readonly style="font-family:'Fira Code',monospace;font-size:12px;">
+          <button class="btn btn-primary btn-sm" onclick="copyAddress()" data-i18n="复制">复制</button>
+        </div>
+      </div>
+      <div class="form-hint" data-i18n="请确认充值网络正确">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        <span data-i18n="请确认充值网络正确">请确认充值网络正确，使用错误网络可能导致资产丢失。最低充值金额：10 USDT</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Withdraw -->
+<div class="modal-overlay" id="withdrawModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" data-i18n="提币">提币</div>
+      <button class="modal-close" onclick="hideModal('withdrawModal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label" data-i18n="选择币种">选择币种</label>
+        <select class="form-select"><option>USDT - 可用: 8,234.56</option><option>BTC - 可用: 0.0523</option><option>ETH - 可用: 1.2000</option></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="提币地址">提币地址</label>
+        <input type="text" class="form-input" placeholder="请输入提币地址" style="font-family:'Fira Code',monospace;font-size:12px;" data-i18n-placeholder="请输入提币地址">
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="提币数量">提币数量</label>
+        <input type="number" class="form-input" placeholder="0.00" style="font-family:'Fira Code',monospace;">
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:10px 0;border-top:1px solid var(--border-subtle);font-size:13px;">
+        <span style="color:var(--text-tertiary);" data-i18n="手续费">手续费</span>
+        <span style="font-family:'Fira Code',monospace;">1.00 USDT</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:10px 0;border-top:1px solid var(--border-subtle);font-size:13px;">
+        <span style="color:var(--text-tertiary);" data-i18n="实际到账">实际到账</span>
+        <span style="font-family:'Fira Code',monospace;color:var(--green);font-weight:600;">99.00 USDT</span>
+      </div>
+      <button class="btn btn-primary" style="width:100%;margin-top:16px;padding:12px;justify-content:center;" data-i18n="提交提币">提交提币</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ========== I18N SYSTEM ==========
+let currentLang = 'zh';
+const translations = {
+  zh: {
+    // Sidebar
+    '资产': '资产',
+    '资产中心': '资产中心',
+    '持仓记录': '持仓记录',
+    '历史交易': '历史交易',
+    '账户': '账户',
+    '个人资料': '个人资料',
+    '安全中心': '安全中心',
+    'KYC 认证': 'KYC 认证',
+    '更多': '更多',
+    '联盟伙伴': '联盟伙伴',
+    '设置': '设置',
+    
+    // Asset Center
+    '总资产估值': '总资产估值',
+    '今日': '今日',
+    '充币': '充币',
+    '提币': '提币',
+    '交易': '交易',
+    '资产趋势': '资产趋势',
+    '交易账户': '交易账户',
+    '理财账户': '理财账户',
+    '卡券中心': '卡券中心',
+    '张即将过期': '张即将过期',
+    '可用卡券': '可用卡券',
+    '奖励金': '奖励金',
+    '资产明细': '资产明细',
+    '隐藏小额': '隐藏小额',
+    '搜索币种': '搜索币种',
+    '币种': '币种',
+    '总量': '总量',
+    '可用': '可用',
+    '持仓中': '持仓中',
+    '估值': '估值',
+    '操作': '操作',
+    '最近交易': '最近交易',
+    '查看全部': '查看全部',
+    
+    // Position Records
+    '导出 CSV': '导出 CSV',
+    '合约': '合约',
+    '预测': '预测',
+    '理财': '理财',
+    '总持仓金额': '总持仓金额',
+    '总未实现盈亏': '总未实现盈亏',
+    '持仓数量': '持仓数量',
+    '笔': '笔',
+    '杠杆': '杠杆',
+    '金额': '金额',
+    '开仓价格': '开仓价格',
+    '当前价格': '当前价格',
+    '强平价格': '强平价格',
+    '盈亏': '盈亏',
+    '止盈价格': '止盈价格',
+    '盈利金额': '盈利金额',
+    '止损价格': '止损价格',
+    '亏损金额': '亏损金额',
+    '开仓时间': '开仓时间',
+    '止盈止损': '止盈止损',
+    '平仓': '平仓',
+    '投注方向': '投注方向',
+    '均价': '均价',
+    '现价': '现价',
+    '份额': '份额',
+    '投注金额': '投注金额',
+    '当前收益': '当前收益',
+    '开始时间': '开始时间',
+    '卖出': '卖出',
+    '已结束的事件可进行兑换': '已结束的事件可进行兑换',
+    '投入本金': '投入本金',
+    '累计收益': '累计收益',
+    '持有天数': '持有天数',
+    '天': '天',
+    '产品类型': '产品类型',
+    '状态': '状态',
+    '查看详情': '查看详情',
+    '赎回': '赎回',
+    '申购时间': '申购时间',
+    '暂无持仓记录': '暂无持仓记录',
+    '当前没有进行中的持仓': '当前没有进行中的持仓',
+    
+    // Trade History
+    '资金流水': '资金流水',
+    '预测交易': '预测交易',
+    '合约交易': '合约交易',
+    '涨跌预测': '涨跌预测',
+    '高低价预测': '高低价预测',
+    '差价预测': '差价预测',
+    '点击交易': '点击交易',
+    '充提': '充提',
+    '手续费': '手续费',
+    '全部币种': '全部币种',
+    '全部类型': '全部类型',
+    '全部方向': '全部方向',
+    '买入/做多': '买入/做多',
+    '卖出/做空': '卖出/做空',
+    '最近24小时': '最近24小时',
+    '最近7天': '最近7天',
+    '最近30天': '最近30天',
+    '最近90天': '最近90天',
+    '全部状态': '全部状态',
+    '已完成': '已完成',
+    '处理中': '处理中',
+    '失败': '失败',
+    '搜索订单ID': '搜索订单ID',
+    '重置筛选': '重置筛选',
+    '资金流水统计': '资金流水统计',
+    '预测交易统计': '预测交易统计',
+    '合约交易统计': '合约交易统计',
+    '涨跌预测统计': '涨跌预测统计',
+    '高低价预测统计': '高低价预测统计',
+    '差价预测统计': '差价预测统计',
+    '点击交易统计': '点击交易统计',
+    '充提统计': '充提统计',
+    '理财统计': '理财统计',
+    '手续费统计': '手续费统计',
+    '今日': '今日',
+    '7 天': '7 天',
+    '30 天': '30 天',
+    '盈亏总金额': '盈亏总金额',
+    '今日盈亏金额': '今日盈亏金额',
+    '充值总金额': '充值总金额',
+    '提现总金额': '提现总金额',
+    '今日充值金额': '今日充值金额',
+    '今日提现金额': '今日提现金额',
+    '合约交易手续费金额': '合约交易手续费金额',
+    'UpDown手续费金额': 'UpDown手续费金额',
+    '交易量': '交易量',
+    '时间': '时间',
+    '类型': '类型',
+    '交易对': '交易对',
+    '方向': '方向',
+    '数量': '数量',
+    '价格': '价格',
+    '余额': '余额',
+    '详情': '详情',
+    '市场': '市场',
+    '投注额': '投注额',
+    '预期获得': '预期获得',
+    '当前盈亏': '当前盈亏',
+    '平仓价格': '平仓价格',
+    '货币': '货币',
+    '收益率': '收益率',
+    '预测周期': '预测周期',
+    '交易方向': '交易方向',
+    '点差': '点差',
+    '杠杆倍数': '杠杆倍数',
+    '手续费金额': '手续费金额',
+    '显示': '显示',
+    '条': '条',
+    '20条/页': '20条/页',
+    '50条/页': '50条/页',
+    '100条/页': '100条/页',
+    
+    // Drawer
+    '交易详情': '交易详情',
+    '基本信息': '基本信息',
+    '交易详情': '交易详情',
+    '时间信息': '时间信息',
+    '创建时间': '创建时间',
+    '完成时间': '完成时间',
+    '交易ID': '交易ID',
+    '赔付比例': '赔付比例',
+    '目标价格': '目标价格',
+    '手续费类型': '手续费类型',
+    '关联订单ID': '关联订单ID',
+    '关联订单详情': '关联订单详情',
+    '订单ID': '订单ID',
+    '手续费信息': '手续费信息',
+    
+    // Modals
+    '选择币种': '选择币种',
+    '充值网络': '充值网络',
+    '充值地址': '充值地址',
+    '复制': '复制',
+    '请确认充值网络正确': '请确认充值网络正确，使用错误网络可能导致资产丢失。最低充值金额：10 USDT',
+    '提币地址': '提币地址',
+    '请输入提币地址': '请输入提币地址',
+    '提币数量': '提币数量',
+    '实际到账': '实际到账',
+    '提交提币': '提交提币',
+    
+    // Common
+    '张': '张',
+    '持有中': '持有中',
+    '待结算': '待结算',
+    '挂单中': '挂单中',
+    '做多': '做多',
+    '做空': '做空',
+    '买入': '买入',
+    '看涨': '看涨',
+    '看跌': '看跌',
+    '上涨': '上涨',
+    '下跌': '下跌',
+    '买入做多': '买入做多',
+    '卖出做空': '卖出做空',
+    '挂单买入': '挂单买入',
+    '挂单卖出': '挂单卖出',
+    '手动止盈止损': '手动止盈止损',
+    '挂单止盈止损': '挂单止盈止损',
+    '活期': '活期',
+    '充值': '充值',
+    '提现': '提现',
+    '理财收益': '理财收益',
+    '地址已复制': '地址已复制',
+    '正在导出 CSV 文件': '正在导出 CSV 文件...'
+  },
+  en: {
+    // Sidebar
+    '资产': 'Assets',
+    '资产中心': 'Asset Center',
+    '持仓记录': 'Positions',
+    '历史交易': 'Trade History',
+    '账户': 'Account',
+    '个人资料': 'Profile',
+    '安全中心': 'Security',
+    'KYC 认证': 'KYC Verification',
+    '更多': 'More',
+    '联盟伙伴': 'Affiliate',
+    '设置': 'Settings',
+    
+    // Asset Center
+    '总资产估值': 'Total Asset Value',
+    '今日': 'Today',
+    '充币': 'Deposit',
+    '提币': 'Withdraw',
+    '交易': 'Trade',
+    '资产趋势': 'Asset Trend',
+    '交易账户': 'Trading Account',
+    '理财账户': 'Earn Account',
+    '卡券中心': 'Voucher Center',
+    '张即将过期': ' expiring soon',
+    '可用卡券': 'Available Vouchers',
+    '奖励金': 'Rewards',
+    '资产明细': 'Asset Details',
+    '隐藏小额': 'Hide Small',
+    '搜索币种': 'Search coin...',
+    '币种': 'Coin',
+    '总量': 'Total',
+    '可用': 'Available',
+    '持仓中': 'In Position',
+    '估值': 'Value',
+    '操作': 'Action',
+    '最近交易': 'Recent Trades',
+    '查看全部': 'View All',
+    
+    // Position Records
+    '导出 CSV': 'Export CSV',
+    '合约': 'Futures',
+    '预测': 'Predict',
+    '理财': 'Earn',
+    '总持仓金额': 'Total Position Value',
+    '总未实现盈亏': 'Total Unrealized PnL',
+    '持仓数量': 'Position Count',
+    '笔': 'positions',
+    '杠杆': 'Leverage',
+    '金额': 'Amount',
+    '开仓价格': 'Entry Price',
+    '当前价格': 'Mark Price',
+    '强平价格': 'Liq. Price',
+    '盈亏': 'PnL',
+    '止盈价格': 'Take Profit',
+    '盈利金额': 'Profit Amount',
+    '止损价格': 'Stop Loss',
+    '亏损金额': 'Loss Amount',
+    '开仓时间': 'Opened',
+    '止盈止损': 'TP/SL',
+    '平仓': 'Close',
+    '投注方向': 'Direction',
+    '均价': 'Avg Price',
+    '现价': 'Current',
+    '份额': 'Shares',
+    '投注金额': 'Bet Amount',
+    '当前收益': 'Current PnL',
+    '开始时间': 'Started',
+    '卖出': 'Sell',
+    '已结束的事件可进行兑换': 'Ended events can be redeemed. Positions not redeemed within 3 days will be auto-redeemed.',
+    '投入本金': 'Principal',
+    '累计收益': 'Accumulated PnL',
+    '持有天数': 'Hold Days',
+    '天': 'days',
+    '产品类型': 'Product Type',
+    '状态': 'Status',
+    '查看详情': 'Details',
+    '赎回': 'Redeem',
+    '申购时间': 'Subscribed',
+    '暂无持仓记录': 'No Positions',
+    '当前没有进行中的持仓': 'No active positions',
+    
+    // Trade History
+    '资金流水': 'All Transactions',
+    '预测交易': 'Predict',
+    '合约交易': 'Futures',
+    '涨跌预测': 'UpDown',
+    '高低价预测': 'HighLow',
+    '差价预测': 'Spread',
+    '点击交易': 'Tap Trading',
+    '充提': 'Deposit/Withdraw',
+    '手续费': 'Fees',
+    '全部币种': 'All Coins',
+    '全部类型': 'All Types',
+    '全部方向': 'All Directions',
+    '买入/做多': 'Buy/Long',
+    '卖出/做空': 'Sell/Short',
+    '最近24小时': 'Last 24h',
+    '最近7天': 'Last 7d',
+    '最近30天': 'Last 30d',
+    '最近90天': 'Last 90d',
+    '全部状态': 'All Status',
+    '已完成': 'Completed',
+    '处理中': 'Pending',
+    '失败': 'Failed',
+    '搜索订单ID': 'Search Order ID...',
+    '重置筛选': 'Reset',
+    '资金流水统计': 'Transaction Stats',
+    '预测交易统计': 'Predict Stats',
+    '合约交易统计': 'Futures Stats',
+    '涨跌预测统计': 'UpDown Stats',
+    '高低价预测统计': 'HighLow Stats',
+    '差价预测统计': 'Spread Stats',
+    '点击交易统计': 'Tap Stats',
+    '充提统计': 'Deposit/Withdraw Stats',
+    '理财统计': 'Earn Stats',
+    '手续费统计': 'Fee Stats',
+    '今日': 'Today',
+    '7 天': '7d',
+    '30 天': '30d',
+    '盈亏总金额': 'Total PnL',
+    '今日盈亏金额': 'Today PnL',
+    '充值总金额': 'Total Deposit',
+    '提现总金额': 'Total Withdraw',
+    '今日充值金额': 'Today Deposit',
+    '今日提现金额': 'Today Withdraw',
+    '合约交易手续费金额': 'Futures Fees',
+    'UpDown手续费金额': 'UpDown Fees',
+    '交易量': 'Volume',
+    '时间': 'Time',
+    '类型': 'Type',
+    '交易对': 'Symbol',
+    '方向': 'Side',
+    '数量': 'Qty',
+    '价格': 'Price',
+    '余额': 'Balance',
+    '详情': 'Details',
+    '市场': 'Market',
+    '投注额': 'Bet Amount',
+    '预期获得': 'Expected',
+    '当前盈亏': 'Current PnL',
+    '平仓价格': 'Close Price',
+    '货币': 'Currency',
+    '收益率': 'ROI',
+    '预测周期': 'Period',
+    '交易方向': 'Direction',
+    '点差': 'Spread',
+    '杠杆倍数': 'Leverage',
+    '手续费金额': 'Fee Amount',
+    '显示': 'Showing',
+    '条': 'of',
+    '20条/页': '20/page',
+    '50条/页': '50/page',
+    '100条/页': '100/page',
+    
+    // Drawer
+    '交易详情': 'Trade Details',
+    '基本信息': 'Basic Info',
+    '交易详情': 'Trade Details',
+    '时间信息': 'Time Info',
+    '创建时间': 'Created',
+    '完成时间': 'Completed',
+    '交易ID': 'Trade ID',
+    '赔付比例': 'Payout Rate',
+    '目标价格': 'Target Price',
+    '手续费类型': 'Fee Type',
+    '关联订单ID': 'Related Order ID',
+    '关联订单详情': 'Related Order Details',
+    '订单ID': 'Order ID',
+    '手续费信息': 'Fee Info',
+    
+    // Modals
+    '选择币种': 'Select Coin',
+    '充值网络': 'Deposit Network',
+    '充值地址': 'Deposit Address',
+    '复制': 'Copy',
+    '请确认充值网络正确': 'Please confirm the deposit network is correct. Using the wrong network may result in asset loss. Min deposit: 10 USDT',
+    '提币地址': 'Withdraw Address',
+    '请输入提币地址': 'Enter withdraw address',
+    '提币数量': 'Withdraw Amount',
+    '实际到账': 'You will receive',
+    '提交提币': 'Submit Withdraw',
+    
+    // Common
+    '张': 'pcs',
+    '持有中': 'Holding',
+    '待结算': 'Pending',
+    '挂单中': 'Open Order',
+    '做多': 'Long',
+    '做空': 'Short',
+    '买入': 'Buy',
+    '看涨': 'Bullish',
+    '看跌': 'Bearish',
+    '上涨': 'Up',
+    '下跌': 'Down',
+    '买入做多': 'Buy Long',
+    '卖出做空': 'Sell Short',
+    '挂单买入': 'Open Buy',
+    '挂单卖出': 'Open Sell',
+    '手动止盈止损': 'Manual TP/SL',
+    '挂单止盈止损': 'TP/SL Order',
+    '活期': 'Flexible',
+    '充值': 'Deposit',
+    '提现': 'Withdraw',
+    '理财收益': 'Earn Rewards',
+    '地址已复制': 'Address copied',
+    '正在导出 CSV 文件': 'Exporting CSV...'
+  }
+};
+
+function toggleLanguage() {
+  currentLang = currentLang === 'zh' ? 'en' : 'zh';
+  document.getElementById('langBtn').textContent = currentLang === 'zh' ? 'EN/中' : '中/EN';
+  updateAllTranslations();
+  // Re-render dynamic content
+  renderAssetTable(assets);
+  renderRecentTrades();
+  renderTable(trades);
+  updateStats(trades);
+  if (document.getElementById('page-position').classList.contains('active')) {
+    renderPositions();
+  }
+}
+
+function t(key) {
+  return translations[currentLang][key] || key;
+}
+
+function updateAllTranslations() {
+  // Systematic translation using data-i18n attributes
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (translations[currentLang][key]) {
+      el.textContent = translations[currentLang][key];
+    }
+  });
+  
+  // Translate placeholders
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    if (translations[currentLang][key]) {
+      el.setAttribute('placeholder', translations[currentLang][key]);
+    }
+  });
+  
+  // Translate title attributes
+  document.querySelectorAll('[data-i18n-title]').forEach(el => {
+    const key = el.getAttribute('data-i18n-title');
+    if (translations[currentLang][key]) {
+      el.setAttribute('title', translations[currentLang][key]);
+    }
+  });
+  
+  // Special handling for elements with mixed content (buttons with icons)
+  document.querySelectorAll('.btn[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (translations[currentLang][key]) {
+      const svg = el.querySelector('svg');
+      if (svg) {
+        // Keep SVG, update text
+        const textNode = Array.from(el.childNodes).find(n => n.nodeType === Node.TEXT_NODE);
+        if (textNode) {
+          textNode.textContent = ' ' + translations[currentLang][key];
+        } else {
+          el.appendChild(document.createTextNode(' ' + translations[currentLang][key]));
+        }
+      } else {
+        el.textContent = translations[currentLang][key];
+      }
+    }
+  });
+  
+  // Update language button text
+  const langBtn = document.getElementById('langBtn');
+  if (langBtn) {
+    langBtn.textContent = currentLang === 'zh' ? 'EN/中' : '中/EN';
+  }
+}
+
+// Translation maps for dynamic values (type names, status, side names, etc.)
+const typeTranslations = {
+  zh: {
+    '合约交易': '合约交易', '预测交易': '预测交易', '充值': '充值', '提现': '提现',
+    '理财收益': '理财收益', '手续费': '手续费', '点击交易': '点击交易',
+    '已完成': '已完成', '处理中': '处理中', '失败': '失败',
+    '买入/做多': '买入/做多', '卖出/做空': '卖出/做空', '买入做多': '买入做多', '卖出做空': '卖出做空',
+    '挂单买入': '挂单买入', '挂单卖出': '挂单卖出', '手动止盈止损': '手动止盈止损', '挂单止盈止损': '挂单止盈止损',
+    '做多': '做多', '做空': '做空', '买入': '买入', '卖出': '卖出',
+    '看涨': '看涨', '看跌': '看跌', '上涨': '上涨', '下跌': '下跌',
+    'won': 'won', 'lost': 'lost', '待结算': '待结算', '持有中': '持有中', '挂单中': '挂单中',
+    '合约': '合约', '预测': '预测', '理财': '理财', '活期': '活期',
+    'USDT 活期理财': 'USDT 活期理财',
+    '涨跌预测': '涨跌预测', '差价预测': '差价预测', '高低价预测': '高低价预测',
+    '合约交易手续费': '合约交易手续费', '涨跌预测手续费': '涨跌预测手续费',
+    'BTC 24小时涨跌预测': 'BTC 24小时涨跌预测', 'ETH 差价预测': 'ETH 差价预测',
+  },
+  en: {
+    '合约交易': 'Futures', '预测交易': 'Predict', '充值': 'Deposit', '提现': 'Withdraw',
+    '理财收益': 'Earn Rewards', '手续费': 'Fees', '点击交易': 'Tap Trading',
+    '已完成': 'Completed', '处理中': 'Pending', '失败': 'Failed',
+    '买入/做多': 'Buy/Long', '卖出/做空': 'Sell/Short', '买入做多': 'Buy Long', '卖出做空': 'Sell Short',
+    '挂单买入': 'Open Buy', '挂单卖出': 'Open Sell', '手动止盈止损': 'Manual TP/SL', '挂单止盈止损': 'TP/SL Order',
+    '做多': 'Long', '做空': 'Short', '买入': 'Buy', '卖出': 'Sell',
+    '看涨': 'Bullish', '看跌': 'Bearish', '上涨': 'Up', '下跌': 'Down',
+    'won': 'Won', 'lost': 'Lost', '待结算': 'Pending', '持有中': 'Holding', '挂单中': 'Open Order',
+    '合约': 'Futures', '预测': 'Predict', '理财': 'Earn', '活期': 'Flexible',
+    'USDT 活期理财': 'USDT Flexible Earn',
+    '涨跌预测': 'UpDown', '差价预测': 'Spread', '高低价预测': 'HighLow',
+    '合约交易手续费': 'Futures Trading Fee', '涨跌预测手续费': 'UpDown Trading Fee',
+    'BTC 24小时涨跌预测': 'BTC 24h UpDown Predict', 'ETH 差价预测': 'ETH Spread Predict',
+  }
+};
+
+function tt(key) {
+  return typeTranslations[currentLang][key] || key;
+}
+
+// ========== THEME SYSTEM ==========
+let currentTheme = 'dark';
+
+function toggleTheme() {
+  currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  document.body.classList.toggle('light-theme');
+  
+  const themeIcon = document.getElementById('themeIcon');
+  if (currentTheme === 'dark') {
+    // Sun icon for dark mode (click to switch to light)
+    themeIcon.innerHTML = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+  } else {
+    // Moon icon for light mode (click to switch to dark)
+    themeIcon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+  }
+}
+
+// ========== DATA ==========
+const assets = [
+  { coin: 'USDT', full: 'Tether', icon: '₮', color: '#26A17B', total: 10234.56, available: 8234.56, frozen: 2000, estimated: 10234.56 },
+  { coin: 'BTC', full: 'Bitcoin', icon: '₿', color: '#F7931A', total: 0.0523, available: 0.0523, frozen: 0, estimated: 3411.00 },
+  { coin: 'ETH', full: 'Ethereum', icon: 'Ξ', color: '#627EEA', total: 1.2000, available: 1.2000, frozen: 0, estimated: 2500.00 },
+  { coin: 'BNB', full: 'BNB', icon: 'B', color: '#F0B90B', total: 5.0000, available: 3.5000, frozen: 1.5, estimated: 1850.00 },
+  { coin: 'SOL', full: 'Solana', icon: 'S', color: '#9945FF', total: 15.0000, available: 15.0000, frozen: 0, estimated: 1230.00 },
+  { coin: 'XRP', full: 'Ripple', icon: 'X', color: '#00AAE4', total: 500.00, available: 500.00, frozen: 0, estimated: 325.00 },
+  { coin: 'DOGE', full: 'Dogecoin', icon: 'D', color: '#C2A633', total: 2000.00, available: 2000.00, frozen: 0, estimated: 180.00 },
+  { coin: 'ADA', full: 'Cardano', icon: 'A', color: '#0033AD', total: 300.00, available: 300.00, frozen: 0, estimated: 125.00 },
+];
+
+const recentTrades = [
+  { type: '合约交易', iconBg: 'var(--green-dim)', iconColor: 'var(--green)', time: '06-17 14:30', coin: 'USDT', amount: '+21.00', status: '已完成', statusClass: 'completed' },
+  { type: '提现', iconBg: 'var(--red-dim)', iconColor: 'var(--red)', time: '06-17 12:15', coin: 'ETH', amount: '-0.50', status: '处理中', statusClass: 'pending' },
+  { type: '预测交易', iconBg: 'var(--accent-gold-dim)', iconColor: 'var(--accent-gold)', time: '06-17 10:45', coin: 'USDT', amount: '+15.00', status: '已完成', statusClass: 'completed' },
+  { type: '充值', iconBg: 'var(--blue-dim)', iconColor: 'var(--blue)', time: '06-16 22:10', coin: 'USDT', amount: '+500.00', status: '已完成', statusClass: 'completed' },
+  { type: '理财收益', iconBg: 'var(--accent-purple-dim)', iconColor: 'var(--accent-purple)', time: '06-16 00:00', coin: 'USDT', amount: '+3.25', status: '已完成', statusClass: 'completed' },
+];
+
+const trades = [
+  // ===== 合约交易 (含挂单) =====
+  { id:'tx_001', time:'2026-06-17 14:30:25', type:'futures', typeName:'合约交易', symbol:'BTC/USDT', side:'buy', sideName:'买入做多', amount:'+21.00', price:'65,000.00', pnl:'+24.00', fee:'0.50', status:'completed', statusName:'已完成', coin:'USDT', balance:'8,255.56', orderType:'市价成交', extra:{orderId:'ORD-20260617-001',tradeId:'TX-20260617-001',leverage:'20x',orderType:'市价单',openPrice:'65,000.00',closePrice:'66,200.00',quantity:'0.02 BTC'}},
+  { id:'tx_003', time:'2026-06-17 12:45:33', type:'futures', typeName:'合约交易', symbol:'ETH/USDT', side:'sell', sideName:'卖出做空', amount:'-8.50', price:'3,420.00', pnl:'-8.50', fee:'0.30', status:'completed', statusName:'已完成', coin:'USDT', balance:'8,247.06', orderType:'限价成交', extra:{orderId:'ORD-20260617-003',tradeId:'TX-20260617-003',leverage:'10x',orderType:'限价单',openPrice:'3,420.00',closePrice:'3,480.00',quantity:'0.5 ETH'}},
+  { id:'tx_009', time:'2026-06-16 20:45:12', type:'futures', typeName:'合约交易', symbol:'BTC/USDT', side:'buy', sideName:'买入做多', amount:'+156.00', price:'64,500.00', pnl:'+156.00', fee:'1.20', status:'completed', statusName:'已完成', coin:'USDT', balance:'8,091.06', orderType:'市价成交', extra:{orderId:'ORD-20260616-009',tradeId:'TX-20260616-009',leverage:'20x',orderType:'市价单',openPrice:'64,500.00',closePrice:'65,280.00',quantity:'0.1 BTC'}},
+  { id:'tx_013', time:'2026-06-16 12:00:15', type:'futures', typeName:'合约交易', symbol:'ETH/USDT', side:'sell', sideName:'卖出做空', amount:'-45.00', price:'3,380.00', pnl:'-45.00', fee:'0.40', status:'completed', statusName:'已完成', coin:'USDT', balance:'8,136.06', orderType:'市价成交', extra:{orderId:'ORD-20260616-013',tradeId:'TX-20260616-013',leverage:'10x',orderType:'市价单',openPrice:'3,380.00',closePrice:'3,420.00',quantity:'1.0 ETH'}},
+  { id:'tx_016', time:'2026-06-15 22:15:30', type:'futures', typeName:'合约交易', symbol:'BTC/USDT', side:'buy', sideName:'买入做多', amount:'+88.00', price:'63,800.00', pnl:'+88.00', fee:'0.80', status:'completed', statusName:'已完成', coin:'USDT', balance:'8,181.06', orderType:'限价成交', extra:{orderId:'ORD-20260615-016',tradeId:'TX-20260615-016',leverage:'20x',orderType:'限价单',openPrice:'63,800.00',closePrice:'64,240.00',quantity:'0.05 BTC'}},
+  // 合约挂单记录
+  { id:'tx_021', time:'2026-06-17 15:00:00', type:'futures', typeName:'合约交易', symbol:'BTC/USDT', side:'buy', sideName:'挂单买入', amount:'0.00', price:'63,000.00', pnl:'-', fee:'0', status:'pending', statusName:'挂单中', coin:'USDT', balance:'8,234.56', orderType:'挂单买入', extra:{orderId:'ORD-20260617-021',tradeId:'TX-20260617-021',leverage:'20x',orderType:'限价挂单',triggerPrice:'63,000.00',quantity:'0.03 BTC',orderStatus:'挂单中'}},
+  { id:'tx_022', time:'2026-06-17 14:00:00', type:'futures', typeName:'合约交易', symbol:'ETH/USDT', side:'sell', sideName:'挂单卖出', amount:'0.00', price:'3,600.00', pnl:'-', fee:'0', status:'pending', statusName:'挂单中', coin:'USDT', balance:'8,234.56', orderType:'挂单卖出', extra:{orderId:'ORD-20260617-022',tradeId:'TX-20260617-022',leverage:'10x',orderType:'限价挂单',triggerPrice:'3,600.00',quantity:'1.0 ETH',orderStatus:'挂单中'}},
+  { id:'tx_023', time:'2026-06-17 13:00:00', type:'futures', typeName:'合约交易', symbol:'BTC/USDT', side:'sell', sideName:'手动止盈止损', amount:'+42.00', price:'66,000.00', pnl:'+42.00', fee:'0.60', status:'completed', statusName:'已完成', coin:'USDT', balance:'8,276.56', orderType:'手动止盈止损', extra:{orderId:'ORD-20260617-023',tradeId:'TX-20260617-023',leverage:'20x',orderType:'止盈止损单',triggerPrice:'66,000.00',quantity:'0.02 BTC',orderStatus:'已触发'}},
+  { id:'tx_024', time:'2026-06-17 11:00:00', type:'futures', typeName:'合约交易', symbol:'ETH/USDT', side:'buy', sideName:'挂单止盈止损', amount:'-15.00', price:'3,300.00', pnl:'-15.00', fee:'0.20', status:'completed', statusName:'已完成', coin:'USDT', balance:'8,261.56', orderType:'挂单止盈止损', extra:{orderId:'ORD-20260617-024',tradeId:'TX-20260617-024',leverage:'10x',orderType:'止盈止损挂单',triggerPrice:'3,300.00',quantity:'0.5 ETH',orderStatus:'已触发'}},
+
+  // ===== 预测交易 (Polymarket) =====
+  { id:'tx_002', time:'2026-06-17 13:15:10', type:'predict', typeName:'预测交易', symbol:'Will BTC reach 70k by July?', marketName:'Will BTC reach 70k by July?', side:'buy', sideName:'Yes', amount:'-50.00', price:'0.65', pnl:'-', fee:'0', status:'completed', statusName:'won', coin:'USDT', shares:'76.92', avgPrice:'0.65', curPrice:'0.72', extra:{orderId:'PRED-20260617-002',market:'Polymarket - BTC 70k July',shares:'76.92',avgPrice:'0.65',curPrice:'0.72',tradeAmount:'50.00 USDT'}},
+  { id:'tx_005', time:'2026-06-17 10:05:42', type:'predict', typeName:'预测交易', symbol:'ETH price above 4000?', marketName:'ETH price above 4000?', side:'sell', sideName:'No', amount:'-30.00', price:'0.40', pnl:'-', fee:'0', status:'completed', statusName:'lost', coin:'USDT', shares:'75.00', avgPrice:'0.40', curPrice:'0.35', extra:{orderId:'PRED-20260617-005',market:'Polymarket - ETH 4000',shares:'75.00',avgPrice:'0.40',curPrice:'0.35',tradeAmount:'30.00 USDT'}},
+  { id:'tx_011', time:'2026-06-16 16:20:33', type:'predict', typeName:'预测交易', symbol:'Fed rate cut in Q3?', marketName:'Fed rate cut in Q3?', side:'buy', sideName:'Yes', amount:'-100.00', price:'0.55', pnl:'-', fee:'0', status:'completed', statusName:'won', coin:'USDT', shares:'181.82', avgPrice:'0.55', curPrice:'0.62', extra:{orderId:'PRED-20260616-011',market:'Polymarket - Fed Rate Q3',shares:'181.82',avgPrice:'0.55',curPrice:'0.62',tradeAmount:'100.00 USDT'}},
+  { id:'tx_015', time:'2026-06-16 08:45:50', type:'predict', typeName:'预测交易', symbol:'SOL new ATH this month?', marketName:'SOL new ATH this month?', side:'buy', sideName:'Yes', amount:'-20.00', price:'0.30', pnl:'-', fee:'0', status:'completed', statusName:'lost', coin:'USDT', shares:'66.67', avgPrice:'0.30', curPrice:'0.22', extra:{orderId:'PRED-20260616-015',market:'Polymarket - SOL ATH',shares:'66.67',avgPrice:'0.30',curPrice:'0.22',tradeAmount:'20.00 USDT'}},
+  { id:'tx_018', time:'2026-06-15 15:20:10', type:'predict', typeName:'预测交易', symbol:'Bitcoin Dominance > 60%?', marketName:'Bitcoin Dominance > 60%?', side:'buy', sideName:'Yes', amount:'-80.00', price:'0.48', pnl:'-', fee:'0', status:'completed', statusName:'won', coin:'USDT', shares:'166.67', avgPrice:'0.48', curPrice:'0.55', extra:{orderId:'PRED-20260615-018',market:'Polymarket - BTC Dominance',shares:'166.67',avgPrice:'0.48',curPrice:'0.55',tradeAmount:'80.00 USDT'}},
+
+  // ===== UpDown 涨跌预测 =====
+  { id:'tx_025', time:'2026-06-17 16:00:00', type:'updown', typeName:'UpDown', symbol:'BTC/USDT', side:'buy', sideName:'看涨', amount:'-25.00', price:'65,200.00', pnl:'+18.75', fee:'0.25', status:'completed', statusName:'已完成', coin:'USDT', balance:'8,210.56', extra:{orderId:'UD-20260617-025',tradeId:'UDTX-20260617-025',period:'5min',direction:'up',openPrice:'65,200.00',closePrice:'65,380.00',payoutRate:'75%'}},
+  { id:'tx_026', time:'2026-06-17 15:30:00', type:'updown', typeName:'UpDown', symbol:'ETH/USDT', side:'sell', sideName:'看跌', amount:'-15.00', price:'3,450.00', pnl:'-15.00', fee:'0.15', status:'completed', statusName:'已完成', coin:'USDT', balance:'8,195.56', extra:{orderId:'UD-20260617-026',tradeId:'UDTX-20260617-026',period:'1min',direction:'down',openPrice:'3,450.00',closePrice:'3,465.00'}},
+
+  // ===== HighLow 高低价预测 =====
+  { id:'tx_027', time:'2026-06-17 14:45:00', type:'highlow', typeName:'HighLow', symbol:'BTC/USDT', side:'buy', sideName:'上涨', amount:'-20.00', price:'65,500.00', pnl:'+12.00', fee:'0', status:'completed', statusName:'已完成', coin:'USDT', balance:'8,230.56', extra:{orderId:'HL-20260617-027',tradeId:'HLTX-20260617-027',period:'5min',predictType:'最高价',openPrice:'65,500.00',closePrice:'65,680.00',targetPrice:'65,500',result:'预测正确'}},
+  { id:'tx_028', time:'2026-06-17 13:30:00', type:'highlow', typeName:'HighLow', symbol:'ETH/USDT', side:'sell', sideName:'下跌', amount:'-10.00', price:'3,400.00', pnl:'-10.00', fee:'0', status:'completed', statusName:'已完成', coin:'USDT', balance:'8,220.56', extra:{orderId:'HL-20260617-028',tradeId:'HLTX-20260617-028',period:'1min',predictType:'最低价',openPrice:'3,400.00',closePrice:'3,415.00',targetPrice:'3,400',result:'预测错误'}},
+
+  // ===== Spread 差价预测 =====
+  { id:'tx_029', time:'2026-06-17 12:00:00', type:'spread', typeName:'Spread', symbol:'BTC/USDT', side:'buy', sideName:'上涨', amount:'-30.00', price:'0', pnl:'+22.50', fee:'0', status:'completed', statusName:'已完成', coin:'USDT', balance:'8,252.56', extra:{orderId:'SP-20260617-029',tradeId:'SPTX-20260617-029',period:'15min',startPrice:'64,800.00',closePrice:'65,200.00',spread:'400',result:'预测正确'}},
+  { id:'tx_030', time:'2026-06-17 10:30:00', type:'spread', typeName:'Spread', symbol:'ETH/USDT', side:'sell', sideName:'下跌', amount:'-18.00', price:'0', pnl:'-18.00', fee:'0', status:'completed', statusName:'已完成', coin:'USDT', balance:'8,234.56', extra:{orderId:'SP-20260617-030',tradeId:'SPTX-20260617-030',period:'5min',startPrice:'3,420.00',closePrice:'3,450.00',spread:'30',result:'预测错误'}},
+
+  // ===== TapTrading 点击交易 =====
+  { id:'tx_007', time:'2026-06-17 08:15:20', type:'tap', typeName:'点击交易', symbol:'SOL/USDT', side:'buy', sideName:'买入', amount:'+5.20', price:'168.50', pnl:'+5.20', fee:'0', status:'completed', statusName:'已完成', coin:'USDT', balance:'8,240.56', extra:{orderId:'TAP-20260617-007',tradeId:'TAPTX-20260617-007',orderType:'点击买入',leverage:'5x',quantity:'0.05 SOL'}},
+  { id:'tx_017', time:'2026-06-15 18:40:22', type:'tap', typeName:'点击交易', symbol:'BTC/USDT', side:'sell', sideName:'卖出', amount:'-12.00', price:'63,600.00', pnl:'-12.00', fee:'0', status:'completed', statusName:'已完成', coin:'USDT', balance:'8,228.56', extra:{orderId:'TAP-20260615-017',tradeId:'TAPTX-20260615-017',orderType:'点击卖出',leverage:'10x',quantity:'0.01 BTC'}},
+
+  // ===== 充提 =====
+  { id:'tx_004', time:'2026-06-17 11:20:18', type:'deposit', typeName:'充值', symbol:'-', side:'-', sideName:'-', amount:'+500.00', price:'-', pnl:'-', fee:'0', status:'completed', statusName:'已完成', coin:'USDT', extra:{txId:'TX-TRC20-20260617-004',network:'TRC20',address:'TJYx9rK2mEq...A1eF',confirmations:'20'}},
+  { id:'tx_006', time:'2026-06-17 09:30:55', type:'withdraw', typeName:'提现', symbol:'-', side:'-', sideName:'-', amount:'-0.50', price:'-', pnl:'-', fee:'0.001', status:'pending', statusName:'处理中', coin:'ETH', extra:{txId:'TX-ERC20-20260617-006',network:'ERC20',address:'0x742d...f248',confirmations:'3/12'}},
+  { id:'tx_014', time:'2026-06-16 10:30:08', type:'deposit', typeName:'充值', symbol:'-', side:'-', sideName:'-', amount:'+0.10', price:'-', pnl:'-', fee:'0', status:'completed', statusName:'已完成', coin:'BTC', extra:{txId:'TX-BTC-20260616-014',network:'BTC',address:'bc1q...x8f4',confirmations:'6'}},
+  { id:'tx_020', time:'2026-06-15 09:30:40', type:'withdraw', typeName:'提现', symbol:'-', side:'-', sideName:'-', amount:'-200.00', price:'-', pnl:'-', fee:'1.00', status:'completed', statusName:'已完成', coin:'USDT', extra:{txId:'TX-TRC20-20260615-020',network:'TRC20',address:'TJYx9rK2mEq...B2cD',confirmations:'20'}},
+
+  // ===== 理财 =====
+  { id:'tx_008', time:'2026-06-16 22:10:30', type:'earn', typeName:'理财收益', symbol:'-', side:'-', sideName:'-', amount:'+3.25', price:'-', pnl:'-', fee:'0', status:'completed', statusName:'已完成', coin:'USDT', extra:{productName:'USDT 活期理财',apy:'5.2%',period:'2026-06-15 ~ 2026-06-16'}},
+  { id:'tx_019', time:'2026-06-15 12:00:05', type:'earn', typeName:'理财收益', symbol:'-', side:'-', sideName:'-', amount:'+3.25', price:'-', pnl:'-', fee:'0', status:'completed', statusName:'已完成', coin:'USDT', extra:{productName:'USDT 活期理财',apy:'5.2%',period:'2026-06-14 ~ 2026-06-15'}},
+
+  // ===== 手续费 (仅 futures 和 updown 有) =====
+  { id:'tx_012', time:'2026-06-16 14:10:22', type:'fee', typeName:'手续费', symbol:'BTC/USDT', side:'-', sideName:'-', amount:'-2.50', price:'-', pnl:'-', fee:'2.50', status:'completed', statusName:'已完成', coin:'USDT', feeSource:'futures', extra:{feeType:'合约交易手续费',relatedOrder:'ORD-20260616-009'}},
+  { id:'tx_031', time:'2026-06-17 14:30:00', type:'fee', typeName:'手续费', symbol:'ETH/USDT', side:'-', sideName:'-', amount:'-0.80', price:'-', pnl:'-', fee:'0.80', status:'completed', statusName:'已完成', coin:'USDT', feeSource:'futures', extra:{feeType:'合约交易手续费',relatedOrder:'ORD-20260617-022'}},
+  { id:'tx_032', time:'2026-06-17 13:00:00', type:'fee', typeName:'手续费', symbol:'BTC/USDT', side:'-', sideName:'-', amount:'-1.20', price:'-', pnl:'-', fee:'1.20', status:'completed', statusName:'已完成', coin:'USDT', feeSource:'futures', extra:{feeType:'合约交易手续费',relatedOrder:'ORD-20260617-023'}},
+  { id:'tx_033', time:'2026-06-17 16:00:00', type:'fee', typeName:'手续费', symbol:'BTC/USDT', side:'-', sideName:'-', amount:'-0.25', price:'-', pnl:'-', fee:'0.25', status:'completed', statusName:'已完成', coin:'USDT', feeSource:'updown', extra:{feeType:'涨跌预测手续费',relatedOrder:'UD-20260617-025'}},
+  { id:'tx_034', time:'2026-06-17 15:30:00', type:'fee', typeName:'手续费', symbol:'ETH/USDT', side:'-', sideName:'-', amount:'-0.15', price:'-', pnl:'-', fee:'0.15', status:'completed', statusName:'已完成', coin:'USDT', feeSource:'updown', extra:{feeType:'涨跌预测手续费',relatedOrder:'UD-20260617-026'}},
+  { id:'tx_035', time:'2026-06-16 10:00:00', type:'fee', typeName:'手续费', symbol:'SOL/USDT', side:'-', sideName:'-', amount:'-0.30', price:'-', pnl:'-', fee:'0.30', status:'completed', statusName:'已完成', coin:'USDT', feeSource:'updown', extra:{feeType:'涨跌预测手续费',relatedOrder:'UD-20260616-030'}},
+];
+
+// ========== POSITION DATA ==========
+const positions = [
+  {
+    id: 'pos_001',
+    type: 'futures',
+    symbol: 'BTC/USDT',
+    side: 'long',
+    sideName: '做多',
+    quantity: 0.05,
+    quantityUnit: 'BTC',
+    entryPrice: 63500.00,
+    markPrice: 65200.00,
+    liquidationPrice: 58120.00,
+    leverage: 20,
+    margin: 158.75,
+    unrealizedPnl: 170.00,
+    unrealizedPnlRate: 5.32,
+    takeProfitPrice: 68000.00,
+    takeProfitAmount: 225.00,
+    stopLossPrice: 60000.00,
+    stopLossAmount: 175.00,
+    openTime: '2026-06-15 14:30'
+  },
+  {
+    id: 'pos_002',
+    type: 'futures',
+    symbol: 'ETH/USDT',
+    side: 'short',
+    sideName: '做空',
+    quantity: 1.5,
+    quantityUnit: 'ETH',
+    entryPrice: 3480.00,
+    markPrice: 3420.00,
+    liquidationPrice: 3850.00,
+    leverage: 10,
+    margin: 522.00,
+    unrealizedPnl: 90.00,
+    unrealizedPnlRate: 17.24,
+    takeProfitPrice: 3200.00,
+    takeProfitAmount: 420.00,
+    stopLossPrice: 3700.00,
+    stopLossAmount: 330.00,
+    openTime: '2026-06-16 09:15'
+  },
+  {
+    id: 'pos_003',
+    type: 'predict',
+    marketName: 'BTC 24小时涨跌预测',
+    symbol: 'BTC/USDT',
+    predictDirection: 'up',
+    predictDirectionName: 'Yes',
+    predictType: '涨跌预测',
+    investAmount: 50.00,
+    avgPrice: 0.52,
+    currentPrice: 0.58,
+    shares: 96.15,
+    currentProfit: 5.77,
+    currentProfitRate: 11.54,
+    remainingTime: 150,
+    status: 'pending',
+    statusName: '待结算',
+    openTime: '2026-06-18 10:00'
+  },
+  {
+    id: 'pos_004',
+    type: 'predict',
+    marketName: 'ETH 差价预测',
+    symbol: 'ETH/USDT',
+    predictDirection: 'up',
+    predictDirectionName: 'Yes',
+    predictType: '差价预测',
+    investAmount: 100.00,
+    avgPrice: 0.45,
+    currentPrice: 0.48,
+    shares: 222.22,
+    currentProfit: 6.67,
+    currentProfitRate: 6.67,
+    remainingTime: 720,
+    status: 'pending',
+    statusName: '待结算',
+    openTime: '2026-06-18 09:30'
+  },
+  {
+    id: 'pos_005',
+    type: 'earn',
+    productName: 'USDT 活期理财',
+    principal: 3000.00,
+    apy: 5.2,
+    accumulatedProfit: 12.35,
+    productType: 'flexible',
+    productTypeName: '活期',
+    holdDays: 15,
+    status: 'holding',
+    statusName: '持有中',
+    openTime: '2026-06-03 00:00'
+  }
+];
+
+// ========== PAGE SWITCH ==========
+function switchPage(page) {
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  const navItems = document.querySelectorAll('.sidebar-nav .nav-item');
+  if (page === 'asset') navItems[0].classList.add('active');
+  else if (page === 'position') navItems[1].classList.add('active');
+  else if (page === 'trade') navItems[2].classList.add('active');
+
+  // 如果是持仓记录页面，渲染持仓
+  if (page === 'position') {
+    renderPositions();
+  }
+}
+
+// ========== ASSET CENTER ==========
+function renderAssetTable(data) {
+  document.getElementById('assetTableBody').innerHTML = data.map(a => `
+    <tr>
+      <td><div class="coin-cell"><div class="coin-icon-wrap" style="background:${a.color}18;color:${a.color}">${a.icon}</div><div><div class="coin-name">${a.coin}</div><div class="coin-full">${a.full}</div></div></div></td>
+      <td class="text-right num">${a.total.toLocaleString()}</td>
+      <td class="text-right num" style="color:var(--text-secondary)">${a.available.toLocaleString()}</td>
+      <td class="text-right num" style="color:var(--text-tertiary)">${a.frozen > 0 ? a.frozen.toLocaleString() : '-'}</td>
+      <td class="text-right num" style="font-weight:600">${a.estimated.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+      <td class="text-center"><div class="coin-actions"><button class="coin-action-btn" onclick="event.stopPropagation();showModal('depositModal')">${t('充币')}</button><button class="coin-action-btn" onclick="event.stopPropagation();showModal('withdrawModal')">${t('提币')}</button></div></td>
+    </tr>
+  `).join('');
+}
+
+function renderRecentTrades() {
+  const iconSvgs = {
+    '合约交易': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>',
+    '提现': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>',
+    '预测交易': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>',
+    '充值': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>',
+    '理财收益': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>'
+  };
+  document.getElementById('recentTradesList').innerHTML = recentTrades.map(tr => `
+    <div class="recent-trade-item">
+      <div class="recent-trade-icon" style="background:${tr.iconBg};color:${tr.iconColor}">${iconSvgs[tr.type] || ''}</div>
+      <div class="recent-trade-info"><div class="recent-trade-type">${tt(tr.type)}</div><div class="recent-trade-time">${tr.time}</div></div>
+      <div><div class="recent-trade-amount" style="color:${tr.amount.startsWith('+') ? 'var(--green)' : 'var(--red)'}">${tr.amount} <span style="font-size:11px;color:var(--text-tertiary)">${tr.coin}</span></div><div class="recent-trade-status" style="color:${tr.statusClass === 'completed' ? 'var(--green)' : tr.statusClass === 'pending' ? 'var(--yellow)' : 'var(--red)'}">${tt(tr.status)}</div></div>
+    </div>
+  `).join('');
+}
+
+function renderTrendChart() {
+  const svg = document.getElementById('trendSvg');
+  const values = [8200,8500,8100,8800,9200,9000,9500,9300,9800,10200,9900,10500,10800,10300,11000,10700,11200,11500,11000,11800,12000,11600,12200,12500,12100,12400,12800,12345,12500,12345];
+  const w = 800, h = 140, pad = 4;
+  const min = Math.min(...values) * 0.98;
+  const max = Math.max(...values) * 1.02;
+  const points = values.map((v, i) => {
+    const x = pad + (i / (values.length - 1)) * (w - pad * 2);
+    const y = h - pad - ((v - min) / (max - min)) * (h - pad * 2);
+    return { x, y };
+  });
+  const linePath = points.map((p, i) => (i === 0 ? `M${p.x},${p.y}` : `L${p.x},${p.y}`)).join(' ');
+  const areaPath = linePath + ` L${points[points.length-1].x},${h} L${points[0].x},${h} Z`;
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#22C55E" stop-opacity="0.15"/>
+        <stop offset="100%" stop-color="#22C55E" stop-opacity="0"/>
+      </linearGradient>
+      <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#22C55E" stop-opacity="0.4"/>
+        <stop offset="100%" stop-color="#22C55E"/>
+      </linearGradient>
+    </defs>
+    <path d="${areaPath}" fill="url(#areaGrad)"/>
+    <path d="${linePath}" fill="none" stroke="url(#lineGrad)" stroke-width="2" stroke-linejoin="round"/>
+    <circle cx="${points[points.length-1].x}" cy="${points[points.length-1].y}" r="4" fill="#22C55E" stroke="#020617" stroke-width="2"/>
+  `;
+}
+
+let isVisible = true;
+function toggleVisibility() {
+  isVisible = !isVisible;
+  const el = document.getElementById('totalValue');
+  const btc = document.getElementById('totalBtc');
+  if (isVisible) { el.innerHTML = '12,345.67<span class="currency">USDT</span>'; btc.textContent = '≈ 0.1892 BTC'; }
+  else { el.innerHTML = '••••••<span class="currency">USDT</span>'; btc.textContent = '≈ •••• BTC'; }
+}
+
+function filterCoins() {
+  const q = document.getElementById('coinSearch').value.toLowerCase();
+  renderAssetTable(assets.filter(a => a.coin.toLowerCase().includes(q) || a.full.toLowerCase().includes(q)));
+}
+
+let hideSmall = false;
+function toggleHideSmall() {
+  hideSmall = !hideSmall;
+  document.getElementById('hideSmallToggle').classList.toggle('on');
+  renderAssetTable(hideSmall ? assets.filter(a => a.estimated >= 100) : assets);
+}
+
+function switchTrend(el) {
+  document.querySelectorAll('.trend-period-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderTrendChart();
+}
+
+// ========== TRADE HISTORY ==========
+function renderTable(data) {
+  const tbody = document.getElementById('tradeTableBody');
+  const thead = document.querySelector('#tradeTableCard thead');
+
+  // 根据当前标签页决定表头
+  if (currentTab === 'predict') {
+    thead.innerHTML = `<tr>
+      <th>${t('时间')}</th>
+      <th>${t('市场')}</th>
+      <th>${t('投注方向')}</th>
+      <th class="text-right">${t('均价')}</th>
+      <th class="text-right">${t('现价')}</th>
+      <th class="text-right">${t('份额')}</th>
+      <th>${t('货币')}</th>
+      <th class="text-right">${t('投注额')}</th>
+      <th class="text-right">${t('预期获得')}</th>
+      <th class="text-right">${t('当前盈亏')}</th>
+      <th>${t('状态')}</th>
+    </tr>`;
+    tbody.innerHTML = data.map(tr => {
+      if (tr.type !== 'predict') return '';
+      const statusClass = tr.statusName === 'won' ? 'completed' : tr.statusName === 'lost' ? 'failed' : 'pending';
+      const statusColor = tr.statusName === 'won' ? 'var(--green)' : tr.statusName === 'lost' ? 'var(--red)' : 'var(--yellow)';
+      const isSettled = tr.statusName === 'won' || tr.statusName === 'lost';
+      
+      // 计算预期获得和当前盈亏
+      const betAmount = Math.abs(parseFloat(tr.amount));
+      const avgPrice = parseFloat(tr.avgPrice || 0);
+      const curPrice = parseFloat(tr.curPrice || 0);
+      const shares = parseFloat(tr.shares || 0);
+      
+      // 预期获得 = 份额 * 1 (如果赢了每份价值1)
+      const expectedReturn = tr.statusName === 'won' ? shares.toFixed(2) : '0.00';
+      
+      // 当前盈亏 = 份额 * 现价 - 投注额
+      const currentPnl = (shares * curPrice - betAmount).toFixed(2);
+      const pnlColor = currentPnl >= 0 ? 'var(--green)' : 'var(--red)';
+      
+      return `
+        <tr onclick="openDrawer('${tr.id}')" style="cursor:pointer">
+          <td><div style="font-family:'Fira Code',monospace;font-size:12px;">${tr.time.split(' ')[0].slice(5)}</div><div style="font-size:11px;color:var(--text-tertiary);font-family:'Fira Code',monospace;">${tr.time.split(' ')[1].slice(0,5)}</div></td>
+          <td style="font-weight:500;max-width:200px;overflow:hidden;text-overflow:ellipsis;" title="${tr.marketName || tr.symbol}">${tr.marketName || tr.symbol}</td>
+          <td><span style="color:${tr.side === 'buy' ? 'var(--green)' : 'var(--red)'};font-weight:500">${tt(tr.sideName)}</span></td>
+          <td class="text-right num" style="color:var(--text-tertiary)">${avgPrice.toFixed(2)}</td>
+          <td class="text-right num" style="color:var(--text-secondary)">${curPrice.toFixed(2)}</td>
+          <td class="text-right num" style="font-weight:500">${shares.toFixed(2)}</td>
+          <td>${tr.coin}</td>
+          <td class="text-right num" style="font-weight:600">${betAmount.toFixed(2)}</td>
+          <td class="text-right num" style="color:var(--green);font-weight:500">${expectedReturn}</td>
+          <td class="text-right num" style="color:${pnlColor};font-weight:600">${currentPnl >= 0 ? '+' : ''}${currentPnl}</td>
+          <td><span class="status-badge"><span class="status-dot ${statusClass}"></span><span style="color:${statusColor};font-weight:500">${isSettled ? (currentLang === 'en' ? 'Redeemed' : '已兑换') : tt(tr.statusName)}</span></span></td>
+        </tr>
+      `;
+    }).join('');
+  } else if (currentTab === 'updown') {
+    // 涨跌预测专用表头
+    thead.innerHTML = `<tr>
+      <th>${t('时间')}</th>
+      <th>${t('交易对')}</th>
+      <th>${t('方向')}</th>
+      <th class="text-right">${t('开仓价格')}</th>
+      <th class="text-right">${t('平仓价格')}</th>
+      <th>${t('货币')}</th>
+      <th class="text-right">${t('金额')}</th>
+      <th class="text-right">${t('收益率')}</th>
+      <th class="text-right">${t('盈亏')}</th>
+      <th>${t('状态')}</th>
+    </tr>`;
+    tbody.innerHTML = data.map(tr => {
+      if (tr.type !== 'updown') return '';
+      
+      // 计算收益率
+      const amount = Math.abs(parseFloat(tr.amount.replace(/[^0-9.-]/g, '')));
+      const pnlVal = parseFloat(tr.pnl.replace(/[^0-9.-]/g, ''));
+      const roi = amount > 0 ? ((pnlVal / amount) * 100).toFixed(2) : '0.00';
+      const roiColor = pnlVal >= 0 ? 'var(--green)' : 'var(--red)';
+      
+      // 开仓价格和平仓价格从extra中获取
+      const openPrice = tr.extra?.openPrice || tr.price || '-';
+      // 平仓价格只在状态完成时显示
+      const closePrice = tr.status === 'completed' ? (tr.extra?.closePrice || '-') : '-';
+      
+      return `
+        <tr onclick="openDrawer('${tr.id}')" style="cursor:pointer">
+          <td><div style="font-family:'Fira Code',monospace;font-size:12px;">${tr.time.split(' ')[0].slice(5)}</div><div style="font-size:11px;color:var(--text-tertiary);font-family:'Fira Code',monospace;">${tr.time.split(' ')[1]}</div></td>
+          <td style="font-weight:500;">${tr.symbol}</td>
+          <td><span style="color:${tr.side === 'buy' ? 'var(--green)' : 'var(--red)'};font-weight:500">${tt(tr.sideName)}</span></td>
+          <td class="text-right num" style="color:var(--text-tertiary)">${openPrice}</td>
+          <td class="text-right num" style="color:var(--text-tertiary)">${closePrice}</td>
+          <td>${tr.coin}</td>
+          <td class="text-right num">${amount.toFixed(2)} ${tr.coin}</td>
+          <td class="text-right num" style="color:${roiColor};font-weight:500">${roi}%</td>
+          <td class="text-right num ${tr.pnl.startsWith('+') ? 'positive' : tr.pnl.startsWith('-') ? 'negative' : ''}">${tr.pnl}</td>
+          <td><span class="status-badge"><span class="status-dot ${tr.status}"></span>${tt(tr.statusName)}</span></td>
+        </tr>
+      `;
+    }).join('');
+  } else if (currentTab === 'highlow') {
+    // 高低价预测专用表头
+    thead.innerHTML = `<tr>
+      <th>${t('时间')}</th>
+      <th>${t('交易对')}</th>
+      <th>${t('交易方向')}</th>
+      <th>${t('预测周期')}</th>
+      <th class="text-right">${t('开仓价格')}</th>
+      <th class="text-right">${t('平仓价格')}</th>
+      <th>${t('货币')}</th>
+      <th class="text-right">${t('金额')}</th>
+      <th class="text-right">${t('收益率')}</th>
+      <th class="text-right">${t('盈亏')}</th>
+      <th>${t('状态')}</th>
+    </tr>`;
+    tbody.innerHTML = data.map(tr => {
+      if (tr.type !== 'highlow') return '';
+      
+      const amount = Math.abs(parseFloat(tr.amount.replace(/[^0-9.-]/g, '')));
+      const pnlVal = parseFloat(tr.pnl.replace(/[^0-9.-]/g, ''));
+      const roi = amount > 0 ? ((pnlVal / amount) * 100).toFixed(2) : '0.00';
+      const roiColor = pnlVal >= 0 ? 'var(--green)' : 'var(--red)';
+      
+      const openPrice = tr.extra?.openPrice || tr.price || '-';
+      const closePrice = tr.status === 'completed' ? (tr.extra?.closePrice || '-') : '-';
+      const period = tr.extra?.period || '-';
+      
+      return `
+        <tr onclick="openDrawer('${tr.id}')" style="cursor:pointer">
+          <td><div style="font-family:'Fira Code',monospace;font-size:12px;">${tr.time.split(' ')[0].slice(5)}</div><div style="font-size:11px;color:var(--text-tertiary);font-family:'Fira Code',monospace;">${tr.time.split(' ')[1]}</div></td>
+          <td style="font-weight:500;">${tr.symbol}</td>
+          <td><span style="color:${tr.side === 'buy' ? 'var(--green)' : 'var(--red)'};font-weight:500">${tt(tr.sideName)}</span></td>
+          <td>${period}</td>
+          <td class="text-right num" style="color:var(--text-tertiary)">${openPrice}</td>
+          <td class="text-right num" style="color:var(--text-tertiary)">${closePrice}</td>
+          <td>${tr.coin}</td>
+          <td class="text-right num">${amount.toFixed(2)} ${tr.coin}</td>
+          <td class="text-right num" style="color:${roiColor};font-weight:500">${roi}%</td>
+          <td class="text-right num ${tr.pnl.startsWith('+') ? 'positive' : tr.pnl.startsWith('-') ? 'negative' : ''}">${tr.pnl}</td>
+          <td><span class="status-badge"><span class="status-dot ${tr.status}"></span>${tt(tr.statusName)}</span></td>
+        </tr>
+      `;
+    }).join('');
+  } else if (currentTab === 'spread') {
+    // 差价预测专用表头
+    thead.innerHTML = `<tr>
+      <th>${t('时间')}</th>
+      <th>${t('交易对')}</th>
+      <th>${t('交易方向')}</th>
+      <th>${t('预测周期')}</th>
+      <th class="text-right">${t('点差')}</th>
+      <th class="text-right">${t('开仓价格')}</th>
+      <th class="text-right">${t('平仓价格')}</th>
+      <th>${t('货币')}</th>
+      <th class="text-right">${t('金额')}</th>
+      <th class="text-right">${t('收益率')}</th>
+      <th class="text-right">${t('盈亏')}</th>
+      <th>${t('状态')}</th>
+    </tr>`;
+    tbody.innerHTML = data.map(tr => {
+      if (tr.type !== 'spread') return '';
+      
+      const amount = Math.abs(parseFloat(tr.amount.replace(/[^0-9.-]/g, '')));
+      const pnlVal = parseFloat(tr.pnl.replace(/[^0-9.-]/g, ''));
+      const roi = amount > 0 ? ((pnlVal / amount) * 100).toFixed(2) : '0.00';
+      const roiColor = pnlVal >= 0 ? 'var(--green)' : 'var(--red)';
+      
+      const openPrice = tr.extra?.startPrice || '-';
+      const closePrice = tr.status === 'completed' ? (tr.extra?.closePrice || '-') : '-';
+      const period = tr.extra?.period || '-';
+      const spread = tr.extra?.spread || '-';
+      
+      return `
+        <tr onclick="openDrawer('${tr.id}')" style="cursor:pointer">
+          <td><div style="font-family:'Fira Code',monospace;font-size:12px;">${tr.time.split(' ')[0].slice(5)}</div><div style="font-size:11px;color:var(--text-tertiary);font-family:'Fira Code',monospace;">${tr.time.split(' ')[1]}</div></td>
+          <td style="font-weight:500;">${tr.symbol}</td>
+          <td><span style="color:${tr.side === 'buy' ? 'var(--green)' : 'var(--red)'};font-weight:500">${tt(tr.sideName)}</span></td>
+          <td>${period}</td>
+          <td class="text-right num" style="color:var(--text-tertiary)">${spread}</td>
+          <td class="text-right num" style="color:var(--text-tertiary)">${openPrice}</td>
+          <td class="text-right num" style="color:var(--text-tertiary)">${closePrice}</td>
+          <td>${tr.coin}</td>
+          <td class="text-right num">${amount.toFixed(2)} ${tr.coin}</td>
+          <td class="text-right num" style="color:${roiColor};font-weight:500">${roi}%</td>
+          <td class="text-right num ${tr.pnl.startsWith('+') ? 'positive' : tr.pnl.startsWith('-') ? 'negative' : ''}">${tr.pnl}</td>
+          <td><span class="status-badge"><span class="status-dot ${tr.status}"></span>${tt(tr.statusName)}</span></td>
+        </tr>
+      `;
+    }).join('');
+  } else if (currentTab === 'tap') {
+    // 点击交易专用表头
+    thead.innerHTML = `<tr>
+      <th>${t('时间')}</th>
+      <th>${t('交易对')}</th>
+      <th>${t('杠杆')}</th>
+      <th>${t('货币')}</th>
+      <th class="text-right">${t('金额')}</th>
+      <th class="text-right">${t('盈亏')}</th>
+      <th>${t('状态')}</th>
+    </tr>`;
+    tbody.innerHTML = data.map(tr => {
+      if (tr.type !== 'tap') return '';
+      
+      return `
+        <tr onclick="openDrawer('${tr.id}')" style="cursor:pointer">
+          <td><div style="font-family:'Fira Code',monospace;font-size:12px;">${tr.time.split(' ')[0].slice(5)}</div><div style="font-size:11px;color:var(--text-tertiary);font-family:'Fira Code',monospace;">${tr.time.split(' ')[1]}</div></td>
+          <td style="font-weight:500;">${tr.symbol}</td>
+          <td style="color:var(--accent-gold)">${tr.extra?.leverage || '-'}</td>
+          <td>${tr.coin}</td>
+          <td class="text-right num">${Math.abs(parseFloat(tr.amount.replace(/[^0-9.-]/g, ''))).toFixed(2)} ${tr.coin}</td>
+          <td class="text-right num ${tr.pnl.startsWith('+') ? 'positive' : tr.pnl.startsWith('-') ? 'negative' : ''}">${tr.pnl}</td>
+          <td><span class="status-badge"><span class="status-dot ${tr.status}"></span>${tt(tr.statusName)}</span></td>
+        </tr>
+      `;
+    }).join('');
+  } else if (currentTab === 'futures') {
+    // 合约交易专用表头
+    thead.innerHTML = `<tr>
+      <th>${t('时间')}</th>
+      <th>${t('类型')}</th>
+      <th>${t('交易对')}</th>
+      <th>${t('方向')}</th>
+      <th class="text-right">${t('开仓价格')}</th>
+      <th class="text-right">${t('平仓价格')}</th>
+      <th>${t('货币')}</th>
+      <th class="text-right">${t('金额')}</th>
+      <th class="text-right">${t('杠杆倍数')}</th>
+      <th class="text-right">${t('数量')}</th>
+      <th class="text-right">${t('盈亏')}</th>
+      <th class="text-right">${t('手续费')}</th>
+      <th>${t('状态')}</th>
+    </tr>`;
+    tbody.innerHTML = data.map(tr => {
+      if (tr.type !== 'futures') return '';
+      
+      // 合约交易：数量 = 金额 * 杠杆倍数
+      const amount = Math.abs(parseFloat(tr.amount.replace(/[^0-9.-]/g, '')));
+      const leverage = parseFloat(tr.extra?.leverage?.replace('x', '') || 1);
+      const quantity = (amount * leverage).toFixed(2);
+      
+      // 开仓价格和平仓价格从extra中获取
+      const openPrice = tr.extra?.openPrice || tr.price || '-';
+      const closePrice = tr.status === 'completed' ? (tr.extra?.closePrice || '-') : '-';
+      
+      return `
+        <tr onclick="openDrawer('${tr.id}')" style="cursor:pointer">
+          <td><div style="font-family:'Fira Code',monospace;font-size:12px;">${tr.time.split(' ')[0].slice(5)}</div><div style="font-size:11px;color:var(--text-tertiary);font-family:'Fira Code',monospace;">${tr.time.split(' ')[1]}</div></td>
+          <td><span class="type-badge ${tr.type}">${tt(tr.typeName)}</span></td>
+          <td style="font-weight:500;">${tr.symbol}</td>
+          <td>${tr.sideName !== '-' ? `<span style="color:${tr.side === 'buy' ? 'var(--green)' : 'var(--red)'};font-weight:500">${tt(tr.sideName)}</span>` : '<span style="color:var(--text-tertiary)">-</span>'}</td>
+          <td class="text-right num" style="color:var(--text-tertiary)">${openPrice}</td>
+          <td class="text-right num" style="color:var(--text-tertiary)">${closePrice}</td>
+          <td>${tr.coin}</td>
+          <td class="text-right num">${amount.toFixed(2)} ${tr.coin}</td>
+          <td class="text-right num" style="color:var(--accent-gold)">${tr.extra?.leverage || '-'}</td>
+          <td class="text-right num">${quantity}</td>
+          <td class="text-right num ${tr.pnl.startsWith('+') ? 'positive' : tr.pnl.startsWith('-') ? 'negative' : ''}">${tr.pnl}</td>
+          <td class="text-right num" style="color:var(--text-tertiary)">${tr.fee}</td>
+          <td><span class="status-badge"><span class="status-dot ${tr.status}"></span>${tt(tr.statusName)}</span></td>
+        </tr>
+      `;
+    }).join('');
+  } else if (currentTab === 'deposit') {
+    // 充提列表专用表头
+    thead.innerHTML = `<tr>
+      <th>${t('时间')}</th>
+      <th>${t('类型')}</th>
+      <th>${t('货币')}</th>
+      <th class="text-right">${t('金额')}</th>
+      <th>${t('状态')}</th>
+    </tr>`;
+    tbody.innerHTML = data.map(tr => {
+      if (tr.type !== 'deposit' && tr.type !== 'withdraw') return '';
+      return `
+        <tr onclick="openDrawer('${tr.id}')" style="cursor:pointer">
+          <td><div style="font-family:'Fira Code',monospace;font-size:12px;">${tr.time.split(' ')[0].slice(5)}</div><div style="font-size:11px;color:var(--text-tertiary);font-family:'Fira Code',monospace;">${tr.time.split(' ')[1]}</div></td>
+          <td><span class="type-badge ${tr.type}">${tt(tr.typeName)}</span></td>
+          <td>${tr.coin}</td>
+          <td class="text-right num" style="color:${tr.amount.startsWith('+') ? 'var(--green)' : 'var(--red)'}">${tr.amount} ${tr.coin}</td>
+          <td><span class="status-badge"><span class="status-dot ${tr.status}"></span>${tt(tr.statusName)}</span></td>
+        </tr>
+      `;
+    }).join('');
+  } else if (currentTab === 'fee') {
+    // 手续费专用表头
+    thead.innerHTML = `<tr>
+      <th>${t('时间')}</th>
+      <th>${t('类型')}</th>
+      <th>${t('货币')}</th>
+      <th class="text-right">${t('手续费金额')}</th>
+      <th class="text-center">${t('操作')}</th>
+    </tr>`;
+    tbody.innerHTML = data.map(tr => {
+      if (tr.type !== 'fee') return '';
+      return `
+        <tr>
+          <td><div style="font-family:'Fira Code',monospace;font-size:12px;">${tr.time.split(' ')[0].slice(5)}</div><div style="font-size:11px;color:var(--text-tertiary);font-family:'Fira Code',monospace;">${tr.time.split(' ')[1]}</div></td>
+          <td><span style="color:${tr.feeSource === 'futures' ? 'var(--green)' : 'var(--accent-gold)'};font-weight:500">${tr.feeSource === 'futures' ? tt('合约交易') : tt('涨跌预测')}</span></td>
+          <td>${tr.coin}</td>
+          <td class="text-right num" style="color:var(--red)">-${tr.fee} ${tr.coin}</td>
+          <td class="text-center">
+            <button class="coin-action-btn" onclick="event.stopPropagation();openDrawerFee('${tr.id}')">${t('详情')}</button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  } else {
+    // 资金流水表头
+    thead.innerHTML = `<tr>
+      <th>${t('时间')}</th>
+      <th>${t('类型')}</th>
+      <th>${t('货币')}</th>
+      <th class="text-right">${t('金额')}</th>
+      <th class="text-right">${t('余额')}</th>
+      <th class="text-center">${t('操作')}</th>
+    </tr>`;
+    tbody.innerHTML = data.map(tr => {
+      return `
+        <tr>
+          <td><div style="font-family:'Fira Code',monospace;font-size:12px;">${tr.time.split(' ')[0].slice(5)}</div><div style="font-size:11px;color:var(--text-tertiary);font-family:'Fira Code',monospace;">${tr.time.split(' ')[1]}</div></td>
+          <td><span class="type-badge ${tr.type}">${tt(tr.typeName)}</span></td>
+          <td>${tr.coin}</td>
+          <td class="text-right num" style="color:${tr.amount.startsWith('+') ? 'var(--green)' : 'var(--red)'}">${tr.amount} ${tr.coin}</td>
+          <td class="text-right num" style="color:var(--text-secondary)">${tr.balance || '-'}</td>
+          <td class="text-center">
+            <button class="coin-action-btn" onclick="event.stopPropagation();openDrawer('${tr.id}')">${t('详情')}</button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+}
+
+let currentTab = 'all';
+let currentPositionTab = 'futures';
+
+function switchTab(el) {
+  document.querySelectorAll('.trade-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  currentTab = el.dataset.type;
+
+  const filterBar = document.getElementById('tradeFilterBar');
+  const statsCard = document.getElementById('tradeStatsCard');
+  const tradeTable = document.getElementById('tradeTableCard');
+
+  // 所有标签页都显示筛选栏、统计和表格
+  filterBar.style.display = 'flex';
+  statsCard.style.display = 'block';
+  tradeTable.style.display = 'block';
+
+  // 根据标签页更新筛选条件
+  updateFiltersForTab();
+  applyFilters();
+}
+
+function updateFiltersForTab() {
+  const coinFilter = document.getElementById('coinFilter');
+  const directionFilter = document.getElementById('directionFilter');
+  const statusFilter = document.getElementById('statusFilter');
+  const typeFilter = document.getElementById('typeFilter');
+
+  // 重置筛选
+  coinFilter.innerHTML = `<option value="">${t('全部币种')}</option>
+    <option value="USDT">USDT</option>
+    <option value="BTC">BTC</option>
+    <option value="ETH">ETH</option>
+    <option value="BNB">BNB</option>
+    <option value="SOL">SOL</option>`;
+
+  // 默认显示方向筛选，隐藏类型筛选
+  directionFilter.style.display = '';
+  typeFilter.style.display = 'none';
+
+  // 根据标签页调整筛选条件
+  if (currentTab === 'all') {
+    // 资金流水：币种、类型(充提/提现/predict/futures/updown/highlow/spread/taptrading)、时间范围
+    directionFilter.style.display = 'none';
+    typeFilter.style.display = '';
+    typeFilter.innerHTML = `<option value="">${t('全部类型')}</option>
+      <option value="deposit">${t('充提')}</option>
+      <option value="withdraw">${t('提现')}</option>
+      <option value="predict">${t('预测交易')}</option>
+      <option value="futures">${t('合约交易')}</option>
+      <option value="updown">${t('涨跌预测')}</option>
+      <option value="highlow">${t('高低价预测')}</option>
+      <option value="spread">${t('差价预测')}</option>
+      <option value="taptrading">${t('点击交易')}</option>`;
+    statusFilter.innerHTML = `<option value="">${t('全部状态')}</option>
+      <option value="completed">${t('已完成')}</option>
+      <option value="pending">${t('处理中')}</option>
+      <option value="failed">${t('失败')}</option>`;
+  } else if (currentTab === 'predict') {
+    // 预测交易：币种、投注方向(Yes/No)、时间范围、状态(won/lost)
+    directionFilter.innerHTML = `<option value="">${t('全部方向')}</option>
+      <option value="buy">${currentLang === 'en' ? 'Yes' : 'Yes'}</option>
+      <option value="sell">${currentLang === 'en' ? 'No' : 'No'}</option>`;
+    statusFilter.innerHTML = `<option value="">${t('全部状态')}</option>
+      <option value="completed">${currentLang === 'en' ? 'won' : 'won'}</option>
+      <option value="lost">${currentLang === 'en' ? 'lost' : 'lost'}</option>
+      <option value="pending">${currentLang === 'en' ? 'pending' : 'pending'}</option>`;
+  } else if (currentTab === 'futures') {
+    // 合约交易：币种、方向(买入做多/卖出做空)、时间范围、状态(已完成/挂单中)
+    directionFilter.innerHTML = `<option value="">${t('全部方向')}</option>
+      <option value="buy">${t('买入/做多')}</option>
+      <option value="sell">${t('卖出/做空')}</option>`;
+    statusFilter.innerHTML = `<option value="">${t('全部状态')}</option>
+      <option value="completed">${t('已完成')}</option>
+      <option value="pending">${t('挂单中')}</option>`;
+  } else if (currentTab === 'updown' || currentTab === 'highlow' || currentTab === 'spread') {
+    // 涨跌/高低价/差价预测：币种、方向(看涨/看跌)、时间范围、状态
+    directionFilter.innerHTML = `<option value="">${t('全部方向')}</option>
+      <option value="buy">${t('看涨')}</option>
+      <option value="sell">${t('看跌')}</option>`;
+    statusFilter.innerHTML = `<option value="">${t('全部状态')}</option>
+      <option value="completed">${t('已完成')}</option>
+      <option value="pending">${t('处理中')}</option>`;
+  } else if (currentTab === 'tap') {
+    // 点击交易：币种、时间范围、状态
+    directionFilter.style.display = 'none';
+    statusFilter.innerHTML = `<option value="">${t('全部状态')}</option>
+      <option value="completed">${t('已完成')}</option>
+      <option value="pending">${t('处理中')}</option>`;
+  } else if (currentTab === 'deposit') {
+    // 充提：货币、时间范围、状态
+    directionFilter.innerHTML = `<option value="">${t('全部类型')}</option>
+      <option value="deposit">${t('充值')}</option>
+      <option value="withdraw">${t('提现')}</option>`;
+    statusFilter.innerHTML = `<option value="">${t('全部状态')}</option>
+      <option value="completed">${t('已完成')}</option>
+      <option value="pending">${t('处理中')}</option>`;
+  } else if (currentTab === 'fee') {
+    // 手续费：货币、类型(合约交易/涨跌预测)、时间范围
+    directionFilter.style.display = 'none';
+    typeFilter.style.display = '';
+    typeFilter.innerHTML = `<option value="">${t('全部类型')}</option>
+      <option value="futures">${t('合约交易')}</option>
+      <option value="updown">${t('涨跌预测')}</option>`;
+    statusFilter.innerHTML = `<option value="">${t('全部状态')}</option>
+      <option value="completed">${t('已完成')}</option>
+      <option value="pending">${t('处理中')}</option>`;
+  }
+}
+
+function switchPositionTab(el) {
+  document.querySelectorAll('.position-sub-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  currentPositionTab = el.dataset.postype;
+  renderPositions();
+}
+
+function renderPositions() {
+  let filtered = [...positions];
+  
+  // 按类型筛选持仓（删除"全部"Tab，按分类独立统计）
+  filtered = filtered.filter(p => p.type === currentPositionTab);
+  
+  // Update counts
+  document.getElementById('posCountFutures').textContent = positions.filter(p => p.type === 'futures').length;
+  document.getElementById('posCountPredict').textContent = positions.filter(p => p.type === 'predict').length;
+  document.getElementById('posCountEarn').textContent = positions.filter(p => p.type === 'earn').length;
+  
+  // 按当前选中类型计算汇总统计
+  const summaryData = filtered;
+  const totalValue = summaryData.reduce((sum, p) => {
+    if (p.type === 'futures') return sum + (p.margin * p.leverage);
+    if (p.type === 'predict') return sum + p.investAmount;
+    if (p.type === 'earn') return sum + p.principal;
+    return sum;
+  }, 0);
+  
+  const totalPnl = summaryData.reduce((sum, p) => {
+    if (p.type === 'futures') return sum + p.unrealizedPnl;
+    if (p.type === 'predict') return sum + (p.status === 'pending' ? 0 : p.expectedProfit);
+    if (p.type === 'earn') return sum + p.accumulatedProfit;
+    return sum;
+  }, 0);
+  
+  const totalPnlRate = totalValue > 0 ? (totalPnl / totalValue * 100) : 0;
+  
+  document.getElementById('posTotalValue').textContent = totalValue.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  document.getElementById('posTotalPnl').textContent = (totalPnl >= 0 ? '+' : '') + totalPnl.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  document.getElementById('posTotalPnl').style.color = totalPnl >= 0 ? 'var(--green)' : 'var(--red)';
+  document.getElementById('posTotalCount').textContent = filtered.length;
+  
+  // Render cards
+  const container = document.getElementById('positionList');
+  
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div class="position-empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+        <div class="position-empty-text">${t('暂无持仓记录')}</div>
+        <div class="position-empty-sub">${t('当前没有进行中的持仓')}</div>
+      </div>
+    `;
+    return;
+  }
+  
+  container.innerHTML = filtered.map(p => {
+    if (p.type === 'futures') {
+      return `
+        <div class="position-card">
+          <div class="position-card-top">
+            <div class="position-card-left">
+              <span class="type-badge futures">${t('合约')}</span>
+              <span style="font-size:14px;font-weight:600;">${p.symbol}</span>
+              <span style="color:${p.side === 'long' ? 'var(--green)' : 'var(--red)'};font-weight:500;font-size:13px;">${t(p.sideName)}</span>
+            </div>
+          </div>
+          <div class="position-card-grid">
+            <div>
+              <div class="position-field-label">${t('杠杆')}</div>
+              <div class="position-field-value" style="color:var(--accent-gold);">${p.leverage}x</div>
+            </div>
+            <div>
+              <div class="position-field-label">${t('金额')}</div>
+              <div class="position-field-value">${(p.margin * p.leverage).toLocaleString()} USDT</div>
+            </div>
+            <div>
+              <div class="position-field-label">${t('持仓数量')}</div>
+              <div class="position-field-value">${p.quantity} ${p.quantityUnit}</div>
+            </div>
+          </div>
+          <div class="position-card-grid">
+            <div>
+              <div class="position-field-label">${t('开仓价格')}</div>
+              <div class="position-field-value">${p.entryPrice.toLocaleString()}</div>
+            </div>
+            <div>
+              <div class="position-field-label">${t('当前价格')}</div>
+              <div class="position-field-value">${p.markPrice.toLocaleString()}</div>
+            </div>
+            <div>
+              <div class="position-field-label">${t('强平价格')}</div>
+              <div class="position-field-value" style="color:var(--red);">${p.liquidationPrice.toLocaleString()}</div>
+            </div>
+          </div>
+          <div class="position-card-grid">
+            <div>
+              <div class="position-field-label">${t('盈亏')}</div>
+              <div class="position-pnl-banner ${p.unrealizedPnl >= 0 ? 'positive' : 'negative'}">
+                ${p.unrealizedPnl >= 0 ? '+' : ''}${p.unrealizedPnl.toLocaleString()} USDT
+                <span style="font-size:11px;">(${p.unrealizedPnlRate >= 0 ? '+' : ''}${p.unrealizedPnlRate}%)</span>
+              </div>
+            </div>
+            <div>
+              <div class="position-field-label">${t('止盈价格')}</div>
+              <div class="position-field-value" style="color:var(--green);">${p.takeProfitPrice?.toLocaleString() || '-'}</div>
+              <div class="position-field-label" style="margin-top:4px;">${t('盈利金额')}</div>
+              <div class="position-field-value" style="color:var(--green);font-size:12px;">${p.takeProfitAmount ? '+' + p.takeProfitAmount.toLocaleString() + ' USDT' : '-'}</div>
+            </div>
+            <div>
+              <div class="position-field-label">${t('止损价格')}</div>
+              <div class="position-field-value" style="color:var(--red);">${p.stopLossPrice?.toLocaleString() || '-'}</div>
+              <div class="position-field-label" style="margin-top:4px;">${t('亏损金额')}</div>
+              <div class="position-field-value" style="color:var(--red);font-size:12px;">${p.stopLossAmount ? '-' + p.stopLossAmount.toLocaleString() + ' USDT' : '-'}</div>
+            </div>
+          </div>
+          <div class="position-card-footer">
+            <div class="position-card-time">${t('开仓时间')}: ${p.openTime}</div>
+            <div class="position-card-actions">
+              <button class="btn btn-ghost btn-sm">${t('止盈止损')}</button>
+              <button class="btn btn-primary btn-sm">${t('平仓')}</button>
+            </div>
+          </div>
+        </div>
+      `;
+    } else if (p.type === 'predict') {
+      const minutes = Math.floor(p.remainingTime / 60);
+      const seconds = p.remainingTime % 60;
+      return `
+        <div class="position-card">
+          <div class="position-card-top">
+            <div class="position-card-left">
+              <span class="type-badge predict">${t('预测')}</span>
+              <span style="font-size:14px;font-weight:600;">${p.marketName || p.symbol}</span>
+            </div>
+            <div class="position-card-right">
+              <div class="predict-countdown">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12 6 12 12 16 14"/>
+                </svg>
+                ${minutes}:${seconds.toString().padStart(2, '0')}
+              </div>
+            </div>
+          </div>
+          <div class="position-card-grid">
+            <div>
+              <div class="position-field-label">${t('投注方向')}</div>
+              <div class="position-field-value" style="color:${p.predictDirection === 'up' ? 'var(--green)' : 'var(--red)'};">${tt(p.predictDirectionName)}</div>
+            </div>
+            <div>
+              <div class="position-field-label">${t('均价')}</div>
+              <div class="position-field-value">${p.avgPrice?.toLocaleString() || '-'}</div>
+            </div>
+            <div>
+              <div class="position-field-label">${t('现价')}</div>
+              <div class="position-field-value">${p.currentPrice.toLocaleString()}</div>
+            </div>
+          </div>
+          <div class="position-card-grid">
+            <div>
+              <div class="position-field-label">${t('份额')}</div>
+              <div class="position-field-value">${p.shares || '-'}</div>
+            </div>
+            <div>
+              <div class="position-field-label">${t('投注金额')}</div>
+              <div class="position-field-value">${p.investAmount.toLocaleString()} USDT</div>
+            </div>
+            <div>
+              <div class="position-field-label">${t('当前收益')}</div>
+              <div class="position-field-value" style="color:${p.currentProfit >= 0 ? 'var(--green)' : 'var(--red)'};">
+                ${p.currentProfit >= 0 ? '+' : ''}${p.currentProfit?.toLocaleString() || '0.00'} USDT
+                <span style="font-size:11px;">(${p.currentProfitRate >= 0 ? '+' : ''}${p.currentProfitRate || 0}%)</span>
+              </div>
+            </div>
+          </div>
+          <div class="position-card-footer">
+            <div class="position-card-time">${t('开始时间')}: ${p.openTime}</div>
+            <div class="position-card-actions">
+              <button class="btn btn-primary btn-sm">${t('卖出')}</button>
+            </div>
+          </div>
+          <div class="position-card-notice">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="16" x2="12" y2="12"/>
+              <line x1="12" y1="8" x2="12.01" y2="8"/>
+            </svg>
+            <span>${t('已结束的事件可进行兑换，3天未兑换的持仓将自动进行兑换，可在历史交易中查看记录')}</span>
+          </div>
+        </div>
+      `;
+    } else if (p.type === 'earn') {
+      return `
+        <div class="position-card">
+          <div class="position-card-top">
+            <div class="position-card-left">
+              <span class="type-badge earn">${t('理财')}</span>
+              <span style="font-size:14px;font-weight:600;">${p.productName}</span>
+            </div>
+            <div class="position-card-right">
+              <span style="font-family:'Fira Code',monospace;font-size:12px;color:var(--accent-purple);">APY ${p.apy}%</span>
+            </div>
+          </div>
+          <div class="position-card-grid position-card-grid-3">
+            <div>
+              <div class="position-field-label">${t('投入本金')}</div>
+              <div class="position-field-value">${p.principal.toLocaleString()} USDT</div>
+            </div>
+            <div>
+              <div class="position-field-label">${t('累计收益')}</div>
+              <div class="position-field-value" style="color:var(--green);">+${p.accumulatedProfit.toLocaleString()} USDT</div>
+            </div>
+            <div>
+              <div class="position-field-label">${t('持有天数')}</div>
+              <div class="position-field-value">${p.holdDays} ${t('天')}</div>
+            </div>
+          </div>
+          <div class="position-card-grid position-card-grid-3">
+            <div>
+              <div class="position-field-label">${t('产品类型')}</div>
+              <div class="position-field-value">${tt(p.productTypeName)}</div>
+            </div>
+            <div>
+              <div class="position-field-label">${t('状态')}</div>
+              <div class="position-field-value"><span class="status-badge"><span class="status-dot completed"></span>${tt(p.statusName)}</span></div>
+            </div>
+            <div style="display:flex;align-items:flex-end;justify-content:flex-end;">
+              <div class="position-card-actions">
+                <button class="btn btn-ghost btn-sm">${t('查看详情')}</button>
+                <button class="btn btn-primary btn-sm">${t('赎回')}</button>
+              </div>
+            </div>
+          </div>
+          <div class="earn-progress-bar">
+            <div class="earn-progress-fill" style="width:${Math.min(p.holdDays / 30 * 100, 100)}%;"></div>
+          </div>
+          <div class="position-card-footer">
+            <div class="position-card-time">${t('申购时间')}: ${p.openTime}</div>
+          </div>
+        </div>
+      `;
+    }
+  }).join('');
+}
+
+function applyFilters() {
+  let filtered = [...trades];
+  const coin = document.getElementById('coinFilter').value;
+  const direction = document.getElementById('directionFilter').value;
+  const status = document.getElementById('statusFilter').value;
+  const typeFilterVal = document.getElementById('typeFilter').value;
+  const orderSearch = document.getElementById('orderSearch').value;
+  if (currentTab !== 'all') {
+    if (currentTab === 'deposit') filtered = filtered.filter(t => t.type === 'deposit' || t.type === 'withdraw');
+    else filtered = filtered.filter(t => t.type === currentTab);
+  }
+  if (coin) filtered = filtered.filter(t => t.coin === coin);
+  if (direction) {
+    if (currentTab === 'deposit') {
+      // deposit tab中使用direction作为充值/提现筛选
+      filtered = filtered.filter(t => t.type === direction);
+    } else {
+      filtered = filtered.filter(t => t.side === direction);
+    }
+  }
+  if (typeFilterVal) {
+    if (currentTab === 'all') {
+      filtered = filtered.filter(t => t.type === typeFilterVal);
+    } else if (currentTab === 'fee') {
+      filtered = filtered.filter(t => t.feeSource === typeFilterVal);
+    }
+  }
+  if (status) filtered = filtered.filter(t => t.status === status);
+  if (orderSearch) filtered = filtered.filter(t => (t.extra?.orderId || '').includes(orderSearch) || (t.extra?.txId || '').includes(orderSearch));
+  renderTable(filtered);
+  document.getElementById('totalCount').textContent = filtered.length;
+  updateStats(filtered);
+}
+
+function updateStats(data) {
+  const statsTitle = document.getElementById('statsTitle');
+  const statsMainGrid = document.getElementById('statsMainGrid');
+
+  // 根据标签页设置不同的统计标题
+  const tabNames = {
+    'all': t('资金流水统计'),
+    'predict': t('预测交易统计'),
+    'futures': t('合约交易统计'),
+    'updown': t('涨跌预测统计'),
+    'highlow': t('高低价预测统计'),
+    'spread': t('差价预测统计'),
+    'tap': t('点击交易统计'),
+    'deposit': t('充提统计'),
+    'earn': t('理财统计'),
+    'fee': t('手续费统计')
+  };
+
+  statsTitle.textContent = tabNames[currentTab] || (currentLang === 'en' ? 'Trade Statistics' : '交易统计');
+
+  // 计算统计数据
+  let totalPnl = 0, todayPnl = 0, totalVolume = 0;
+  let totalDeposit = 0, totalWithdraw = 0, todayDeposit = 0, todayWithdraw = 0;
+  let futuresFee = 0, updownFee = 0;
+  const today = new Date().toISOString().split('T')[0];
+
+  data.forEach(t => {
+    // 计算盈亏
+    if (t.pnl !== '-' && t.pnl !== '0') {
+      const pnlVal = parseFloat(t.pnl.replace(/[^0-9.-]/g, ''));
+      totalPnl += pnlVal;
+      if (t.time.startsWith(today)) {
+        todayPnl += pnlVal;
+      }
+    }
+    
+    // 计算交易量（下单金额的绝对值）
+    const amountVal = Math.abs(parseFloat(t.amount.replace(/[^0-9.-]/g, '')));
+    totalVolume += amountVal;
+
+    // 充值/提现统计
+    if (t.type === 'deposit') {
+      totalDeposit += amountVal;
+      if (t.time.startsWith(today)) todayDeposit += amountVal;
+    }
+    if (t.type === 'withdraw') {
+      totalWithdraw += amountVal;
+      if (t.time.startsWith(today)) todayWithdraw += amountVal;
+    }
+
+    // 手续费统计
+    if (t.type === 'fee') {
+      const feeVal = parseFloat(t.fee);
+      if (t.feeSource === 'futures') futuresFee += feeVal;
+      else if (t.feeSource === 'updown') updownFee += feeVal;
+    }
+  });
+
+  // 根据当前Tab显示不同统计字段
+  if (currentTab === 'all') {
+    // 资金流水统计：6个字段
+    statsMainGrid.innerHTML = `
+      <div class="stats-main-item">
+        <div class="stats-main-label">${t('盈亏总金额')}</div>
+        <div class="stats-main-value" style="color:${totalPnl >= 0 ? 'var(--green)' : 'var(--red)'}">${totalPnl >= 0 ? '+' : ''}${totalPnl.toLocaleString('en-US', {minimumFractionDigits:2})}</div>
+        <div class="stats-main-unit">USDT</div>
+      </div>
+      <div class="stats-main-item">
+        <div class="stats-main-label">${t('今日盈亏金额')}</div>
+        <div class="stats-main-value" style="color:${todayPnl >= 0 ? 'var(--green)' : 'var(--red)'}">${todayPnl >= 0 ? '+' : ''}${todayPnl.toLocaleString('en-US', {minimumFractionDigits:2})}</div>
+        <div class="stats-main-unit">USDT</div>
+      </div>
+      <div class="stats-main-item">
+        <div class="stats-main-label">${t('充值总金额')}</div>
+        <div class="stats-main-value" style="color:var(--green)">${totalDeposit.toLocaleString('en-US', {minimumFractionDigits:2})}</div>
+        <div class="stats-main-unit">USDT</div>
+      </div>
+      <div class="stats-main-item">
+        <div class="stats-main-label">${t('提现总金额')}</div>
+        <div class="stats-main-value" style="color:var(--red)">${totalWithdraw.toLocaleString('en-US', {minimumFractionDigits:2})}</div>
+        <div class="stats-main-unit">USDT</div>
+      </div>
+      <div class="stats-main-item">
+        <div class="stats-main-label">${t('今日充值金额')}</div>
+        <div class="stats-main-value" style="color:var(--green)">${todayDeposit.toLocaleString('en-US', {minimumFractionDigits:2})}</div>
+        <div class="stats-main-unit">USDT</div>
+      </div>
+      <div class="stats-main-item">
+        <div class="stats-main-label">${t('今日提现金额')}</div>
+        <div class="stats-main-value" style="color:var(--red)">${todayWithdraw.toLocaleString('en-US', {minimumFractionDigits:2})}</div>
+        <div class="stats-main-unit">USDT</div>
+      </div>
+    `;
+  } else if (currentTab === 'fee') {
+    // 手续费统计：2个字段
+    statsMainGrid.innerHTML = `
+      <div class="stats-main-item">
+        <div class="stats-main-label">${t('合约交易手续费金额')}</div>
+        <div class="stats-main-value" style="color:var(--red)">${futuresFee.toLocaleString('en-US', {minimumFractionDigits:2})}</div>
+        <div class="stats-main-unit">USDT</div>
+      </div>
+      <div class="stats-main-item">
+        <div class="stats-main-label">${t('UpDown手续费金额')}</div>
+        <div class="stats-main-value" style="color:var(--red)">${updownFee.toLocaleString('en-US', {minimumFractionDigits:2})}</div>
+        <div class="stats-main-unit">USDT</div>
+      </div>
+    `;
+  } else {
+    // 其他Tab：盈亏总金额、今日盈亏金额、交易量
+    statsMainGrid.innerHTML = `
+      <div class="stats-main-item">
+        <div class="stats-main-label">${t('盈亏总金额')}</div>
+        <div class="stats-main-value" style="color:${totalPnl >= 0 ? 'var(--green)' : 'var(--red)'}">${totalPnl >= 0 ? '+' : ''}${totalPnl.toLocaleString('en-US', {minimumFractionDigits:2})}</div>
+        <div class="stats-main-unit">USDT</div>
+      </div>
+      <div class="stats-main-item">
+        <div class="stats-main-label">${t('今日盈亏金额')}</div>
+        <div class="stats-main-value" style="color:${todayPnl >= 0 ? 'var(--green)' : 'var(--red)'}">${todayPnl >= 0 ? '+' : ''}${todayPnl.toLocaleString('en-US', {minimumFractionDigits:2})}</div>
+        <div class="stats-main-unit">USDT</div>
+      </div>
+      <div class="stats-main-item">
+        <div class="stats-main-label">${t('交易量')}</div>
+        <div class="stats-main-value" style="color:var(--text-primary)">${totalVolume.toLocaleString('en-US', {minimumFractionDigits:2})}</div>
+        <div class="stats-main-unit">USDT</div>
+      </div>
+    `;
+  }
+}
+
+function switchStatsTab(el) {
+  document.querySelectorAll('#statsTimeTabs .trend-period-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  // 重新计算统计（仅影响统计数据，不影响表格）
+  applyFilters();
+}
+
+function getStatsTimeFilter() {
+  const active = document.querySelector('#statsTimeTabs .trend-period-tab.active');
+  return active ? active.dataset.stats : '7d';
+}
+
+function filterByStatsTime(data) {
+  const period = getStatsTimeFilter();
+  const now = new Date();
+  const today = now.toISOString().split('T')[0];
+  if (period === '1d') {
+    return data.filter(t => t.time.startsWith(today));
+  } else if (period === '7d') {
+    const cutoff = new Date(now);
+    cutoff.setDate(cutoff.getDate() - 7);
+    return data.filter(t => new Date(t.time) >= cutoff);
+  } else if (period === '30d') {
+    const cutoff = new Date(now);
+    cutoff.setDate(cutoff.getDate() - 30);
+    return data.filter(t => new Date(t.time) >= cutoff);
+  }
+  return data;
+}
+
+function resetFilters() {
+  document.getElementById('coinFilter').value = '';
+  document.getElementById('typeFilter').value = '';
+  document.getElementById('directionFilter').value = '';
+  document.getElementById('timeFilter').value = '7d';
+  document.getElementById('statusFilter').value = '';
+  document.getElementById('orderSearch').value = '';
+  document.querySelectorAll('.trade-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector('.trade-tab[data-type="all"]').classList.add('active');
+  currentTab = 'all';
+  applyFilters();
+}
+
+function openDrawer(id) {
+  const trade = trades.find(t => t.id === id);
+  if (!trade) return;
+  const body = document.getElementById('drawerBody');
+  
+  // 盈亏横幅
+  let pnlHtml = '';
+  if (trade.pnl !== '-') {
+    const isPos = trade.pnl.startsWith('+');
+    pnlHtml = `<div class="detail-pnl-banner ${isPos ? 'positive' : 'negative'}">${isPos ? '↑' : '↓'} ${trade.pnl} ${trade.coin}</div>`;
+  }
+  
+  // 金额绝对值
+  const amount = Math.abs(parseFloat(trade.amount.replace(/[^0-9.-]/g, '')));
+  
+  // 构建交易详情字段（合并交易数据+详细信息，消除重复）
+  let detailRows = '';
+  
+  if (trade.type === 'futures') {
+    const leverage = parseFloat(trade.extra?.leverage?.replace('x', '') || 1);
+    const quantity = (amount * leverage).toFixed(2);
+    detailRows = `
+      <div class="detail-row"><span class="detail-row-label">${t('金额')}</span><span class="detail-row-value">${amount.toFixed(2)} ${trade.coin}</span></div>
+      <div class="detail-row"><span class="detail-row-label">${t('杠杆倍数')}</span><span class="detail-row-value" style="color:var(--accent-gold)">${leverage}x</span></div>
+      <div class="detail-row"><span class="detail-row-label">${t('数量')}</span><span class="detail-row-value">${quantity}</span></div>
+      <div class="detail-row"><span class="detail-row-label">${t('开仓价格')}</span><span class="detail-row-value">${trade.extra?.openPrice || trade.price || '-'}</span></div>
+      ${trade.status === 'completed' ? `<div class="detail-row"><span class="detail-row-label">${t('平仓价格')}</span><span class="detail-row-value">${trade.extra?.closePrice || '-'}</span></div>` : ''}
+      <div class="detail-row"><span class="detail-row-label">${t('手续费')}</span><span class="detail-row-value">${trade.fee} ${trade.coin}</span></div>
+      <div class="detail-row"><span class="detail-row-label">${t('交易ID')}</span><span class="detail-row-value">${trade.extra?.orderId || '-'}</span></div>
+    `;
+  } else if (trade.type === 'updown') {
+    detailRows = `
+      <div class="detail-row"><span class="detail-row-label">${t('金额')}</span><span class="detail-row-value">${amount.toFixed(2)} ${trade.coin}</span></div>
+      <div class="detail-row"><span class="detail-row-label">${t('开仓价格')}</span><span class="detail-row-value">${trade.extra?.openPrice || trade.price || '-'}</span></div>
+      ${trade.status === 'completed' ? `<div class="detail-row"><span class="detail-row-label">${t('平仓价格')}</span><span class="detail-row-value">${trade.extra?.closePrice || '-'}</span></div>` : ''}
+      <div class="detail-row"><span class="detail-row-label">${t('预测周期')}</span><span class="detail-row-value">${trade.extra?.period || '-'}</span></div>
+      <div class="detail-row"><span class="detail-row-label">${t('赔付比例')}</span><span class="detail-row-value">${trade.extra?.payoutRate || '-'}</span></div>
+      <div class="detail-row"><span class="detail-row-label">${t('交易ID')}</span><span class="detail-row-value">${trade.extra?.orderId || '-'}</span></div>
+    `;
+  } else if (trade.type === 'highlow') {
+    detailRows = `
+      <div class="detail-row"><span class="detail-row-label">${t('金额')}</span><span class="detail-row-value">${amount.toFixed(2)} ${trade.coin}</span></div>
+      <div class="detail-row"><span class="detail-row-label">${t('开仓价格')}</span><span class="detail-row-value">${trade.extra?.openPrice || trade.price || '-'}</span></div>
+      ${trade.status === 'completed' ? `<div class="detail-row"><span class="detail-row-label">${t('平仓价格')}</span><span class="detail-row-value">${trade.extra?.closePrice || '-'}</span></div>` : ''}
+      <div class="detail-row"><span class="detail-row-label">${t('预测周期')}</span><span class="detail-row-value">${trade.extra?.period || '-'}</span></div>
+      <div class="detail-row"><span class="detail-row-label">${t('目标价格')}</span><span class="detail-row-value">${trade.extra?.targetPrice || '-'}</span></div>
+      <div class="detail-row"><span class="detail-row-label">${t('交易ID')}</span><span class="detail-row-value">${trade.extra?.orderId || '-'}</span></div>
+    `;
+  } else if (trade.type === 'spread') {
+    detailRows = `
+      <div class="detail-row"><span class="detail-row-label">${t('金额')}</span><span class="detail-row-value">${amount.toFixed(2)} ${trade.coin}</span></div>
+      <div class="detail-row"><span class="detail-row-label">${t('点差')}</span><span class="detail-row-value">${trade.extra?.spread || '-'}</span></div>
+      <div class="detail-row"><span class="detail-row-label">${t('开仓价格')}</span><span class="detail-row-value">${trade.extra?.startPrice || '-'}</span></div>
+      ${trade.status === 'completed' ? `<div class="detail-row"><span class="detail-row-label">${t('平仓价格')}</span><span class="detail-row-value">${trade.extra?.closePrice || '-'}</span></div>` : ''}
+      <div class="detail-row"><span class="detail-row-label">${t('预测周期')}</span><span class="detail-row-value">${trade.extra?.period || '-'}</span></div>
+      <div class="detail-row"><span class="detail-row-label">${t('交易ID')}</span><span class="detail-row-value">${trade.extra?.orderId || '-'}</span></div>
+    `;
+  } else if (trade.type === 'tap') {
+    detailRows = `
+      <div class="detail-row"><span class="detail-row-label">${t('金额')}</span><span class="detail-row-value">${amount.toFixed(2)} ${trade.coin}</span></div>
+      <div class="detail-row"><span class="detail-row-label">${t('杠杆倍数')}</span><span class="detail-row-value" style="color:var(--accent-gold)">${trade.extra?.leverage || '-'}</span></div>
+      <div class="detail-row"><span class="detail-row-label">${t('交易ID')}</span><span class="detail-row-value">${trade.extra?.orderId || '-'}</span></div>
+    `;
+  } else if (trade.type === 'predict') {
+    // 预测交易：与列表字段保持一致
+    const avgPrice = parseFloat(trade.avgPrice || 0);
+    const curPrice = parseFloat(trade.curPrice || 0);
+    const shares = parseFloat(trade.shares || 0);
+    const betAmount = Math.abs(parseFloat(trade.amount));
+    const expectedReturn = trade.statusName === 'won' ? shares.toFixed(2) : '0.00';
+    const currentPnl = (shares * curPrice - betAmount).toFixed(2);
+    
+    detailRows = `
+      <div class="detail-row"><span class="detail-row-label">${t('市场')}</span><span class="detail-row-value">${trade.marketName || trade.symbol}</span></div>
+      <div class="detail-row"><span class="detail-row-label">${t('投注方向')}</span><span class="detail-row-value" style="color:${trade.side === 'buy' ? 'var(--green)' : 'var(--red)'};font-weight:500">${trade.sideName}</span></div>
+      <div class="detail-row"><span class="detail-row-label">${t('均价')}</span><span class="detail-row-value">${avgPrice.toFixed(2)}</span></div>
+      <div class="detail-row"><span class="detail-row-label">${t('现价')}</span><span class="detail-row-value">${curPrice.toFixed(2)}</span></div>
+      <div class="detail-row"><span class="detail-row-label">${t('份额')}</span><span class="detail-row-value">${shares.toFixed(2)}</span></div>
+      <div class="detail-row"><span class="detail-row-label">${t('投注额')}</span><span class="detail-row-value">${betAmount.toFixed(2)} ${trade.coin}</span></div>
+      <div class="detail-row"><span class="detail-row-label">${t('预期获得')}</span><span class="detail-row-value" style="color:var(--green);font-weight:500">${expectedReturn}</span></div>
+      <div class="detail-row"><span class="detail-row-label">${t('当前盈亏')}</span><span class="detail-row-value" style="color:${currentPnl >= 0 ? 'var(--green)' : 'var(--red)'};font-weight:600">${currentPnl >= 0 ? '+' : ''}${currentPnl}</span></div>
+      ${trade.statusName !== 'won' && trade.statusName !== 'lost' ? `<div class="detail-row"><span class="detail-row-label">${t('状态')}</span><span class="detail-row-value"><span class="status-badge"><span class="status-dot ${trade.status}"></span>${tt(trade.statusName)}</span></span></div>` : ''}
+      <div class="detail-row"><span class="detail-row-label">${t('交易ID')}</span><span class="detail-row-value">${trade.extra?.orderId || '-'}</span></div>
+    `;
+  } else if (trade.type === 'fee') {
+    // 手续费详情
+    detailRows = `
+      <div class="detail-row"><span class="detail-row-label">${t('手续费类型')}</span><span class="detail-row-value" style="color:${trade.feeSource === 'futures' ? 'var(--green)' : 'var(--accent-gold)'};font-weight:500">${tt(trade.extra?.feeType || (trade.feeSource === 'futures' ? '合约交易手续费' : '涨跌预测手续费'))}</span></div>
+      <div class="detail-row"><span class="detail-row-label">${t('手续费金额')}</span><span class="detail-row-value" style="color:var(--red);font-weight:600">-${trade.fee} ${trade.coin}</span></div>
+      <div class="detail-row"><span class="detail-row-label">${t('关联订单ID')}</span><span class="detail-row-value">${trade.extra?.relatedOrder || '-'}</span></div>
+    `;
+  } else {
+    // 充提/理财等其他类型
+    detailRows = `
+      <div class="detail-row"><span class="detail-row-label">${t('数量')}</span><span class="detail-row-value">${trade.amount} ${trade.coin}</span></div>
+      ${trade.price !== '-' ? `<div class="detail-row"><span class="detail-row-label">${t('价格')}</span><span class="detail-row-value">${trade.price}</span></div>` : ''}
+      <div class="detail-row"><span class="detail-row-label">${t('手续费')}</span><span class="detail-row-value">${trade.fee} ${trade.coin}</span></div>
+    `;
+  }
+  
+  body.innerHTML = `
+    ${pnlHtml}
+    <div class="detail-group"><div class="detail-group-title">${t('基本信息')}</div>
+      <div class="detail-row"><span class="detail-row-label">${t('交易对')}</span><span class="detail-row-value">${trade.symbol}</span></div>
+      <div class="detail-row"><span class="detail-row-label">${t('方向')}</span><span class="detail-row-value" style="color:${trade.side==='buy'?'var(--green)':trade.side==='sell'?'var(--red)':'var(--text-secondary)'}">${tt(trade.sideName)}</span></div>
+      <div class="detail-row"><span class="detail-row-label">${t('货币')}</span><span class="detail-row-value">${trade.coin}</span></div>
+      <div class="detail-row"><span class="detail-row-label">${t('状态')}</span><span class="detail-row-value"><span class="status-badge"><span class="status-dot ${trade.status}"></span>${tt(trade.statusName)}</span></span></div>
+    </div>
+    <div class="detail-group"><div class="detail-group-title">${t('交易详情')}</div>${detailRows}</div>
+    <div class="detail-group"><div class="detail-group-title">${t('时间信息')}</div>
+      <div class="detail-row"><span class="detail-row-label">${t('创建时间')}</span><span class="detail-row-value">${trade.time}</span></div>
+      <div class="detail-row"><span class="detail-row-label">${t('完成时间')}</span><span class="detail-row-value">${trade.status==='completed'?trade.time:'-'}</span></div>
+    </div>`;
+  document.getElementById('drawerOverlay').classList.add('show');
+  document.getElementById('detailDrawer').classList.add('show');
+}
+
+function closeDrawer() {
+  document.getElementById('drawerOverlay').classList.remove('show');
+  document.getElementById('detailDrawer').classList.remove('show');
+}
+
+function openDrawerFee(id) {
+  const trade = trades.find(t => t.id === id);
+  if (!trade) return;
+  const body = document.getElementById('drawerBody');
+
+  // 查找关联订单
+  const relatedOrder = trade.extra?.relatedOrder;
+  const relatedTrade = relatedOrder ? trades.find(t => t.extra?.orderId === relatedOrder) : null;
+
+  let relatedOrderHtml = '';
+  if (relatedTrade) {
+    const amount = Math.abs(parseFloat(relatedTrade.amount.replace(/[^0-9.-]/g, '')));
+    relatedOrderHtml = `
+      <div class="detail-group"><div class="detail-group-title">${t('关联订单详情')}</div>
+        <div class="detail-row"><span class="detail-row-label">${t('订单ID')}</span><span class="detail-row-value">${relatedTrade.extra?.orderId || '-'}</span></div>
+        <div class="detail-row"><span class="detail-row-label">${t('交易对')}</span><span class="detail-row-value">${relatedTrade.symbol}</span></div>
+        <div class="detail-row"><span class="detail-row-label">${t('方向')}</span><span class="detail-row-value" style="color:${relatedTrade.side === 'buy' ? 'var(--green)' : 'var(--red)'}">${tt(relatedTrade.sideName)}</span></div>
+        <div class="detail-row"><span class="detail-row-label">${t('金额')}</span><span class="detail-row-value">${amount.toFixed(2)} ${relatedTrade.coin}</span></div>
+        ${relatedTrade.extra?.openPrice ? `<div class="detail-row"><span class="detail-row-label">${t('开仓价格')}</span><span class="detail-row-value">${relatedTrade.extra.openPrice}</span></div>` : ''}
+        ${relatedTrade.extra?.closePrice ? `<div class="detail-row"><span class="detail-row-label">${t('平仓价格')}</span><span class="detail-row-value">${relatedTrade.extra.closePrice}</span></div>` : ''}
+        ${relatedTrade.pnl !== '-' ? `<div class="detail-row"><span class="detail-row-label">${t('盈亏')}</span><span class="detail-row-value" style="color:${relatedTrade.pnl.startsWith('+') ? 'var(--green)' : 'var(--red)'};font-weight:600">${relatedTrade.pnl} ${relatedTrade.coin}</span></div>` : ''}
+      </div>`;
+  } else {
+    relatedOrderHtml = `
+      <div class="detail-group"><div class="detail-group-title">${t('关联订单详情')}</div>
+        <div class="detail-row"><span class="detail-row-label">${t('关联订单ID')}</span><span class="detail-row-value">${trade.extra?.relatedOrder || '-'}</span></div>
+        <div class="detail-row"><span class="detail-row-label">${t('交易对')}</span><span class="detail-row-value">${trade.symbol || '-'}</span></div>
+        <div class="detail-row"><span class="detail-row-label">${t('状态')}</span><span class="detail-row-value"><span class="status-badge"><span class="status-dot ${trade.status}"></span>${tt(trade.statusName)}</span></span></div>
+      </div>`;
+  }
+
+  body.innerHTML = `
+    <div class="detail-pnl-banner" style="color:var(--red);background:var(--red-dim)">-${trade.fee} ${trade.coin}</div>
+    <div class="detail-group"><div class="detail-group-title">${t('手续费信息')}</div>
+      <div class="detail-row"><span class="detail-row-label">${t('手续费类型')}</span><span class="detail-row-value" style="color:${trade.feeSource === 'futures' ? 'var(--green)' : 'var(--accent-gold)'};font-weight:500">${tt(trade.extra?.feeType || (trade.feeSource === 'futures' ? '合约交易手续费' : '涨跌预测手续费'))}</span></div>
+      <div class="detail-row"><span class="detail-row-label">${t('手续费金额')}</span><span class="detail-row-value" style="color:var(--red);font-weight:600">-${trade.fee} ${trade.coin}</span></div>
+      <div class="detail-row"><span class="detail-row-label">${t('货币')}</span><span class="detail-row-value">${trade.coin}</span></div>
+      <div class="detail-row"><span class="detail-row-label">${t('状态')}</span><span class="detail-row-value"><span class="status-badge"><span class="status-dot ${trade.status}"></span>${tt(trade.statusName)}</span></span></div>
+    </div>
+    ${relatedOrderHtml}
+    <div class="detail-group"><div class="detail-group-title">${t('时间信息')}</div>
+      <div class="detail-row"><span class="detail-row-label">${t('创建时间')}</span><span class="detail-row-value">${trade.time}</span></div>
+    </div>`;
+  document.getElementById('drawerOverlay').classList.add('show');
+  document.getElementById('detailDrawer').classList.add('show');
+}
+
+// ========== SHARED ==========
+function showModal(id) { document.getElementById(id).classList.add('show'); }
+function hideModal(id) { document.getElementById(id).classList.remove('show'); }
+function copyAddress() { navigator.clipboard.writeText('TJYx9rK2mEq3K5XZsL8pN7mR4vWbQcA1eF'); alert(t('地址已复制')); }
+function exportCSV() { alert(t('正在导出 CSV 文件')); }
+function changePageSize(s) { console.log('page size:', s); }
+function changePage(p) { console.log('page:', p); }
+
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('show'); });
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeDrawer();
+    document.querySelectorAll('.modal-overlay.show').forEach(m => m.classList.remove('show'));
+  }
+});
+
+// ========== INIT ==========
+renderAssetTable(assets);
+renderRecentTrades();
+renderTrendChart();
+renderTable(trades);
+updateStats(trades); // 初始化时也要更新统计数据
+renderPositions();
+
+// ========== PRD ANNOTATION SYSTEM ==========
+(function() {
+  // PRD content for each module
+  const prdContent = {
+    1: {
+      title: '左侧导航菜单',
+      html: `<h4>显示样式</h4>
+<p>左侧固定导航栏，宽度 240px，深色背景 #0F172A</p>
+<h4>菜单结构</h4>
+<table>
+<tr><th>菜单项</th><th>功能描述</th><th>页面标识</th></tr>
+<tr><td>资产中心</td><td>查看资产概览、趋势、明细</td><td>page-asset</td></tr>
+<tr><td>持仓记录</td><td>查看当前持仓、分类统计</td><td>page-position</td></tr>
+<tr><td>历史交易</td><td>查看历史交易记录</td><td>page-trade</td></tr>
+<tr><td>个人资料</td><td>用户基本信息管理</td><td>-</td></tr>
+<tr><td>安全中心</td><td>账户安全设置</td><td>-</td></tr>
+<tr><td>KYC 认证</td><td>身份认证</td><td>-</td></tr>
+<tr><td>联盟伙伴</td><td>联盟计划入口</td><td>-</td></tr>
+<tr><td>设置</td><td>系统设置</td><td>-</td></tr>
+</table>
+<h4>交互逻辑</h4>
+<ul>
+<li>菜单分组：资产（资产中心、持仓记录、历史交易）、账户（个人资料、安全中心、KYC认证）、更多（联盟伙伴、设置）</li>
+<li>当前页面菜单项高亮显示（金色背景 + 金色文字）</li>
+<li>点击菜单项切换页面，隐藏其他页面，显示目标页面</li>
+<li>切换时添加 anim-in 动画效果</li>
+</ul>
+<h4>用户信息区</h4>
+<ul>
+<li>显示用户头像（圆形，首字母）、用户名（User_8827）、VIP等级（VIP 1）</li>
+<li>位于导航栏底部，语言/主题按钮上方</li>
+</ul>`
+    },
+    2: {
+      title: '底部常驻按钮',
+      html: `<h4>显示样式</h4>
+<p>位于左侧菜单最底部，position: sticky; bottom: 0</p>
+<h4>按钮规范</h4>
+<table>
+<tr><th>按钮</th><th>宽度</th><th>高度</th><th>样式</th></tr>
+<tr><td>语言切换</td><td>80px</td><td>36px</td><td>透明背景，1px solid var(--border-default) 边框，hover金色边框</td></tr>
+<tr><td>主题切换</td><td>40px</td><td>36px</td><td>透明背景，1px solid var(--border-default) 边框，hover金色边框</td></tr>
+</table>
+<h4>交互逻辑</h4>
+<ul>
+<li>语言切换：点击切换中英文，按钮文字在"EN/中"之间切换</li>
+<li>主题切换：点击切换深色/浅色主题，图标在太阳/月亮之间切换</li>
+<li>两个按钮水平排列，间距8px，居中对齐</li>
+<li>上方有分割线分隔用户信息区</li>
+</ul>
+<blockquote>注意：按钮必须常驻显示，切换菜单时不被隐藏</blockquote>`
+    },
+    3: {
+      title: '总资产估值区域',
+      html: `<h4>布局结构</h4>
+<pre>┌─────────────────────────────────────────────────────────┐
+│ 总资产估值 [👁]                                          │
+│ 12,345.67 USDT                                          │
+│ ≈ $12,345.67                                            │
+│ 今日 +234.56 USDT (+1.94%)  [充币] [提币] [交易]        │
+└─────────────────────────────────────────────────────────┘</pre>
+<h4>字段说明</h4>
+<table>
+<tr><th>字段</th><th>说明</th><th>数据来源</th><th>交互</th></tr>
+<tr><td>总资产估值</td><td>标签文字</td><td>固定文案</td><td>-</td></tr>
+<tr><td>隐藏/显示按钮</td><td>眼睛图标</td><td>-</td><td>点击切换金额显示/隐藏</td></tr>
+<tr><td>总资产价值</td><td>主数值，USDT格式</td><td>后端接口</td><td>-</td></tr>
+<tr><td>USD法币价值</td><td>≈ $xxx.xx 格式</td><td>后端接口</td><td>-</td></tr>
+<tr><td>今日盈亏</td><td>今日盈亏金额和百分比</td><td>后端接口</td><td><span class="status-dot green"></span>正数绿色，<span class="status-dot red"></span>负数红色</td></tr>
+<tr><td>充币按钮</td><td>快捷充币入口</td><td>-</td><td>打开充币弹窗</td></tr>
+<tr><td>提币按钮</td><td>快捷提币入口</td><td>-</td><td>打开提币弹窗</td></tr>
+<tr><td>交易按钮</td><td>交易入口</td><td>-</td><td>跳转交易页面</td></tr>
+</table>
+<h4>交互逻辑</h4>
+<ul>
+<li>点击眼睛图标：切换金额显示状态
+<ul>
+<li>显示状态：显示具体数值</li>
+<li>隐藏状态：显示 ••••••</li>
+</ul>
+</li>
+<li>USD法币价值同步切换</li>
+</ul>`
+    },
+    4: {
+      title: '资产趋势图',
+      html: `<h4>布局结构</h4>
+<pre>┌─────────────────────────────────────────────────────────┐
+│ 资产趋势              [7D] [30D] [90D]                  │
+│                                                         │
+│                    [趋势图表区域]                         │
+│                                                         │
+└─────────────────────────────────────────────────────────┘</pre>
+<h4>字段说明</h4>
+<table>
+<tr><th>字段</th><th>说明</th><th>数据来源</th><th>交互</th></tr>
+<tr><td>资产趋势</td><td>标题</td><td>固定文案</td><td>-</td></tr>
+<tr><td>时间周期切换</td><td>7D/30D/90D</td><td>-</td><td>点击切换时间范围</td></tr>
+<tr><td>趋势图表</td><td>SVG折线图</td><td>后端接口</td><td>-</td></tr>
+</table>
+<h4>交互逻辑</h4>
+<ul>
+<li>默认选中 7D</li>
+<li>点击时间周期按钮：切换图表数据范围</li>
+<li>图表样式：绿色渐变填充，绿色折线，末端圆点</li>
+</ul>`
+    },
+    5: {
+      title: '账户卡片区域',
+      html: `<h4>布局结构</h4>
+<p>2x2 网格布局</p>
+<h4>卡片字段说明</h4>
+<table>
+<tr><th>卡片</th><th>图标</th><th>徽章</th><th>标签</th><th>数值</th></tr>
+<tr><td>交易账户</td><td>交易图标（绿色背景）</td><td>+1.2%（绿色）</td><td>交易账户</td><td>账户余额 USDT</td></tr>
+<tr><td>理财账户</td><td>理财图标（蓝色背景）</td><td>APY 5.2%（绿色）</td><td>理财账户</td><td>理财总额 USDT</td></tr>
+<tr><td>卡券中心</td><td>卡券图标（金色背景）</td><td>x 张即将过期（黄色）</td><td>卡券中心</td><td>可用卡券数量 张</td></tr>
+<tr><td>奖励金</td><td>奖励图标（紫色背景）</td><td>-</td><td>奖励金</td><td>奖励金余额 USDT</td></tr>
+</table>
+<h4>交互逻辑</h4>
+<ul>
+<li>点击卡片：跳转对应详情页面</li>
+<li>hover效果：边框变亮，轻微上移</li>
+</ul>`
+    },
+    6: {
+      title: '资产明细表格',
+      html: `<h4>表头字段说明</h4>
+<table>
+<tr><th>字段</th><th>说明</th><th>对齐方式</th></tr>
+<tr><td>币种</td><td>币种图标 + 名称 + 全称</td><td>左对齐</td></tr>
+<tr><td>总量</td><td>该币种总持有量</td><td>右对齐</td></tr>
+<tr><td>可用</td><td>可用余额</td><td>右对齐</td></tr>
+<tr><td>持仓中</td><td>持仓中数量（原"冻结"）</td><td>右对齐</td></tr>
+<tr><td>估值(USD)</td><td>USD法币估值</td><td>右对齐</td></tr>
+<tr><td>操作</td><td>充币、提币按钮</td><td>居中</td></tr>
+</table>
+<h4>功能按钮</h4>
+<table>
+<tr><th>按钮</th><th>功能</th><th>交互</th></tr>
+<tr><td>隐藏小额</td><td>切换开关</td><td>开启后隐藏估值 < 100 USDT 的币种</td></tr>
+<tr><td>搜索币种</td><td>输入框</td><td>实时过滤币种（支持币种名称和全称）</td></tr>
+<tr><td>充币</td><td>打开充币弹窗</td><td>点击按钮</td></tr>
+<tr><td>提币</td><td>打开提币弹窗</td><td>点击按钮</td></tr>
+</table>
+<h4>数据格式</h4>
+<ul>
+<li>数值：千分位分隔符，保留2位小数</li>
+<li>估值：带 $ 符号</li>
+<li>持仓中：为0时显示 "-"</li>
+</ul>`
+    },
+    7: {
+      title: '最近交易列表',
+      html: `<h4>字段说明</h4>
+<table>
+<tr><th>字段</th><th>说明</th><th>数据来源</th></tr>
+<tr><td>图标</td><td>交易类型图标（带背景色）</td><td>根据类型动态显示</td></tr>
+<tr><td>交易类型</td><td>合约交易/提现/预测交易等</td><td>后端接口</td></tr>
+<tr><td>时间</td><td>MM-DD HH:mm 格式</td><td>后端接口</td></tr>
+<tr><td>金额</td><td>带 +/- 符号，带币种</td><td>后端接口</td></tr>
+<tr><td>状态</td><td>已完成/处理中/失败</td><td>后端接口</td></tr>
+</table>
+<h4>交互逻辑</h4>
+<ul>
+<li>点击"查看全部"：跳转到历史交易页面</li>
+<li>金额颜色：<span class="status-dot green"></span>正数绿色，<span class="status-dot red"></span>负数红色</li>
+<li>状态颜色：<span class="status-dot green"></span>已完成绿色，<span class="status-dot yellow"></span>处理中黄色，<span class="status-dot red"></span>失败红色</li>
+</ul>`
+    },
+    8: {
+      title: '持仓分类Tab',
+      html: `<h4>Tab列表</h4>
+<table>
+<tr><th>Tab名称</th><th>标识</th><th>说明</th></tr>
+<tr><td>合约</td><td>futures</td><td>合约交易持仓</td></tr>
+<tr><td>预测</td><td>predict</td><td>预测交易持仓</td></tr>
+<tr><td>理财</td><td>earn</td><td>理财产品持仓</td></tr>
+</table>
+<h4>重要说明</h4>
+<ul>
+<li>删除"全部"Tab，只保留三个分类Tab</li>
+<li>每个Tab显示对应类型的持仓数量</li>
+<li>切换Tab时，下方汇总统计区和持仓卡片列表同步更新</li>
+</ul>`
+    },
+    9: {
+      title: '持仓汇总统计区',
+      html: `<h4>布局结构</h4>
+<pre>┌─────────────────────────────────────────────────────────┐
+│ 总持仓金额          │ 总未实现盈亏        │ 持仓数量     │
+│ 15,234.56           │ +1,234.56           │ 5            │
+│ USDT                │ (+8.78%)            │ 笔           │
+└─────────────────────────────────────────────────────────┘</pre>
+<h4>字段说明</h4>
+<table>
+<tr><th>字段</th><th>说明</th><th>数据来源</th><th>动态更新</th></tr>
+<tr><td>总持仓金额</td><td>当前Tab下所有持仓的总金额</td><td>计算得出</td><td>切换Tab时更新</td></tr>
+<tr><td>总未实现盈亏</td><td>当前Tab下所有持仓的未实现盈亏</td><td>计算得出</td><td>切换Tab时更新</td></tr>
+<tr><td>持仓数量</td><td>当前Tab下的持仓笔数</td><td>计算得出</td><td>切换Tab时更新</td></tr>
+</table>
+<h4>计算逻辑</h4>
+<ul>
+<li><b>合约持仓</b>：总持仓金额 = Σ(开仓本金)，总未实现盈亏 = Σ(未实现盈亏)</li>
+<li><b>预测持仓</b>：总持仓金额 = Σ(投注金额)，总未实现盈亏 = 待结算持仓为0，已结算持仓计算实际盈亏</li>
+<li><b>理财持仓</b>：总持仓金额 = Σ(投入本金)，总未实现盈亏 = Σ(累计收益)</li>
+</ul>
+<h4>交互逻辑</h4>
+<ul>
+<li>切换Tab时，重新计算并更新统计数据</li>
+<li>盈亏颜色：<span class="status-dot green"></span>正数绿色，<span class="status-dot red"></span>负数红色</li>
+<li>百分比显示在盈亏数值下方</li>
+</ul>`
+    },
+    10: {
+      title: '合约持仓卡片',
+      html: `<h4>字段详细说明</h4>
+<h4>顶部区域</h4>
+<table>
+<tr><th>字段</th><th>说明</th><th>样式</th></tr>
+<tr><td>类型标签</td><td>[合约]</td><td>绿色背景标签</td></tr>
+<tr><td>交易对</td><td>BTC/USDT</td><td>粗体</td></tr>
+<tr><td>方向</td><td>做多/做空</td><td><span class="status-dot green"></span>做多绿色，<span class="status-dot red"></span>做空红色</td></tr>
+</table>
+<h4>数据区域</h4>
+<table>
+<tr><th>字段</th><th>说明</th><th>数据来源</th></tr>
+<tr><td>杠杆</td><td>杠杆倍数，如 20x</td><td>后端接口</td></tr>
+<tr><td>金额</td><td>持仓金额 = 保证金 × 杠杆</td><td>计算得出</td></tr>
+<tr><td>持仓数量</td><td>持仓数量 + 单位</td><td>后端接口</td></tr>
+<tr><td>开仓价格</td><td>开仓时的价格</td><td>后端接口</td></tr>
+<tr><td>当前价格</td><td>实时标记价格</td><td>后端接口</td></tr>
+<tr><td>强平价格</td><td>强制平仓价格</td><td><span class="status-dot red"></span>后端接口（红色）</td></tr>
+<tr><td>盈亏</td><td>未实现盈亏金额和百分比</td><td><span class="status-dot green"></span>后端接口（正绿负红）</td></tr>
+<tr><td>止盈价格</td><td>止盈触发价格</td><td><span class="status-dot green"></span>后端接口（绿色）</td></tr>
+<tr><td>止损价格</td><td>止损触发价格</td><td><span class="status-dot red"></span>后端接口（红色）</td></tr>
+<tr><td>盈利金额</td><td>触发止盈时的盈利金额</td><td><span class="status-dot green"></span>后端接口（绿色）</td></tr>
+<tr><td>亏损金额</td><td>触发止损时的亏损金额</td><td><span class="status-dot red"></span>后端接口（红色）</td></tr>
+</table>
+<h4>底部区域</h4>
+<table>
+<tr><th>字段</th><th>说明</th><th>数据来源</th></tr>
+<tr><td>开仓时间</td><td>持仓开仓时间</td><td>后端接口</td></tr>
+<tr><td>止盈止损按钮</td><td>设置止盈止损</td><td>点击打开设置弹窗</td></tr>
+<tr><td>平仓按钮</td><td>平仓操作</td><td>点击打开确认弹窗</td></tr>
+</table>`
+    },
+    11: {
+      title: '预测持仓卡片',
+      html: `<h4>字段详细说明</h4>
+<h4>顶部区域</h4>
+<table>
+<tr><th>字段</th><th>说明</th><th>样式</th></tr>
+<tr><td>类型标签</td><td>[预测]</td><td>金色背景标签</td></tr>
+<tr><td>市场名称</td><td>预测市场名称</td><td>粗体</td></tr>
+<tr><td>倒计时</td><td>剩余时间（分钟:秒）</td><td>带时钟图标</td></tr>
+</table>
+<h4>数据区域</h4>
+<table>
+<tr><th>字段</th><th>说明</th><th>数据来源</th></tr>
+<tr><td>投注方向</td><td>Yes/No</td><td><span class="status-dot green"></span>Yes绿色，<span class="status-dot red"></span>No红色</td></tr>
+<tr><td>均价</td><td>平均买入价格</td><td>后端接口</td></tr>
+<tr><td>现价</td><td>当前市场价格</td><td>后端接口</td></tr>
+<tr><td>份额</td><td>持有的份额数量</td><td>后端接口</td></tr>
+<tr><td>投注金额</td><td>投注总金额</td><td>后端接口</td></tr>
+<tr><td>当前收益</td><td>当前收益金额和百分比</td><td>计算得出（正绿负红）</td></tr>
+</table>
+<h4>底部区域</h4>
+<table>
+<tr><th>字段</th><th>说明</th><th>数据来源</th></tr>
+<tr><td>开始时间</td><td>投注时间</td><td>后端接口</td></tr>
+<tr><td>卖出按钮</td><td>提前卖出操作</td><td>点击打开确认弹窗</td></tr>
+</table>
+<h4>兑换提示</h4>
+<blockquote>已结束的事件可进行兑换，3天未兑换的持仓将自动进行兑换，可在历史交易中查看记录</blockquote>`
+    },
+    12: {
+      title: '理财持仓卡片',
+      html: `<h4>字段详细说明</h4>
+<h4>顶部区域</h4>
+<table>
+<tr><th>字段</th><th>说明</th><th>样式</th></tr>
+<tr><td>类型标签</td><td>[理财]</td><td>紫色背景标签</td></tr>
+<tr><td>产品名称</td><td>理财产品名称</td><td>粗体</td></tr>
+<tr><td>APY</td><td>年化收益率</td><td>紫色文字</td></tr>
+</table>
+<h4>数据区域</h4>
+<table>
+<tr><th>字段</th><th>说明</th><th>数据来源</th></tr>
+<tr><td>投入本金</td><td>投入的本金金额</td><td>后端接口</td></tr>
+<tr><td>累计收益</td><td>累计获得的收益</td><td><span class="status-dot green"></span>后端接口（绿色）</td></tr>
+<tr><td>持有天数</td><td>持有天数</td><td>后端接口</td></tr>
+<tr><td>产品类型</td><td>活期/定期/锁仓</td><td>后端接口</td></tr>
+<tr><td>状态</td><td>持有中/已赎回/已到期</td><td>后端接口</td></tr>
+</table>
+<h4>底部区域</h4>
+<table>
+<tr><th>字段</th><th>说明</th><th>数据来源</th></tr>
+<tr><td>申购时间</td><td>申购时间</td><td>后端接口</td></tr>
+<tr><td>查看详情按钮</td><td>查看产品详情</td><td>点击打开详情弹窗</td></tr>
+<tr><td>赎回按钮</td><td>赎回操作</td><td>点击打开确认弹窗</td></tr>
+</table>
+<h4>进度条</h4>
+<ul>
+<li>定期产品显示进度条（已持有天数/总天数）</li>
+<li>进度条颜色：渐变（紫色到金色）</li>
+</ul>`
+    },
+    13: {
+      title: '历史交易Tab切换',
+      html: `<h4>Tab列表</h4>
+<table>
+<tr><th>Tab名称</th><th>标识</th><th>说明</th></tr>
+<tr><td>资金流水</td><td>all</td><td>所有资金流水记录（原"全部"）</td></tr>
+<tr><td>预测交易</td><td>predict</td><td>预测交易记录</td></tr>
+<tr><td>合约交易</td><td>futures</td><td>合约交易记录</td></tr>
+<tr><td>涨跌预测</td><td>updown</td><td>涨跌预测记录</td></tr>
+<tr><td>高低价预测</td><td>highlow</td><td>高低价预测记录</td></tr>
+<tr><td>差价预测</td><td>spread</td><td>差价预测记录</td></tr>
+<tr><td>点击交易</td><td>taptrading</td><td>点击交易记录</td></tr>
+<tr><td>充提</td><td>deposit</td><td>充值提现记录</td></tr>
+<tr><td>手续费</td><td>fee</td><td>手续费记录</td></tr>
+</table>
+<h4>交互逻辑</h4>
+<ul>
+<li>切换Tab时，筛选条件、统计卡片、表头、列表数据同步更新</li>
+<li>当前选中Tab高亮显示（金色下划线）</li>
+<li>每个Tab显示对应类型的记录数量</li>
+</ul>`
+    },
+    14: {
+      title: '筛选条件区域',
+      html: `<h4>动态筛选条件</h4>
+<table>
+<tr><th>Tab</th><th>筛选条件</th></tr>
+<tr><td>资金流水</td><td>币种、类型、时间范围 + 订单ID搜索 + 重置</td></tr>
+<tr><td>预测交易</td><td>币种、投注方向(Yes/No)、时间范围、状态 + 订单ID搜索 + 重置</td></tr>
+<tr><td>合约交易</td><td>币种、方向、时间范围、状态 + 订单ID搜索 + 重置</td></tr>
+<tr><td>涨跌预测</td><td>币种、方向、时间范围、状态 + 订单ID搜索 + 重置</td></tr>
+<tr><td>高低价预测</td><td>币种、方向、时间范围、状态 + 订单ID搜索 + 重置</td></tr>
+<tr><td>差价预测</td><td>币种、方向、时间范围、状态 + 订单ID搜索 + 重置</td></tr>
+<tr><td>点击交易</td><td>币种、时间范围、状态 + 订单ID搜索 + 重置</td></tr>
+<tr><td>充提</td><td>货币、时间范围、状态 + 订单ID搜索 + 重置</td></tr>
+<tr><td>手续费</td><td>货币、类型、时间范围 + 订单ID搜索 + 重置</td></tr>
+</table>
+<h4>筛选条件说明</h4>
+<ul>
+<li><b>类型筛选（资金流水）</b>：充提、提现、predict、futures、updown、highlow、spread、taptrading</li>
+<li><b>投注方向（预测交易）</b>：只有Yes/No，不要看涨看跌字段</li>
+<li><b>方向（合约/涨跌/高低价/差价）</b>：做多/做空 或 涨/跌</li>
+<li><b>状态</b>：全部、已完成、处理中、失败</li>
+<li><b>时间范围</b>：自定义日期范围选择器</li>
+</ul>
+<h4>交互逻辑</h4>
+<ul>
+<li>点击"查询"按钮：应用筛选条件，刷新列表数据</li>
+<li>点击"重置"按钮：清空所有筛选条件，恢复默认状态</li>
+<li>订单ID搜索：支持输入订单ID精确搜索</li>
+</ul>`
+    },
+    15: {
+      title: '统计卡片区域',
+      html: `<h4>资金流水统计</h4>
+<table>
+<tr><th>字段</th><th>说明</th></tr>
+<tr><td>盈亏总金额</td><td>所有交易的盈亏总额</td></tr>
+<tr><td>今日盈亏金额</td><td>今日交易的盈亏总额</td></tr>
+<tr><td>充值总金额</td><td>所有充值总额</td></tr>
+<tr><td>提现总金额</td><td>所有提现总额</td></tr>
+<tr><td>今日充值金额</td><td>今日充值总额</td></tr>
+<tr><td>今日提现金额</td><td>今日提现总额</td></tr>
+</table>
+<h4>手续费统计</h4>
+<table>
+<tr><th>字段</th><th>说明</th></tr>
+<tr><td>合约交易手续费金额</td><td>合约交易产生的手续费总额</td></tr>
+<tr><td>涨跌预测手续费金额</td><td>涨跌预测产生的手续费总额</td></tr>
+</table>
+<h4>其他统计（预测/合约/涨跌等）</h4>
+<table>
+<tr><th>字段</th><th>说明</th></tr>
+<tr><td>总交易次数</td><td>当前筛选条件下的交易总笔数</td></tr>
+<tr><td>总盈亏金额</td><td>当前筛选条件下的盈亏总额</td></tr>
+<tr><td>胜率</td><td>盈利交易占比</td></tr>
+</table>
+<h4>交互逻辑</h4>
+<ul>
+<li>进入历史交易页面时立即展示统计数据（无需切换Tab）</li>
+<li>切换Tab时，重新计算并更新统计数据</li>
+<li>切换筛选条件时，实时更新统计数据</li>
+</ul>`
+    },
+    16: {
+      title: '列表表格区域',
+      html: `<h4>动态表头</h4>
+<table>
+<tr><th>Tab</th><th>表头字段</th></tr>
+<tr><td>资金流水</td><td>订单ID、类型、币种、金额、余额、状态、时间、操作</td></tr>
+<tr><td>预测交易</td><td>订单ID、币种、方向、均价、现价、份额、投注金额、当前收益、状态、时间、操作</td></tr>
+<tr><td>合约交易</td><td>订单ID、币种、方向、杠杆、开仓价格、当前价格、持仓数量、盈亏、状态、时间、操作</td></tr>
+<tr><td>涨跌预测</td><td>订单ID、币种、方向、均价、现价、份额、投注金额、当前收益、状态、时间、操作</td></tr>
+<tr><td>高低价预测</td><td>订单ID、币种、方向、目标价、现价、份额、投注金额、当前收益、状态、时间、操作</td></tr>
+<tr><td>差价预测</td><td>订单ID、币种、方向、差价、现价、份额、投注金额、当前收益、状态、时间、操作</td></tr>
+<tr><td>点击交易</td><td>订单ID、币种、点击价格、现价、份额、投注金额、当前收益、状态、时间、操作</td></tr>
+<tr><td>充提</td><td>订单ID、货币、类型、金额、手续费、实际到账、状态、时间、操作</td></tr>
+<tr><td>手续费</td><td>订单ID、货币、类型、手续费金额、关联订单、状态、时间、操作</td></tr>
+</table>
+<h4>重要说明</h4>
+<ul>
+<li>除资金流水列表外，其他列表均不显示"余额"列</li>
+<li>资金流水列表中金额需要展示是<span class="status-dot green"></span>+（收入）还是<span class="status-dot red"></span>-（支出）</li>
+<li>手续费列表中类型列显示：合约交易/涨跌预测</li>
+<li>预测交易列表中操作列改为"状态：已兑换"</li>
+</ul>
+<h4>交互逻辑</h4>
+<ul>
+<li>点击"详情"按钮：打开交易详情抽屉</li>
+<li>点击订单ID：可复制订单ID</li>
+<li>列表支持分页</li>
+</ul>`
+    },
+    17: {
+      title: '分页功能',
+      html: `<h4>分页组件</h4>
+<table>
+<tr><th>字段</th><th>说明</th></tr>
+<tr><td>每页显示</td><td>下拉选择：10条/页、20条/页、50条/页</td></tr>
+<tr><td>总记录数</td><td>显示"共 X 条"</td></tr>
+<tr><td>页码</td><td>显示页码按钮，当前页高亮</td></tr>
+<tr><td>上一页/下一页</td><td>翻页按钮，首尾页禁用</td></tr>
+</table>
+<h4>交互逻辑</h4>
+<ul>
+<li>切换每页显示数量：重新加载列表数据</li>
+<li>点击页码：跳转到对应页</li>
+<li>点击上一页/下一页：翻页，边界禁用</li>
+<li>筛选条件变化时：重置到第1页</li>
+</ul>`
+    },
+    18: {
+      title: '交易详情抽屉',
+      html: `<h4>布局结构</h4>
+<p>右侧滑出抽屉面板，宽度 400px，带遮罩层</p>
+<h4>字段说明（根据交易类型动态显示）</h4>
+<table>
+<tr><th>交易类型</th><th>显示字段</th></tr>
+<tr><td>合约交易</td><td>订单ID、交易对、方向、杠杆、开仓价格、平仓价格、持仓数量、盈亏金额、手续费、状态、创建时间、平仓时间</td></tr>
+<tr><td>预测交易</td><td>订单ID、币种、方向、均价、现价、份额、投注金额、当前收益、状态、创建时间、结算时间</td></tr>
+<tr><td>充提</td><td>订单ID、货币、类型（充值/提现）、金额、手续费、实际到账、地址、TxID、状态、创建时间、完成时间</td></tr>
+<tr><td>手续费</td><td>订单ID、手续费类型（合约交易/涨跌预测）、手续费金额、货币、关联订单ID、状态、创建时间</td></tr>
+</table>
+<h4>交互逻辑</h4>
+<ul>
+<li>点击列表"详情"按钮：打开抽屉，显示对应交易详情</li>
+<li>点击遮罩层或按ESC键：关闭抽屉</li>
+<li>点击抽屉右上角X按钮：关闭抽屉</li>
+<li>盈亏金额颜色：<span class="status-dot green"></span>正数绿色，<span class="status-dot red"></span>负数红色</li>
+</ul>`
+    },
+    19: {
+      title: '充币弹窗',
+      html: `<h4>表单字段</h4>
+<table>
+<tr><th>字段</th><th>类型</th><th>说明</th></tr>
+<tr><td>选择币种</td><td>下拉选择</td><td>支持充值的币种列表</td></tr>
+<tr><td>充值网络</td><td>下拉选择</td><td>根据币种动态显示可用网络</td></tr>
+<tr><td>充值地址</td><td>文本 + 复制按钮</td><td>显示充值地址，支持复制</td></tr>
+<tr><td>二维码</td><td>图片</td><td>显示地址二维码</td></tr>
+</table>
+<h4>交互逻辑</h4>
+<ul>
+<li>选择币种后，自动加载对应网络列表</li>
+<li>切换网络后，更新充值地址和二维码</li>
+<li>点击复制按钮：复制地址到剪贴板，显示成功提示</li>
+<li>点击遮罩层或按ESC键：关闭弹窗</li>
+</ul>
+<blockquote>注意：充值地址需提示用户确认网络，转错网络可能导致资产丢失</blockquote>`
+    },
+    20: {
+      title: '提币弹窗',
+      html: `<h4>表单字段</h4>
+<table>
+<tr><th>字段</th><th>类型</th><th>说明</th></tr>
+<tr><td>选择币种</td><td>下拉选择</td><td>支持提现的币种列表</td></tr>
+<tr><td>提现网络</td><td>下拉选择</td><td>根据币种动态显示可用网络</td></tr>
+<tr><td>提现地址</td><td>输入框</td><td>输入目标地址</td></tr>
+<tr><td>提现金额</td><td>输入框</td><td>输入提现数量</td></tr>
+<tr><td>可用余额</td><td>文本</td><td>显示当前币种可用余额</td></tr>
+<tr><td>手续费</td><td>文本</td><td>显示提现手续费</td></tr>
+<tr><td>实际到账</td><td>文本</td><td>自动计算：提现金额 - 手续费</td></tr>
+</table>
+<h4>交互逻辑</h4>
+<ul>
+<li>选择币种后，自动加载对应网络列表和可用余额</li>
+<li>输入提现金额后，自动计算实际到账金额</li>
+<li>提现金额不能超过可用余额</li>
+<li>点击"确认提币"按钮：打开二次确认弹窗</li>
+<li>点击遮罩层或按ESC键：关闭弹窗</li>
+</ul>
+<blockquote>注意：提现操作需进行安全验证（Google验证码/手机验证码）</blockquote>`
+    }
+  };
+
+  // Badge positions mapping (module ID -> target element selector)
+  const badgePositions = [
+    { id: 1, selector: '.sidebar-logo', anchor: 'top-right' },
+    { id: 2, selector: '.sidebar-footer', anchor: 'top-right' },
+    { id: 3, selector: '.asset-hero', anchor: 'top-right' },
+    { id: 4, selector: '.trend-card', anchor: 'top-right' },
+    { id: 5, selector: '.account-grid', anchor: 'top-right' },
+    { id: 6, selector: '#page-asset .data-card', anchor: 'top-right' },
+    { id: 7, selector: '#page-asset .data-card:last-of-type', anchor: 'top-right' },
+    { id: 8, selector: '.position-sub-tabs', anchor: 'top-right' },
+    { id: 9, selector: '.position-summary', anchor: 'top-right' },
+    { id: 10, selector: '#positionList', anchor: 'top-right', dynamic: 'futures' },
+    { id: 11, selector: '#positionList', anchor: 'top-right', dynamic: 'predict' },
+    { id: 12, selector: '#positionList', anchor: 'top-right', dynamic: 'earn' },
+    { id: 13, selector: '.trade-tabs', anchor: 'top-right' },
+    { id: 14, selector: '#tradeFilterBar', anchor: 'top-right' },
+    { id: 15, selector: '#tradeStatsCard', anchor: 'top-right' },
+    { id: 16, selector: '#tradeTableCard', anchor: 'top-right' },
+    { id: 17, selector: '.pagination-bar', anchor: 'top-right' },
+    { id: 18, selector: '#detailDrawer', anchor: 'top-right' },
+    { id: 19, selector: '#depositModal', anchor: 'top-right' },
+    { id: 20, selector: '#withdrawModal', anchor: 'top-right' }
+  ];
+
+  let activeTooltip = null;
+  let isDragging = false;
+  let dragOffset = { x: 0, y: 0 };
+  let currentDragTooltip = null;
+
+  // Create badge and tooltip for each module
+  function initAnnotations() {
+    badgePositions.forEach(pos => {
+      // Skip dynamic badges (handled separately)
+      if (pos.dynamic) return;
+
+      const target = document.querySelector(pos.selector);
+      if (!target) return;
+
+      createBadgeAndTooltip(pos, target);
+    });
+
+    // Initialize dynamic badges for position cards
+    initDynamicPositionBadges();
+  }
+
+  function createBadgeAndTooltip(pos, target) {
+    // Create badge - append to body to avoid overflow:hidden clipping
+    const badge = document.createElement('span');
+    badge.className = 'prd-badge';
+    badge.textContent = pos.id;
+    badge.dataset.prdId = pos.id;
+    badge.style.position = 'fixed';
+    badge.style.zIndex = '99999';
+    badge.style.pointerEvents = 'auto';
+    
+    document.body.appendChild(badge);
+    
+    // Position badge at target's top-right corner
+    function updateBadgePosition() {
+      const rect = target.getBoundingClientRect();
+      // If element is at the top of viewport, place badge inside the element
+      let badgeTop = rect.top < 10 ? rect.top + 4 : rect.top - 8;
+      badge.style.top = badgeTop + 'px';
+      badge.style.left = (rect.right - 20) + 'px';
+    }
+    
+    updateBadgePosition();
+    
+    // Update position on scroll/resize
+    window.addEventListener('scroll', updateBadgePosition, true);
+    window.addEventListener('resize', updateBadgePosition);
+
+    // Create tooltip (hidden by default)
+    const tooltip = document.createElement('div');
+    tooltip.className = 'prd-tooltip';
+    tooltip.id = 'prd-tooltip-' + pos.id;
+    tooltip.dataset.prdId = pos.id;
+    tooltip.style.display = 'none';
+
+    tooltip.innerHTML = `
+      <div class="prd-tooltip-header">
+        <div class="prd-tooltip-title">
+          <span class="prd-badge">${pos.id}</span>
+          <span>需求描述：${prdContent[pos.id].title}</span>
+        </div>
+        <button class="prd-tooltip-close" onclick="closeTooltip(${pos.id});">×</button>
+      </div>
+      <div class="prd-tooltip-content">
+        ${prdContent[pos.id].html}
+      </div>
+    `;
+
+    document.body.appendChild(tooltip);
+
+    // Event listeners
+    badge.addEventListener('mouseenter', (e) => {
+      e.stopPropagation();
+      showTooltip(pos.id, badge);
+    });
+
+    badge.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (activeTooltip === pos.id) {
+        closeTooltip(pos.id);
+      } else {
+        showTooltip(pos.id, badge);
+      }
+    });
+  }
+
+  // Initialize dynamic badges for position cards (10, 11, 12)
+  function initDynamicPositionBadges() {
+    // Remove existing dynamic badges
+    document.querySelectorAll('.prd-badge-dynamic').forEach(b => b.remove());
+
+    const dynamicBadges = badgePositions.filter(p => p.dynamic);
+    dynamicBadges.forEach(pos => {
+      // Find the first position card of this type
+      const cards = document.querySelectorAll('.position-card');
+      let targetCard = null;
+      
+      cards.forEach(card => {
+        const typeBadge = card.querySelector('.type-badge');
+        if (typeBadge) {
+          const text = typeBadge.textContent.trim();
+          if ((pos.dynamic === 'futures' && text === '合约') ||
+              (pos.dynamic === 'predict' && text === '预测') ||
+              (pos.dynamic === 'earn' && text === '理财')) {
+            targetCard = card;
+          }
+        }
+      });
+
+      if (targetCard) {
+        createDynamicBadge(pos, targetCard);
+      }
+    });
+  }
+
+  function createDynamicBadge(pos, target) {
+    // Create badge - append to body to avoid overflow:hidden clipping
+    const badge = document.createElement('span');
+    badge.className = 'prd-badge prd-badge-dynamic';
+    badge.textContent = pos.id;
+    badge.dataset.prdId = pos.id;
+    badge.style.position = 'fixed';
+    badge.style.zIndex = '99999';
+    badge.style.pointerEvents = 'auto';
+    
+    document.body.appendChild(badge);
+    
+    // Position badge at target's top-right corner
+    function updateBadgePosition() {
+      const rect = target.getBoundingClientRect();
+      // If element is at the top of viewport, place badge inside the element
+      let badgeTop = rect.top < 10 ? rect.top + 4 : rect.top - 8;
+      badge.style.top = badgeTop + 'px';
+      badge.style.left = (rect.right - 20) + 'px';
+    }
+    
+    updateBadgePosition();
+    
+    // Update position on scroll/resize
+    window.addEventListener('scroll', updateBadgePosition, true);
+    window.addEventListener('resize', updateBadgePosition);
+
+    // Create tooltip (hidden by default)
+    const tooltip = document.createElement('div');
+    tooltip.className = 'prd-tooltip';
+    tooltip.id = 'prd-tooltip-' + pos.id;
+    tooltip.dataset.prdId = pos.id;
+    tooltip.style.display = 'none';
+
+    tooltip.innerHTML = `
+      <div class="prd-tooltip-header">
+        <div class="prd-tooltip-title">
+          <span class="prd-badge">${pos.id}</span>
+          <span>需求描述：${prdContent[pos.id].title}</span>
+        </div>
+        <button class="prd-tooltip-close" onclick="closeTooltip(${pos.id});">×</button>
+      </div>
+      <div class="prd-tooltip-content">
+        ${prdContent[pos.id].html}
+      </div>
+    `;
+
+    document.body.appendChild(tooltip);
+
+    // Event listeners
+    badge.addEventListener('mouseenter', (e) => {
+      e.stopPropagation();
+      showTooltip(pos.id, badge);
+    });
+
+    badge.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (activeTooltip === pos.id) {
+        closeTooltip(pos.id);
+      } else {
+        showTooltip(pos.id, badge);
+      }
+    });
+  }
+
+  function showTooltip(id, badge) {
+    // Close any active tooltip first
+    if (activeTooltip && activeTooltip !== id) {
+      closeTooltip(activeTooltip);
+    }
+
+    const tooltip = document.getElementById('prd-tooltip-' + id);
+    if (!tooltip) return;
+
+    activeTooltip = id;
+    tooltip.style.display = 'block';
+    
+    // Hide the badge when tooltip is shown
+    badge.style.display = 'none';
+
+    // Position tooltip
+    const badgeRect = badge.getBoundingClientRect();
+    const tooltipRect = tooltip.getBoundingClientRect();
+
+    let left = badgeRect.left - tooltipRect.width - 8;
+    let top = badgeRect.bottom + 8;
+
+    // Boundary check
+    if (left < 10) {
+      left = badgeRect.right + 8;
+    }
+    if (top + tooltipRect.height > window.innerHeight) {
+      top = window.innerHeight - tooltipRect.height - 10;
+    }
+    if (top < 10) {
+      top = 10;
+    }
+
+    tooltip.style.left = left + 'px';
+    tooltip.style.top = top + 'px';
+
+    // Setup drag
+    const header = tooltip.querySelector('.prd-tooltip-header');
+    header.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      currentDragTooltip = tooltip;
+      dragOffset.x = e.clientX - tooltip.offsetLeft;
+      dragOffset.y = e.clientY - tooltip.offsetTop;
+      e.preventDefault();
+      e.stopPropagation();
+    });
+  }
+
+  window.closeTooltip = function(id) {
+    const tooltip = document.getElementById('prd-tooltip-' + id);
+    if (tooltip) {
+      tooltip.style.display = 'none';
+    }
+    if (activeTooltip === id) {
+      activeTooltip = null;
+    }
+    // Show the badge again when tooltip is closed
+    const badge = document.querySelector(`.prd-badge[data-prd-id="${id}"]`);
+    if (badge) {
+      badge.style.display = 'inline-block';
+    }
+  };
+
+  // Global drag handler
+  document.addEventListener('mousemove', (e) => {
+    if (isDragging && currentDragTooltip) {
+      currentDragTooltip.style.left = (e.clientX - dragOffset.x) + 'px';
+      currentDragTooltip.style.top = (e.clientY - dragOffset.y) + 'px';
+      e.preventDefault();
+    }
+  });
+
+  document.addEventListener('mouseup', () => {
+    isDragging = false;
+    currentDragTooltip = null;
+  });
+
+  // Prevent tooltip click from triggering underlying elements, but allow close button
+  document.addEventListener('click', (e) => {
+    // Allow close button clicks to pass through
+    if (e.target.classList.contains('prd-tooltip-close')) {
+      return;
+    }
+    const tooltip = e.target.closest('.prd-tooltip');
+    if (tooltip) {
+      e.stopPropagation();
+    }
+  }, true);
+
+  // Initialize after DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAnnotations);
+  } else {
+    // Delay to ensure dynamic content is rendered
+    setTimeout(initAnnotations, 500);
+  }
+})();
+</script>
+</body>
+</html>

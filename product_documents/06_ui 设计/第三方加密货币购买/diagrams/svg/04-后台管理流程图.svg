@@ -1,0 +1,136 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 999.14725 564.5" width="999.14725" height="564.5" style="--bg:#FFFFFF;--fg:#27272A;background:var(--bg)">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
+  text { font-family: 'Inter', system-ui, sans-serif; }
+  svg {
+    /* Derived from --bg and --fg (overridable via --line, --accent, etc.) */
+    --_text:          var(--fg);
+    --_text-sec:      var(--muted, color-mix(in srgb, var(--fg) 60%, var(--bg)));
+    --_text-muted:    var(--muted, color-mix(in srgb, var(--fg) 40%, var(--bg)));
+    --_text-faint:    color-mix(in srgb, var(--fg) 25%, var(--bg));
+    --_line:          var(--line, color-mix(in srgb, var(--fg) 50%, var(--bg)));
+    --_arrow:         var(--accent, color-mix(in srgb, var(--fg) 85%, var(--bg)));
+    --_node-fill:     var(--surface, color-mix(in srgb, var(--fg) 3%, var(--bg)));
+    --_node-stroke:   var(--border, color-mix(in srgb, var(--fg) 20%, var(--bg)));
+    --_group-fill:    var(--bg);
+    --_group-hdr:     color-mix(in srgb, var(--fg) 5%, var(--bg));
+    --_inner-stroke:  color-mix(in srgb, var(--fg) 12%, var(--bg));
+    --_key-badge:     color-mix(in srgb, var(--fg) 10%, var(--bg));
+  }
+</style>
+<defs>
+  <marker id="arrowhead" markerWidth="8" markerHeight="5" refX="7" refY="2.5" orient="auto">
+    <polygon points="0 0, 8 2.5, 0 5" fill="var(--_arrow)" stroke="var(--_arrow)" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+  <marker id="arrowhead-start" markerWidth="8" markerHeight="5" refX="1" refY="2.5" orient="auto-start-reverse">
+    <polygon points="8 0, 0 2.5, 8 5" fill="var(--_arrow)" stroke="var(--_arrow)" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+</defs>
+<g class="subgraph" data-id="Admin" data-label="运营管理后台">
+  <rect x="206.8494583333333" y="40" width="535.74" height="96.9" rx="0" ry="0" fill="var(--_group-fill)" stroke="var(--_node-stroke)" stroke-width="1" />
+  <rect x="206.8494583333333" y="40" width="535.74" height="28" rx="0" ry="0" fill="var(--_group-hdr)" stroke="var(--_node-stroke)" stroke-width="1" />
+  <text x="218.8494583333333" y="54" font-size="12" font-weight="600" fill="var(--_text-sec)" dy="4.199999999999999">运营管理后台</text>
+</g>
+<g class="subgraph" data-id="ProviderMgmt" data-label="服务商管理模块">
+  <rect x="40" y="196.9" width="365.79224999999997" height="266.70000000000005" rx="0" ry="0" fill="var(--_group-fill)" stroke="var(--_node-stroke)" stroke-width="1" />
+  <rect x="40" y="196.9" width="365.79224999999997" height="28" rx="0" ry="0" fill="var(--_group-hdr)" stroke="var(--_node-stroke)" stroke-width="1" />
+  <text x="52" y="210.9" font-size="12" font-weight="600" fill="var(--_text-sec)" dy="4.199999999999999">服务商管理模块</text>
+</g>
+<g class="subgraph" data-id="OrderMgmt" data-label="订单管理模块">
+  <rect x="433.79224999999997" y="196.9" width="349.30499999999995" height="266.70000000000005" rx="0" ry="0" fill="var(--_group-fill)" stroke="var(--_node-stroke)" stroke-width="1" />
+  <rect x="433.79224999999997" y="196.9" width="349.30499999999995" height="28" rx="0" ry="0" fill="var(--_group-hdr)" stroke="var(--_node-stroke)" stroke-width="1" />
+  <text x="445.79224999999997" y="210.9" font-size="12" font-weight="600" fill="var(--_text-sec)" dy="4.199999999999999">订单管理模块</text>
+</g>
+<g class="subgraph" data-id="Reconciliation" data-label="对账管理模块">
+  <rect x="811.09725" y="172.9" width="148.05" height="351.6" rx="0" ry="0" fill="var(--_group-fill)" stroke="var(--_node-stroke)" stroke-width="1" />
+  <rect x="811.09725" y="172.9" width="148.05" height="28" rx="0" ry="0" fill="var(--_group-hdr)" stroke="var(--_node-stroke)" stroke-width="1" />
+  <text x="823.09725" y="186.9" font-size="12" font-weight="600" fill="var(--_text-sec)" dy="4.199999999999999">对账管理模块</text>
+</g>
+<polyline class="edge" data-from="A1" data-to="P1" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="280.8744583333333,120.9 280.8744583333333,166.9 133.36666666666667,166.9 133.36666666666667,228.9" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="A2" data-to="O1" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="417.5144583333333,120.9 417.5144583333333,166.9 565.02225,166.9 565.02225,228.9" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="A3" data-to="R1" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="546.7444583333333,120.9 546.7444583333333,154.9 885.1222499999999,154.9 885.1222499999999,228.9" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="A4" data-to="P3" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="675.9744583333334,120.9 675.9744583333334,178.9 277.4166666666667,178.9 277.4166666666667,313.8" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="P1" data-to="P2" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="133.36666666666667,265.8 133.36666666666667,289.8 114.025,289.8 114.025,313.8" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="P1" data-to="P3" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="133.36666666666667,265.8 133.36666666666667,289.8 258.075,289.8 258.075,313.8" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="P3" data-to="P4" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="258.075,350.70000000000005 258.075,374.70000000000005 187.34675000000001,374.70000000000005 187.34675000000001,398.70000000000005" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="P3" data-to="P5" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="258.075,350.70000000000005 258.075,374.70000000000005 328.80325,374.70000000000005 328.80325,398.70000000000005" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="O1" data-to="O2" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="565.02225,265.8 565.02225,289.8 629.63725,289.8 629.63725,313.8" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="O1" data-to="O3" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="565.02225,265.8 565.02225,289.8 500.40725,289.8 500.40725,313.8" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="O2" data-to="O4" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="629.63725,350.70000000000005 629.63725,374.70000000000005 557.6122499999999,374.70000000000005 557.6122499999999,398.70000000000005" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="O2" data-to="O5" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="629.63725,350.70000000000005 629.63725,374.70000000000005 701.6622499999999,374.70000000000005 701.6622499999999,398.70000000000005" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="R1" data-to="R2" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="885.12225,265.8 885.12225,313.8" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="R2" data-to="R3" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="885.12225,350.70000000000005 885.12225,398.70000000000005" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="R3" data-to="R4" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="885.12225,435.6 885.12225,471.6" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<g class="node" data-id="A1" data-label="服务商管理" data-shape="rectangle">
+  <rect x="222.8494583333333" y="84" width="116.05" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="280.8744583333333" y="102.45" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">服务商管理</text>
+</g>
+<g class="node" data-id="A2" data-label="订单管理" data-shape="rectangle">
+  <rect x="366.8994583333333" y="84" width="101.22999999999999" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="417.5144583333333" y="102.45" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">订单管理</text>
+</g>
+<g class="node" data-id="A3" data-label="对账管理" data-shape="rectangle">
+  <rect x="496.1294583333333" y="84" width="101.22999999999999" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="546.7444583333332" y="102.45" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">对账管理</text>
+</g>
+<g class="node" data-id="A4" data-label="费率配置" data-shape="rectangle">
+  <rect x="625.3594583333334" y="84" width="101.22999999999999" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="675.9744583333334" y="102.45" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">费率配置</text>
+</g>
+<g class="node" data-id="P1" data-label="服务商列表" data-shape="rectangle">
+  <rect x="75.34166666666667" y="228.9" width="116.05" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="133.36666666666667" y="247.35000000000002" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">服务商列表</text>
+</g>
+<g class="node" data-id="P2" data-label="新增服务商" data-shape="rectangle">
+  <rect x="56" y="313.8" width="116.05" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="114.025" y="332.25" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">新增服务商</text>
+</g>
+<g class="node" data-id="P3" data-label="服务商配置" data-shape="rectangle">
+  <rect x="200.05" y="313.8" width="116.05" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="258.075" y="332.25" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">服务商配置</text>
+</g>
+<g class="node" data-id="P4" data-label="启用/禁用" data-shape="rectangle">
+  <rect x="134.87925" y="398.70000000000005" width="104.93499999999999" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="187.34675000000001" y="417.15000000000003" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">启用/禁用</text>
+</g>
+<g class="node" data-id="P5" data-label="API密钥管理" data-shape="rectangle">
+  <rect x="267.81425" y="398.70000000000005" width="121.978" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="328.80325" y="417.15000000000003" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">API密钥管理</text>
+</g>
+<g class="node" data-id="O1" data-label="订单列表" data-shape="rectangle">
+  <rect x="514.40725" y="228.9" width="101.22999999999999" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="565.02225" y="247.35000000000002" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">订单列表</text>
+</g>
+<g class="node" data-id="O2" data-label="订单详情" data-shape="rectangle">
+  <rect x="579.02225" y="313.8" width="101.22999999999999" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="629.63725" y="332.25" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">订单详情</text>
+</g>
+<g class="node" data-id="O3" data-label="订单筛选" data-shape="rectangle">
+  <rect x="449.79224999999997" y="313.8" width="101.22999999999999" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="500.40725" y="332.25" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">订单筛选</text>
+</g>
+<g class="node" data-id="O4" data-label="手动补单" data-shape="rectangle">
+  <rect x="506.99724999999995" y="398.70000000000005" width="101.22999999999999" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="557.6122499999999" y="417.15000000000003" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">手动补单</text>
+</g>
+<g class="node" data-id="O5" data-label="异常订单处理" data-shape="rectangle">
+  <rect x="636.2272499999999" y="398.70000000000005" width="130.87" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="701.6622499999999" y="417.15000000000003" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">异常订单处理</text>
+</g>
+<g class="node" data-id="R1" data-label="日对账报表" data-shape="rectangle">
+  <rect x="827.09725" y="228.9" width="116.05" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="885.12225" y="247.35000000000002" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">日对账报表</text>
+</g>
+<g class="node" data-id="R2" data-label="差异处理" data-shape="rectangle">
+  <rect x="834.50725" y="313.8" width="101.22999999999999" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="885.12225" y="332.25" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">差异处理</text>
+</g>
+<g class="node" data-id="R3" data-label="结算记录" data-shape="rectangle">
+  <rect x="834.50725" y="398.70000000000005" width="101.22999999999999" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="885.12225" y="417.15000000000003" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">结算记录</text>
+</g>
+<g class="node" data-id="R4" data-label="财务导出" data-shape="rectangle">
+  <rect x="834.50725" y="471.6" width="101.22999999999999" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="885.12225" y="490.05" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">财务导出</text>
+</g>
+</svg>

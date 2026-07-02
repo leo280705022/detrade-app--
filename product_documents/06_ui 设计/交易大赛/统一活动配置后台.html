@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>交易大赛统一配置后台</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css" />
+    <script src="https://unpkg.com/element-plus"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@element-plus/icons-vue"></script>
+    <style>
+        body { margin: 0; padding: 0; font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif; }
+        .el-menu { border-right: none !important; }
+        .el-sub-menu__title { padding-left: 20px !important; }
+        .el-menu > .el-menu-item { padding-left: 20px !important; }
+        .el-sub-menu .el-menu-item {
+            padding-left: 64px !important;
+            background-color: #000c17 !important;
+            min-width: 200px;
+        }
+        .el-sub-menu .el-menu-item:hover {
+            background-color: #001529 !important;
+            color: #fff !important;
+        }
+        .el-sub-menu .el-menu-item.is-active:hover { background-color: #1890ff !important; }
+        .el-menu-item.is-active {
+            background-color: #1890ff !important;
+            color: #fff !important;
+        }
+        [v-cloak] { display: none; }
+        .stat-box {
+            border-radius: 8px;
+            padding: 20px 24px;
+            background: #fff;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            position: relative;
+            min-height: 104px;
+        }
+        .stat-box .stat-icon {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        .stat-box .stat-label { font-size: 13px; color: #666; }
+        .stat-box .stat-value { font-size: 24px; font-weight: 700; color: #333; margin-top: 4px; }
+        .page-card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #303133;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .section-title .dot {
+            width: 4px;
+            height: 18px;
+            background: #1890ff;
+            border-radius: 2px;
+        }
+        .config-section {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+            background: #fafafa;
+            margin-bottom: 16px;
+        }
+        .config-section .section-header {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .config-section .section-header .icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #fff;
+        }
+        .highlight-blue { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .highlight-green { background: linear-gradient(135deg, #10b981, #059669); }
+        .highlight-purple { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+        .highlight-orange { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .highlight-red { background: linear-gradient(135deg, #ef4444, #dc2626); }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <div id="app" v-cloak class="min-h-screen flex">
+        <aside class="w-64 bg-[#001529] text-white flex-shrink-0 flex flex-col">
+            <div class="h-16 flex items-center justify-center border-b border-gray-700">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 bg-gradient-to-tr from-blue-500 to-purple-600 rounded flex items-center justify-center font-bold text-lg">D</div>
+                    <span class="text-xl font-bold tracking-wide">Detrade</span>
+                </div>
+            </div>
+            <el-scrollbar class="flex-1">
+                <el-menu
+                    :default-active="currentView"
+                    background-color="#001529"
+                    text-color="#fff"
+                    active-text-color="#409EFF"
+                    class="border-r-0"
+                    :unique-opened="true"
+                    :default-openeds="['activity']"
+                >
+                    <el-sub-menu index="activity">
+                        <template #title>
+                            <span>🏆</span>
+                            <span class="ml-2">活动中心</span>
+                        </template>
+                        <el-menu-item index="activity-list" @click="currentView = 'activity-list'">
+                            <span class="ml-1">交易大赛管理</span>
+                        </el-menu-item>
+                    </el-sub-menu>
+                </el-menu>
+            </el-scrollbar>
+        </aside>
+
+        <div class="flex-1 flex flex-col min-w-0 bg-gray-50">
+            <header class="bg-white shadow-sm sticky top-0 z-50 h-16 flex items-center justify-between px-6">
+                <div class="flex items-center">
+                    <h1 class="text-xl font-bold text-gray-900">{{ pageTitle }}</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2 ml-4">
+                        <el-avatar size="small" src="https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png"></el-avatar>
+                        <span class="text-sm text-gray-700">Admin</span>
+                    </div>
+                </div>
+            </header>
+
+            <main class="flex-1 overflow-y-auto p-6">
+                <div v-if="currentView === 'activity-list'" class="space-y-4">
+                    <div class="grid grid-cols-6 gap-4">
+                        <div class="stat-box">
+                            <div class="stat-icon bg-blue-50 text-blue-500">🏆</div>
+                            <div class="stat-label">活动总数</div>
+                            <div class="stat-value">{{ activityList.length }}</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-icon bg-green-50 text-green-500">▶️</div>
+                            <div class="stat-label">进行中</div>
+                            <div class="stat-value">{{ countByStatus('active') }}</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-icon bg-purple-50 text-purple-500">📝</div>
+                            <div class="stat-label">待开始</div>
+                            <div class="stat-value">{{ countPending }}</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-icon bg-gray-50 text-gray-500">�</div>
+                            <div class="stat-label">已结束</div>
+                            <div class="stat-value">{{ countByStatus('ended') }}</div>
+                        </div>
+                    </div>
+
+                    <div class="page-card p-4">
+                        <div class="flex items-center gap-4 flex-wrap">
+                            <div class="flex items-center">
+                                <span class="text-sm text-gray-600 mr-2">活动状态:</span>
+                                <el-select v-model="filter.status" size="small" style="width: 130px">
+                                    <el-option label="全部" value="all"></el-option>
+                                    <el-option label="待开始" value="pending"></el-option>
+                                    <el-option label="进行中" value="active"></el-option>
+                                    <el-option label="已结束" value="ended"></el-option>
+                                </el-select>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="text-sm text-gray-600 mr-2">模式:</span>
+                                <el-select v-model="filter.mode" size="small" style="width: 130px">
+                                    <el-option label="全部" value="all"></el-option>
+                                    <el-option label="模拟金" value="demo"></el-option>
+                                    <el-option label="真金" value="real"></el-option>
+                                </el-select>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="text-sm text-gray-600 mr-2">活动名称:</span>
+                                <el-input v-model="filter.name" placeholder="请输入活动名称" clearable size="small" style="width: 220px"></el-input>
+                            </div>
+                            <div class="ml-auto flex gap-2">
+                                <el-button type="primary" size="small" @click="message('查询成功')">查询</el-button>
+                                <el-button size="small" @click="resetFilter">重置</el-button>
+                                <el-button type="primary" size="small" @click="openCreateModal">
+                                    ➕ 新建活动
+                                </el-button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="page-card p-4">
+                        <div class="section-title mb-4"><div class="dot"></div>交易大赛活动列表</div>
+                        <el-table :data="filteredActivities" border stripe style="width:100%">
+                            <el-table-column prop="id" label="活动ID" width="110"></el-table-column>
+                            <el-table-column prop="name" label="活动名称" min-width="180"></el-table-column>
+                            <el-table-column prop="mode" label="模式" width="90">
+                                <template #default="{ row }">
+                                    {{ row.mode === 'demo' ? '模拟金' : '真金' }}
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="状态" width="100">
+                                <template #default="{ row }">
+                                    <el-tag :type="statusTagType(row.status)">{{ statusLabel(row.status) }}</el-tag>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="time" label="时间" min-width="170"></el-table-column>
+                            <el-table-column prop="cycle" label="周期" width="100"></el-table-column>
+                            <el-table-column label="操作" width="240" fixed="right">
+                                <template #default="{ row }">
+                                    <el-button link type="primary" :disabled="!canEdit(row)" @click="openEditModal(row)">配置</el-button>
+                                    <el-button link type="primary" @click="viewDetail(row)">查看</el-button>
+                                    <el-button link type="primary" @click="openBlacklistModal(row)">名单配置</el-button>
+                                    <el-button link type="primary" @click="viewHistory(row)">历史</el-button>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <el-dialog v-model="modalVisible" :title="modalTitle" width="1000px" top="3vh">
+            <div class="h-[75vh] overflow-y-auto px-2">
+                <el-steps :active="currentStep" finish-status="success" class="mb-6">
+                        <el-step title="基础信息"></el-step>
+                        <el-step title="时间与周期"></el-step>
+                        <el-step title="参赛门槛"></el-step>
+                        <el-step title="奖池/奖励规则"></el-step>
+                    </el-steps>
+
+                <el-form :model="formData" label-width="140px" label-position="top">
+                    <div v-if="currentStep === 0">
+                        <div class="config-section">
+                            <div class="section-header">
+                                基础信息
+                            </div>
+                            <el-row :gutter="16">
+                                <el-col :span="12">
+                                    <el-form-item label="活动名称" required>
+                                        <el-input v-model="formData.name" placeholder="如：BTC 周常交易大赛" :disabled="modalMode === 'view'"></el-input>
+                                    </el-form-item>
+                                </el-col>
+                                <el-col :span="12">
+                                    <el-form-item label="活动副标题">
+                                        <el-input v-model="formData.subTitle" placeholder="如：每周模拟交易冲刺赛" :disabled="modalMode === 'view'"></el-input>
+                                    </el-form-item>
+                                </el-col>
+                            </el-row>
+                            <el-row :gutter="16">
+                                <el-col :span="12">
+                                    <el-form-item label="赛事模式" required>
+                                        <el-select v-model="formData.mode" style="width:100%" :disabled="modalMode === 'view'">
+                                            <el-option label="模拟金" value="demo"></el-option>
+                                            <el-option label="真金" value="real"></el-option>
+                                        </el-select>
+                                    </el-form-item>
+                                </el-col>
+                            </el-row>
+                            <el-row :gutter="16">
+                                <el-col :span="12">
+                                    <el-form-item label="赛事类型">
+                                        <el-select v-model="formData.competitionType" style="width:100%" :disabled="modalMode === 'view'">
+                                            <el-option label="个人赛" value="personal"></el-option>
+                                            <el-option label="团队赛" value="team"></el-option>
+                                        </el-select>
+                                    </el-form-item>
+                                </el-col>
+                                <el-col :span="12">
+                                    <el-form-item label="适用平台">
+                                        <el-select v-model="formData.platform" style="width:100%" :disabled="modalMode === 'view'">
+                                            <el-option label="cc" value="cc"></el-option>
+                                            <el-option label="bc" value="bc"></el-option>
+                                        </el-select>
+                                    </el-form-item>
+                                </el-col>
+                            </el-row>
+                            <el-row :gutter="16">
+                                <el-col :span="12">
+                                    <el-form-item label="状态">
+                                        <el-switch v-model="formData.status" active-value="active" inactive-value="inactive" active-text="开启" inactive-text="关闭" @change="syncViewSwitch('status')" />
+                                        <div class="text-xs text-orange-500 mt-1" v-if="formData.status === 'active'">开启状态下仅允许修改风控设置</div>
+                                    </el-form-item>
+                                </el-col>
+                            </el-row>
+                            <el-form-item label="关联玩法配置" required>
+                                <el-radio-group v-model="formData.gameType" :disabled="modalMode === 'view'">
+                                    <el-radio label="futures">Futures (合约)</el-radio>
+                                    <el-radio label="updown">UpDown (涨跌)</el-radio>
+                                    <el-radio label="highlow">HighLow (高低)</el-radio>
+                                    <el-radio label="spread">Spread (点差)</el-radio>
+                                    <el-radio label="tap_trading">Tap Trading</el-radio>
+                                </el-radio-group>
+                            </el-form-item>
+                            <el-form-item label="关联交易对" required>
+                                <el-select v-model="formData.pairs" multiple collapse-tags style="width:100%" :disabled="modalMode === 'view'">
+                                    <el-option label="BTC/USDT" value="BTC/USDT"></el-option>
+                                    <el-option label="ETH/USDT" value="ETH/USDT"></el-option>
+                                    <el-option label="SOL/USDT" value="SOL/USDT"></el-option>
+                                    <el-option label="BNB/USDT" value="BNB/USDT"></el-option>
+                                </el-select>
+                            </el-form-item>
+                            <el-form-item label="活动规则">
+                                <el-input v-model="formData.rule" type="textarea" :rows="3" placeholder="活动规则说明" :disabled="modalMode === 'view'"></el-input>
+                            </el-form-item>
+                        </div>
+                    </div>
+
+                    <div v-if="currentStep === 1">
+                        <div class="config-section">
+                            <div class="section-header">
+                                <div class="icon highlight-green">2</div>
+                                时间与周期配置
+                            </div>
+                            <el-row :gutter="16">
+                                <el-col :span="12">
+                                    <el-form-item label="活动展示开始时间">
+                                        <el-date-picker v-model="formData.displayStart" type="datetime" style="width:100%" :disabled="modalMode === 'view'"></el-date-picker>
+                                    </el-form-item>
+                                </el-col>
+                            </el-row>
+                            <el-row :gutter="16">
+                                <el-col :span="8">
+                                    <el-form-item label="周期模式" required>
+                                        <el-select v-model="formData.cycleType" style="width:100%" :disabled="modalMode === 'view'">
+                                            <el-option label="单次" value="once"></el-option>
+                                            <el-option label="每小时" value="hourly"></el-option>
+                                            <el-option label="每日循环" value="daily"></el-option>
+                                            <el-option label="每周循环" value="weekly"></el-option>
+                                            <el-option label="每月循环" value="monthly"></el-option>
+                                            <el-option label="自定义周期" value="custom"></el-option>
+                                        </el-select>
+                                    </el-form-item>
+                                </el-col>
+                            </el-row>
+                            <el-row :gutter="16" v-if="formData.cycleType === 'once'">
+                                <el-col :span="12">
+                                    <el-form-item label="开始时间" required>
+                                        <el-date-picker v-model="formData.startTime" type="datetime" style="width:100%" :disabled="modalMode === 'view'"></el-date-picker>
+                                    </el-form-item>
+                                </el-col>
+                                <el-col :span="12">
+                                    <el-form-item label="结束时间" required>
+                                        <el-date-picker v-model="formData.endTime" type="datetime" style="width:100%" :disabled="modalMode === 'view'"></el-date-picker>
+                                    </el-form-item>
+                                </el-col>
+                            </el-row>
+                            <el-row :gutter="16" v-if="formData.cycleType !== 'once'">
+                                <el-col :span="8">
+                                    <el-form-item label="开始时间" required>
+                                        <el-date-picker v-model="formData.startTime" type="datetime" style="width:100%" :disabled="modalMode === 'view'"></el-date-picker>
+                                    </el-form-item>
+                                </el-col>
+                                <el-col :span="8">
+                                    <el-form-item label="结束时间" v-if="formData.startTime">
+                                        <el-input v-model="endTimeDisplay" disabled>
+                                            <template #append>🕒</template>
+                                        </el-input>
+                                        <div class="text-xs text-gray-400 mt-1">根据周期类型自动计算</div>
+                                    </el-form-item>
+                                </el-col>
+                                <el-col :span="8">
+                                    <el-form-item label="自动生成下一期">
+                                        <el-switch v-model="formData.autoNext" active-text="开启" @change="syncViewSwitch('autoNext')"></el-switch>
+                                    </el-form-item>
+                                </el-col>
+                            </el-row>
+                            <el-row :gutter="16" v-if="formData.cycleType === 'custom'">
+                                <el-col :span="8">
+                                    <el-form-item label="自定义时长 (小时)">
+                                        <el-input-number v-model="formData.customHours" :min="1" style="width:100%" :disabled="modalMode === 'view'"></el-input-number>
+                                    </el-form-item>
+                                </el-col>
+                            </el-row>
+                            <el-row :gutter="16">
+                                <el-col :span="12">
+                                    <el-form-item label="延期发放设置">
+                                        <el-switch v-model="formData.autoReward" active-text="自动发放" inactive-text="手动发放" :disabled="modalMode === 'view' && formData.status !== 'active'" @change="syncViewSwitch('autoReward')"></el-switch>
+                                        <div class="text-xs text-gray-400 mt-1">活动中可编辑切换发放方式</div>
+                                    </el-form-item>
+                                </el-col>
+                                <el-col :span="12" v-if="formData.autoReward">
+                                    <el-form-item label="延期时间">
+                                        <el-select v-model="formData.rewardDelay" style="width:100%" :disabled="modalMode === 'view' && formData.status !== 'active'">
+                                            <el-option label="延期 0H" value="0h"></el-option>
+                                            <el-option label="延期 1H" value="1h"></el-option>
+                                            <el-option label="延期 1 天" value="1d"></el-option>
+                                        </el-select>
+                                    </el-form-item>
+                                </el-col>
+                            </el-row>
+                        </div>
+                    </div>
+
+                    <div v-if="currentStep === 2">
+                        <div class="config-section">
+                            <div class="section-header">
+                                参赛门槛
+                            </div>
+                            <el-row :gutter="16">
+                                <el-col :span="8">
+                                    <el-form-item label="最小有效单笔金额">
+                                        <el-input-number v-model="formData.minTradeAmount" :min="0" style="width:100%" :disabled="modalMode === 'view'"></el-input-number>
+                                    </el-form-item>
+                                </el-col>
+                                <el-col :span="8">
+                                    <el-form-item label="最大有效单笔金额">
+                                        <el-input-number v-model="formData.maxTradeAmount" :min="0" style="width:100%" :disabled="modalMode === 'view'"></el-input-number>
+                                    </el-form-item>
+                                </el-col>
+                                <el-col :span="8">
+                                    <el-form-item label="最低交易笔数">
+                                        <el-input-number v-model="formData.minTrades" :min="0" style="width:100%" :disabled="modalMode === 'view'"></el-input-number>
+                                    </el-form-item>
+                                </el-col>
+                            </el-row>
+                        </div>
+                    </div>
+
+                    <div v-if="currentStep === 3">
+                        <!-- 奖池累计配置 -->
+                        <div class="config-section">
+                            <div class="section-header">
+                                奖池累计配置
+                            </div>
+                            <el-form-item label="奖池累计方式">
+                                <el-radio-group v-model="formData.poolSourceType" :disabled="modalMode === 'view'">
+                                    <el-radio label="platform">平台出资</el-radio>
+                                    <el-radio label="fee">交易抽成</el-radio>
+                                    <el-radio label="platform+fee">平台出资 + 交易抽成</el-radio>
+                                </el-radio-group>
+                            </el-form-item>
+                            <el-row :gutter="16" v-if="formData.poolSourceType === 'platform' || formData.poolSourceType === 'platform+fee'">
+                                <el-col :span="12">
+                                    <el-form-item label="平台出资金额" required>
+                                        <el-input-number v-model="formData.platformAmount" :min="0" style="width:100%" :disabled="modalMode === 'view'">
+                                            <template #prepend>$</template>
+                                        </el-input-number>
+                                        <div class="text-xs text-gray-400 mt-1">平台为本次活动提供的出资金额</div>
+                                    </el-form-item>
+                                </el-col>
+                            </el-row>
+                            <el-row :gutter="16" v-if="formData.poolSourceType === 'fee' || formData.poolSourceType === 'platform+fee'">
+                                <el-col :span="12">
+                                    <el-form-item label="交易抽成比例 (%)">
+                                        <el-input-number v-model="formData.feeRatio" :min="0" :max="100" :precision="2" style="width:100%" :disabled="modalMode === 'view'">
+                                            <template #append>%</template>
+                                        </el-input-number>
+                                        <div class="text-xs text-gray-400 mt-1">从用户交易手续费或净利润中抽取的比例</div>
+                                    </el-form-item>
+                                </el-col>
+                            </el-row>
+                        </div>
+
+                        <!-- 排行榜设置 -->
+                        <div class="config-section">
+                            <div class="section-header">
+                                排行榜设置
+                            </div>
+                            <el-form-item label="排名依据">
+                                <el-radio-group v-model="formData.rankBy" :disabled="modalMode === 'view'">
+                                    <el-radio label="pnl">盈亏额</el-radio>
+                                    <el-radio label="profit_abs">利润绝对值</el-radio>
+                                    <el-radio label="roi">ROI</el-radio>
+                                    <el-radio label="single_roi">单笔 ROI</el-radio>
+                                    <el-radio label="win_rate">胜率</el-radio>
+                                </el-radio-group>
+                            </el-form-item>
+                        </div>
+
+                        <!-- 排名奖励配置 -->
+                        <div class="config-section">
+                            <div class="section-header">
+                                排名奖励配置
+                            </div>
+                            <el-table :data="formData.rewardConfig" border style="width:100%">
+                                <el-table-column label="名次范围" width="120">
+                                    <template #default="{ row }">
+                                        <el-input v-model="row.rank" size="default" :disabled="modalMode === 'view'" placeholder="如 1-10"></el-input>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column label="奖励类型" width="160">
+                                    <template #default="{ row }">
+                                        <el-select v-model="row.rewardType" size="default" :disabled="modalMode === 'view'" style="width:100%">
+                                            <el-option label="真金" value="real_money"></el-option>
+                                            <el-option label="奖励金" value="bonus"></el-option>
+                                            <el-option label="实物" value="physical"></el-option>
+                                            <el-option label="优惠券" value="coupon"></el-option>
+                                        </el-select>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column label="奖励金额/物品">
+                                    <template #default="{ row }">
+                                        <!-- 真金：按百分比分配 -->
+                                        <el-input v-if="row.rewardType === 'real_money'" v-model="row.percent" size="default" :disabled="modalMode === 'view'" style="width:140px">
+                                            <template #append>%</template>
+                                        </el-input>
+                                        <!-- 奖励金：固定金额 -->
+                                        <el-input-number v-else-if="row.rewardType === 'bonus'" v-model="row.amount" :min="0" size="default" style="width:180px" :controls="false" :disabled="modalMode === 'view'">
+                                            <template #prepend>$</template>
+                                        </el-input-number>
+                                        <!-- 实物：图片+名称+价值 -->
+                                        <div v-else-if="row.rewardType === 'physical'" class="flex items-center gap-2">
+                                            <el-button size="default" :disabled="modalMode === 'view'" @click="uploadPhysicalImage(formData.rewardConfig.indexOf(row))">📷 上传</el-button>
+                                            <el-input v-model="row.physicalName" placeholder="名称" size="default" style="width:120px" :disabled="modalMode === 'view'"></el-input>
+                                            <el-input v-model="row.physicalValue" placeholder="价值" size="default" style="width:100px" :disabled="modalMode === 'view'">
+                                                <template #prepend>$</template>
+                                            </el-input>
+                                        </div>
+                                        <!-- 优惠券：下拉选择 -->
+                                        <el-select v-else-if="row.rewardType === 'coupon'" v-model="row.couponId" size="default" style="width:240px" :disabled="modalMode === 'view'" placeholder="选择后管配置的优惠券">
+                                            <el-option label="新用户 50% 手续费抵扣券" value="c1"></el-option>
+                                            <el-option label="VIP 专属 10U 返佣券" value="c2"></el-option>
+                                            <el-option label="首充礼包 20U 体验金" value="c3"></el-option>
+                                        </el-select>
+                                        <span v-else class="text-sm text-gray-400">请先选择奖励类型</span>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column label="操作" width="100" align="center">
+                                    <template #default="{ $index }">
+                                        <el-button type="danger" size="small" :icon="Delete" @click="removeRewardRule($index)" :disabled="modalMode === 'view' || formData.rewardConfig.length <= 1">
+                                            删除
+                                        </el-button>
+                                    </template>
+                                </el-table-column>
+                            </el-table>
+                            <el-button type="primary" plain size="default" class="w-full mt-3" @click="addRewardRule" :disabled="modalMode === 'view'">+ 添加奖励区间</el-button>
+                        </div>
+                    </div>
+                </el-form>
+            </div>
+            <template #footer>
+                <div class="flex justify-end gap-2">
+                    <el-button @click="modalVisible = false">{{ modalMode === 'view' ? '关闭' : '取消' }}</el-button>
+                    <el-button :disabled="currentStep === 0" @click="prevStep">上一步</el-button>
+                    <el-button v-if="currentStep < 3" type="primary" @click="nextStep">下一步</el-button>
+                    <el-button v-if="currentStep === 3 && modalMode !== 'view'" type="primary" @click="saveConfig">保存配置</el-button>
+                </div>
+            </template>
+        </el-dialog>
+
+        <el-dialog v-model="blacklistModalVisible" :title="currentActivityName + ' - 名单配置'" width="600px">
+            <div class="space-y-4">
+                <el-form-item label="黑名单用户 UID (每行一个)">
+                    <el-input type="textarea" v-model="blacklistUsers" rows="10" placeholder="输入不参与活动的用户UID，每行一个"></el-input>
+                </el-form-item>
+                <div class="text-sm text-gray-500">配置后，这些黑名单用户将不能参与该活动</div>
+            </div>
+            <template #footer>
+                <div class="flex justify-end gap-2">
+                    <el-button @click="blacklistModalVisible = false">取消</el-button>
+                    <el-button type="primary" @click="saveBlacklist">保存配置</el-button>
+                </div>
+            </template>
+        </el-dialog>
+
+        <el-dialog v-model="historyModalVisible" title="活动历史记录" width="900px">
+            <div class="flex justify-end mb-3">
+                <el-button type="primary" size="small" @click="exportHistoryData">导出全部</el-button>
+            </div>
+            <el-table :data="historyList" border stripe height="400">
+                <el-table-column prop="period" label="期数" width="120"></el-table-column>
+                <el-table-column prop="time" label="周期时间" min-width="250"></el-table-column>
+                <el-table-column prop="status" label="状态" width="100" align="center">
+                    <template #default="{ row }">
+                        <el-tag :type="row.status === 'completed' ? 'success' : 'warning'">
+                            {{ row.status === 'completed' ? '已发放' : '结算中' }}
+                        </el-tag>
+                    </template>
+                </el-table-column>
+                <el-table-column label="操作" width="160" align="center">
+                    <template #default="{ row, $index }">
+                        <el-button link type="primary" size="small" @click="exportRoundDetail(row)">导出详情</el-button>
+                        <el-button link type="success" size="small" v-if="row.status !== 'completed'" @click="issueRewardForPeriod($index)">发奖</el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+        </el-dialog>
+
+        <el-dialog v-model="rewardModalVisible" title="手动发奖确认" width="560px">
+            <div class="space-y-4" v-if="rewardActivity">
+                <el-alert title="请确认发奖数据已完成审核，确认后将按当前结算结果发放奖励。" type="warning" show-icon :closable="false"></el-alert>
+                <el-descriptions :column="1" border>
+                    <el-descriptions-item label="活动ID">{{ rewardActivity.id }}</el-descriptions-item>
+                    <el-descriptions-item label="活动名称">{{ rewardActivity.name }}</el-descriptions-item>
+                    <el-descriptions-item label="活动类型">交易大赛</el-descriptions-item>
+                    <el-descriptions-item label="结算状态">{{ rewardActivity.settlementStatus }}</el-descriptions-item>
+                </el-descriptions>
+            </div>
+            <template #footer>
+                <div class="flex justify-end gap-2">
+                    <el-button @click="rewardModalVisible = false">取消</el-button>
+                    <el-button type="primary" @click="confirmReward">确认发奖</el-button>
+                </div>
+            </template>
+        </el-dialog>
+    </div>
+
+    <script>
+        const { createApp, reactive, ref, computed } = Vue;
+        const { ElMessage, ElMessageBox } = ElementPlus;
+
+        const app = createApp({
+            setup() {
+                const currentView = ref('activity-list');
+                const modalVisible = ref(false);
+                const blacklistModalVisible = ref(false);
+                const historyModalVisible = ref(false);
+                const rewardModalVisible = ref(false);
+                const rewardActivity = ref(null);
+                const currentStep = ref(0);
+                const modalMode = ref('create');
+                const currentActivityId = ref(null);
+                const currentActivityName = ref('');
+                const blacklistUsers = ref('');
+
+                const filter = reactive({ status: 'all', mode: 'all', name: '' });
+
+                const activityList = ref([
+                    { 
+                        id: 'ACT2001', name: 'BTC 周常交易大赛', mode: 'demo', status: 'pending', 
+                        time: '2026-06-20 ~ 2026-06-27', cycle: '每周',
+                        settlementStatus: '未生成',
+                        gameType: 'futures', pairs: ['BTC/USDT', 'ETH/USDT'], poolSourceType: 'platform',
+                        platformAmount: 50000, minTrades: 10,
+                        rankBy: 'pnl',
+                        rewardConfig: [
+                            { rank: '1-1', rewardType: 'real_money', percent: 30, amount: 0, physicalName: '', physicalValue: 0, couponId: '' },
+                            { rank: '2-3', rewardType: 'real_money', percent: 20, amount: 0, physicalName: '', physicalValue: 0, couponId: '' },
+                            { rank: '4-10', rewardType: 'bonus', percent: 0, amount: 500, physicalName: '', physicalValue: 0, couponId: '' },
+                            { rank: '11-100', rewardType: 'coupon', percent: 0, amount: 0, physicalName: '', physicalValue: 0, couponId: 'c1' }
+                        ]
+                    },
+                    { 
+                        id: 'ACT2002', name: 'ETH 月度冲刺赛', mode: 'real', status: 'pending', 
+                        time: '2026-07-01 ~ 2026-07-31', cycle: '每月',
+                        settlementStatus: '未生成',
+                        gameType: 'updown', pairs: ['ETH/USDT'], poolSourceType: 'platform+fee',
+                        platformAmount: 30000, feeRatio: 3, minTrades: 50,
+                        rankBy: 'roi',
+                        rewardConfig: [
+                            { rank: '1-1', rewardType: 'bonus', percent: 0, amount: 10000, physicalName: '', physicalValue: 0, couponId: '' },
+                            { rank: '2-5', rewardType: 'bonus', percent: 0, amount: 2000, physicalName: '', physicalValue: 0, couponId: '' },
+                            { rank: '6-20', rewardType: 'bonus', percent: 0, amount: 500, physicalName: '', physicalValue: 0, couponId: '' }
+                        ]
+                    },
+                    { 
+                        id: 'ACT2003', name: 'SOL 每日排行榜', mode: 'demo', status: 'active', 
+                        time: '2026-06-10 ~ 2026-06-16', cycle: '每日',
+                        settlementStatus: '未生成',
+                        gameType: 'futures', pairs: ['SOL/USDT'], poolSourceType: 'fee',
+                        feeRatio: 5, minTrades: 5,
+                        rankBy: 'win_rate',
+                        rewardConfig: [
+                            { rank: '1-1', rewardType: 'bonus', percent: 0, amount: 3000, physicalName: '', physicalValue: 0, couponId: '' },
+                            { rank: '2-3', rewardType: 'bonus', percent: 0, amount: 1500, physicalName: '', physicalValue: 0, couponId: '' },
+                            { rank: '4-10', rewardType: 'coupon', percent: 0, amount: 0, physicalName: '', physicalValue: 0, couponId: 'c2' }
+                        ]
+                    },
+                    { 
+                        id: 'ACT2004', name: 'BNB 季度争霸赛', mode: 'real', status: 'active', 
+                        time: '2026-04-01 ~ 2026-06-30', cycle: '每月',
+                        settlementStatus: '待发奖',
+                        gameType: 'futures', pairs: ['BNB/USDT', 'BTC/USDT', 'ETH/USDT'], poolSourceType: 'platform',
+                        platformAmount: 100000, minTrades: 100,
+                        rankBy: 'profit_abs',
+                        rewardConfig: [
+                            { rank: '1-1', rewardType: 'bonus', percent: 0, amount: 50000, physicalName: '', physicalValue: 0, couponId: '' },
+                            { rank: '2-3', rewardType: 'bonus', percent: 0, amount: 20000, physicalName: '', physicalValue: 0, couponId: '' },
+                            { rank: '4-10', rewardType: 'bonus', percent: 0, amount: 5000, physicalName: '', physicalValue: 0, couponId: '' },
+                            { rank: '11-50', rewardType: 'physical', percent: 0, amount: 0, physicalName: '定制键盘', physicalValue: 200, couponId: '' }
+                        ]
+                    },
+                    { 
+                        id: 'ACT2005', name: 'Tap Trading 闪电赛', mode: 'demo', status: 'ended', 
+                        time: '2026-06-08 ~ 2026-06-14', cycle: '每日',
+                        gameType: 'tap_trading', pairs: ['BTC/USDT', 'ETH/USDT'], poolSourceType: 'fee',
+                        feeRatio: 5, minTrades: 20,
+                        rankBy: 'single_roi',
+                        rewardConfig: [
+                            { rank: '1-1', rewardType: 'bonus', percent: 0, amount: 3000, physicalName: '', physicalValue: 0, couponId: '' },
+                            { rank: '2-3', rewardType: 'bonus', percent: 0, amount: 1500, physicalName: '', physicalValue: 0, couponId: '' },
+                            { rank: '4-10', rewardType: 'bonus', percent: 0, amount: 500, physicalName: '', physicalValue: 0, couponId: '' }
+                        ]
+                    },
+                    { 
+                        id: 'ACT2006', name: 'ETH 5 月涨跌赛', mode: 'real', status: 'ended', 
+                        time: '2026-05-01 ~ 2026-05-31', cycle: '每月',
+                        settlementStatus: '已发放',
+                        gameType: 'updown', pairs: ['ETH/USDT'], poolSourceType: 'platform',
+                        platformAmount: 20000, minTrades: 30,
+                        rankBy: 'roi',
+                        rewardConfig: [
+                            { rank: '1-1', rewardType: 'bonus', percent: 0, amount: 8000, physicalName: '', physicalValue: 0, couponId: '' },
+                            { rank: '2-5', rewardType: 'bonus', percent: 0, amount: 2000, physicalName: '', physicalValue: 0, couponId: '' },
+                            { rank: '6-20', rewardType: 'bonus', percent: 0, amount: 500, physicalName: '', physicalValue: 0, couponId: '' }
+                        ]
+                    },
+                    { 
+                        id: 'ACT2007', name: 'BTC 高低点挑战赛', mode: 'demo', status: 'ended', 
+                        time: '2026-04-01 ~ 2026-04-30', cycle: '每月',
+                        settlementStatus: '已发放',
+                        gameType: 'highlow', pairs: ['BTC/USDT'], poolSourceType: 'platform',
+                        platformAmount: 15000, minTrades: 20,
+                        rankBy: 'pnl',
+                        rewardConfig: [
+                            { rank: '1-1', rewardType: 'real_money', percent: 40, amount: 0, physicalName: '', physicalValue: 0, couponId: '' },
+                            { rank: '2-3', rewardType: 'real_money', percent: 25, amount: 0, physicalName: '', physicalValue: 0, couponId: '' },
+                            { rank: '4-10', rewardType: 'bonus', percent: 0, amount: 300, physicalName: '', physicalValue: 0, couponId: '' }
+                        ]
+                    },
+                    { 
+                        id: 'ACT2008', name: '点差交易周赛', mode: 'real', status: 'ended', 
+                        time: '2026-03-01 ~ 2026-03-31', cycle: '每周',
+                        settlementStatus: '已发放',
+                        gameType: 'spread', pairs: ['BTC/USDT', 'ETH/USDT'], poolSourceType: 'platform+fee',
+                        platformAmount: 10000, feeRatio: 2, minTrades: 15,
+                        rankBy: 'pnl',
+                        rewardConfig: [
+                            { rank: '1-1', rewardType: 'bonus', percent: 0, amount: 5000, physicalName: '', physicalValue: 0, couponId: '' },
+                            { rank: '2-5', rewardType: 'bonus', percent: 0, amount: 1000, physicalName: '', physicalValue: 0, couponId: '' }
+                        ]
+                    }
+                ]);
+
+                const historyList = ref([
+                    { period: '202624', time: '2026-06-13 ~ 2026-06-19', status: 'pending', winner: 'User_998', winnerPrize: '28,000' },
+                    { period: '202623', time: '2026-06-06 ~ 2026-06-12', status: 'completed', winner: 'User_777', winnerPrize: '25,000' },
+                    { period: '202622', time: '2026-05-30 ~ 2026-06-05', status: 'completed', winner: 'User_666', winnerPrize: '22,000' },
+                    { period: '202621', time: '2026-05-23 ~ 2026-05-29', status: 'completed', winner: 'User_555', winnerPrize: '20,500' },
+                ]);
+
+                const formData = reactive({
+                    id: null, name: '', subTitle: '', mode: 'real', competitionType: 'personal', platform: 'cc', status: 'active',
+                    gameType: 'futures', pairs: [], rule: '',
+                    displayStart: '', cycleType: 'weekly', startTime: new Date(), endTime: '', customHours: 24,
+                    autoNext: true, autoReward: true, rewardDelay: '0h',
+                    minTradeAmount: 0, maxTradeAmount: 0, minTrades: 0,
+                    poolSourceType: 'platform', platformAmount: 1000, feeRatio: 0,
+                    rankBy: 'pnl',
+                    rewardConfig: [
+                        { rank: '1-1', rewardType: 'real_money', percent: 30, amount: 0, physicalName: '', physicalValue: 0, couponId: '' },
+                        { rank: '2-3', rewardType: 'bonus', percent: 0, amount: 500, physicalName: '', physicalValue: 0, couponId: '' }
+                    ]
+                });
+
+                const pageTitle = computed(function() { return '交易大赛统一管理'; });
+                const modalTitle = computed(function() {
+                    if (modalMode.value === 'create') return '新建活动';
+                    if (modalMode.value === 'view') return '活动详情 - ' + (formData.name || '');
+                    return '编辑活动配置';
+                });
+
+                const endTimeDisplay = computed(function() {
+                    if (!formData.startTime) return '';
+                    var start = new Date(formData.startTime);
+                    var end = new Date(start);
+                    switch (formData.cycleType) {
+                        case 'hourly': end.setHours(end.getHours() + 1); break;
+                        case 'daily': end.setHours(23, 59, 59, 999); break;
+                        case 'weekly':
+                            var d = end.getDay();
+                            end.setDate(end.getDate() + (d === 0 ? 0 : 7 - d));
+                            end.setHours(23, 59, 59, 999);
+                            break;
+                        case 'monthly': end.setMonth(end.getMonth() + 1); end.setDate(0); end.setHours(23, 59, 59, 999); break;
+                        case 'custom': end.setHours(end.getHours() + (formData.customHours || 0)); break;
+                    }
+                    return end.toLocaleString('zh-CN');
+                });
+
+                const filteredActivities = computed(function() {
+                    return activityList.value.filter(function(item) {
+                        var matchStatus = filter.status === 'all' || item.status === filter.status;
+                        var matchMode = filter.mode === 'all' || item.mode === filter.mode;
+                        var matchName = !filter.name || item.name.indexOf(filter.name) !== -1;
+                        return matchStatus && matchMode && matchName;
+                    });
+                });
+
+                var countByStatus = function(s) { return activityList.value.filter(function(i) { return i.status === s; }).length; };
+                var countPending = computed(function() { return activityList.value.filter(function(i) { return i.status === 'pending'; }).length; });
+                var countSettling = computed(function() { return activityList.value.filter(function(i) { return i.status === 'settling'; }).length; });
+                var totalWinners = computed(function() { return activityList.value.reduce(function(s, i) { return s + (i.winners || 0); }, 0); });
+                var totalPendingRewards = computed(function() { return activityList.value.filter(function(i) { return i.settlementStatus === '待发奖'; }).reduce(function(s, i) { return s + (i.winners || 0); }, 0); });
+
+                var statusTagType = function(s) {
+                    var map = { pending: 'warning', active: 'success', ended: 'info' };
+                    return map[s] || 'info';
+                };
+                var statusLabel = function(s) {
+                    var map = { pending: '待开始', active: '进行中', ended: '已结束' };
+                    return map[s] || s;
+                };
+                var canEdit = function(row) { return row.status === 'pending'; };
+
+                var resetFilter = function() { Object.assign(filter, { status: 'all', mode: 'all', name: '' }); message('已重置'); };
+                var message = function(text) { ElMessage.success(text); };
+
+                var addRewardRule = function() {
+                    formData.rewardConfig.push({
+                        rank: '',
+                        rewardType: 'real_money',
+                        percent: 0,
+                        amount: 0,
+                        physicalName: '',
+                        physicalValue: 0,
+                        couponId: ''
+                    });
+                };
+
+                var removeRewardRule = function(idx) {
+                    if (formData.rewardConfig.length > 1) formData.rewardConfig.splice(idx, 1);
+                };
+
+                var uploadPhysicalImage = function(idx) {
+                    ElMessage.info('上传图片功能 - 演示环境');
+                };
+
+                var getDefaultFormData = function() {
+                    return {
+                        id: null, name: '', subTitle: '', mode: 'real', competitionType: 'personal', platform: 'cc', status: 'pending',
+                        gameType: 'futures', pairs: [], rule: '',
+                        displayStart: '', cycleType: 'weekly', startTime: new Date(), endTime: '', customHours: 24,
+                        autoNext: true, autoReward: true, rewardDelay: '0h',
+                        minTradeAmount: 0, maxTradeAmount: 0, minTrades: 0,
+                        poolSourceType: 'platform', platformAmount: 1000, feeRatio: 0,
+                        rankBy: 'pnl',
+                        rewardConfig: [
+                            { rank: '1-1', rewardType: 'real_money', percent: 30, amount: 0, physicalName: '', physicalValue: 0, couponId: '' },
+                            { rank: '2-3', rewardType: 'bonus', percent: 0, amount: 500, physicalName: '', physicalValue: 0, couponId: '' }
+                        ]
+                    };
+                };
+
+                var openCreateModal = function() {
+                    modalMode.value = 'create';
+                    var defaults = getDefaultFormData();
+                    Object.keys(defaults).forEach(function(key) { formData[key] = defaults[key]; });
+                    currentStep.value = 0;
+                    modalVisible.value = true;
+                };
+
+                var openEditModal = function(row) {
+                    if (!canEdit(row)) { message('当前状态不可编辑'); return; }
+                    modalMode.value = 'edit';
+                    var data = JSON.parse(JSON.stringify(row));
+                    Object.keys(data).forEach(function(key) { formData[key] = data[key]; });
+                    currentStep.value = 0;
+                    modalVisible.value = true;
+                };
+
+                var prevStep = function() { currentStep.value = Math.max(0, currentStep.value - 1); };
+                var nextStep = function() { currentStep.value = Math.min(3, currentStep.value + 1); };
+
+                var saveConfig = function() {
+                    // 校验真金奖励总额不超过平台出资金额
+                    if (formData.poolSourceType === 'platform' || formData.poolSourceType === 'platform+fee') {
+                        var realMoneyTotal = formData.rewardConfig
+                            .filter(function(r) { return r.rewardType === 'real_money'; })
+                            .reduce(function(sum, r) { return sum + Number(r.percent || 0); }, 0);
+                        if (realMoneyTotal > 100) {
+                            ElMessage.error('真金奖励百分比总和不能超过 100%');
+                            return;
+                        }
+                    }
+                    if (!formData.id) {
+                        // 新建活动默认为待开始
+                        formData.status = 'pending';
+                        var newItem = JSON.parse(JSON.stringify(formData));
+                        newItem.id = 'ACT' + (1000 + activityList.value.length + 1);
+                        newItem.participants = 0;
+                        newItem.poolAmount = newItem.poolSourceType === 'platform' ? (newItem.platformAmount || 0) : 0;
+                        newItem.winners = 0;
+                        newItem.settlementStatus = '未生成';
+                        // 生成时间展示
+                        if (formData.cycleType === 'once' || formData.startTime || formData.endTime) {
+                            newItem.time = (formData.displayStart ? formData.displayStart : formData.startTime) + ' ~ ' + (formData.endTime || endTimeDisplay.value);
+                        }
+                        // 生成周期文案
+                        var cycleMap = { once: '单次', hourly: '每小时', daily: '每日', weekly: '每周', monthly: '每月', custom: '自定义' };
+                        newItem.cycle = cycleMap[formData.cycleType] || formData.cycleType;
+                        activityList.value.unshift(newItem);
+                    } else {
+                        var idx = activityList.value.findIndex(function(p) { return p.id === formData.id; });
+                        if (idx !== -1) {
+                            var updateData = JSON.parse(JSON.stringify(formData));
+                            Object.keys(updateData).forEach(function(key) {
+                                activityList.value[idx][key] = updateData[key];
+                            });
+                        }
+                    }
+                    modalVisible.value = false;
+                    ElMessage.success('配置已保存');
+                };
+
+                var openBlacklistModal = function(row) {
+                    currentActivityId.value = row.id;
+                    currentActivityName.value = row.name;
+                    blacklistUsers.value = '';
+                    blacklistModalVisible.value = true;
+                };
+
+                var saveBlacklist = function() {
+                    blacklistModalVisible.value = false;
+                    message('名单配置已保存');
+                };
+
+                var syncViewSwitch = function(field) {
+                    if (modalMode.value !== 'view' || !formData.id) return;
+                    var idx = activityList.value.findIndex(function(item) { return item.id === formData.id; });
+                    if (idx === -1) return;
+                    activityList.value[idx][field] = formData[field];
+                    ElMessage.success('状态已更新');
+                };
+
+                var viewDetail = function(row) {
+                    currentActivityId.value = row.id;
+                    currentActivityName.value = row.name;
+                    Object.keys(row).forEach(function(key) { formData[key] = row[key]; });
+                    modalMode.value = 'view';
+                    currentStep.value = 0;
+                    modalVisible.value = true;
+                };
+                var viewHistory = function(row) { historyModalVisible.value = true; };
+                var viewRewardData = function(row) {
+                    rewardActivity.value = row;
+                    rewardModalVisible.value = true;
+                };
+
+                var confirmReward = function() {
+                    if (!rewardActivity.value) return;
+                    rewardActivity.value.settlementStatus = '已发放';
+                    rewardModalVisible.value = false;
+                    ElMessage.success('发奖成功');
+                };
+
+                var exportHistoryData = function() {
+                    var headers = ['期数', '周期时间', '状态'];
+                    var data = historyList.value.map(function(r) {
+                        return [r.period, r.time, r.status === 'completed' ? '已发放' : '结算中'];
+                    });
+                    exportToExcel('交易大赛历史记录', headers, data);
+                };
+
+                var exportRoundDetail = function(row) {
+                    var platforms = ['本平台', '三方平台A', '三方平台B', '三方平台C'];
+                    var data = [];
+                    // Header row
+                    data.push(['排名', '用户ID', '用户昵称', '交易量', '盈亏额', '预计奖励', '三方平台']);
+                    data.push(['']);
+                    for (var i = 1; i <= 50; i++) {
+                        var rank = i;
+                        var userId = 'User_' + (1000 + i);
+                        var userName = '用户' + i + '号';
+                        var volume = (Math.random() * 100000).toFixed(2);
+                        var pnl = ((Math.random() - 0.5) * 50000).toFixed(2);
+                        var reward = (Math.random() * 5000).toFixed(2);
+                        var platform = platforms[Math.floor(Math.random() * platforms.length)];
+                        data.push([rank, userId, userName, volume, '$' + pnl, '$' + reward, platform]);
+                    }
+                    var csv = '';
+                    data.forEach(function(r) { csv += r.join('\t') + '\n'; });
+                    var blob = new Blob(['\uFEFF' + csv], { type: 'application/vnd.ms-excel' });
+                    var link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = '奖池' + row.period + '期分奖详情_' + new Date().toISOString().slice(0,10) + '.xls';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    ElMessage.success('导出成功');
+                };
+
+                var issueRewardForPeriod = function(index) {
+                    var row = historyList.value[index];
+                    ElMessageBox.confirm('确认对 ' + row.period + ' 期进行发奖？发奖后状态将变更为"已发放"。', '确认发奖', {
+                        confirmButtonText: '确认',
+                        cancelButtonText: '取消',
+                        type: 'warning'
+                    }).then(function() {
+                        row.status = 'completed';
+                        ElMessage.success(row.period + ' 期发奖成功');
+                    }).catch(function() {});
+                };
+
+                var exportToExcel = function(filename, headers, data) {
+                    var csv = headers.join('\t') + '\n';
+                    data.forEach(function(row) { csv += row.join('\t') + '\n'; });
+                    var blob = new Blob(['\uFEFF' + csv], { type: 'application/vnd.ms-excel' });
+                    var link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = filename + '_' + new Date().toISOString().slice(0,10) + '.xls';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    ElMessage.success('导出成功');
+                };
+
+                return {
+                    currentView: currentView,
+                    modalMode: modalMode,
+                    pageTitle: pageTitle,
+                    modalVisible: modalVisible,
+                    modalTitle: modalTitle,
+                    blacklistModalVisible: blacklistModalVisible,
+                    historyModalVisible: historyModalVisible,
+                    rewardModalVisible: rewardModalVisible,
+                    rewardActivity: rewardActivity,
+                    currentStep: currentStep,
+                    filter: filter,
+                    formData: formData,
+                    activityList: activityList,
+                    historyList: historyList,
+                    filteredActivities: filteredActivities,
+                    countByStatus: countByStatus,
+                    countPending: countPending,
+                    countSettling: countSettling,
+                    totalWinners: totalWinners,
+                    totalPendingRewards: totalPendingRewards,
+                    endTimeDisplay: endTimeDisplay,
+                    statusTagType: statusTagType,
+                    statusLabel: statusLabel,
+                    canEdit: canEdit,
+                    resetFilter: resetFilter,
+                    message: message,
+                    addRewardRule: addRewardRule,
+                    removeRewardRule: removeRewardRule,
+                    openCreateModal: openCreateModal,
+                    openEditModal: openEditModal,
+                    prevStep: prevStep,
+                    nextStep: nextStep,
+                    saveConfig: saveConfig,
+                    openBlacklistModal: openBlacklistModal,
+                    saveBlacklist: saveBlacklist,
+                    syncViewSwitch: syncViewSwitch,
+                    blacklistUsers: blacklistUsers,
+                    currentActivityName: currentActivityName,
+                    viewDetail: viewDetail,
+                    viewHistory: viewHistory,
+                    viewRewardData: viewRewardData,
+                    confirmReward: confirmReward,
+                    exportHistoryData: exportHistoryData,
+                    exportRoundDetail: exportRoundDetail,
+                    issueRewardForPeriod: issueRewardForPeriod
+                };
+            }
+        });
+
+        app.use(ElementPlus);
+        app.mount('#app');
+    </script>
+</body>
+</html>

@@ -1,0 +1,2124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>代理管理后台</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css" />
+    <script src="https://unpkg.com/element-plus"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@element-plus/icons-vue"></script>
+    <style>
+        .el-menu { border-right: none !important; }
+        .el-sub-menu__title { padding-left: 20px !important; }
+        .el-menu > .el-menu-item { padding-left: 20px !important; }
+        .el-sub-menu .el-menu-item {
+            padding-left: 64px !important;
+            background-color: #000c17 !important;
+            min-width: 200px;
+        }
+        .el-sub-menu .el-menu-item:hover { background-color: #001529 !important; color: #fff !important; }
+        .el-menu-item.is-active { background-color: #1890ff !important; color: #fff !important; }
+        [v-cloak] { display: none; }
+        .stat-box { border-radius: 8px; padding: 20px 24px; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.06); position: relative; }
+        .stat-box .stat-icon { position: absolute; right: 20px; top: 20px; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+        .stat-box .stat-label { font-size: 13px; color: #666; }
+        .stat-box .stat-value { font-size: 24px; font-weight: 700; color: #333; margin-top: 4px; }
+        .profit-green { color: #52c41a; font-weight: 600; }
+        .tag-ngr { background: #e8f5e9; color: #2e7d32; border: none; }
+        .tag-ppl { background: #fff3e0; color: #e65100; border: none; }
+        .tag-updown { background: #fce4ec; color: #c62828; border: none; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <div id="app" v-cloak class="min-h-screen flex">
+        <aside class="w-52 bg-[#001529] text-white flex-shrink-0 flex flex-col">
+            <div class="h-14 flex items-center justify-center border-b border-gray-700">
+                <div class="flex items-center space-x-2">
+                    <div class="w-7 h-7 bg-gradient-to-tr from-blue-500 to-purple-600 rounded flex items-center justify-center font-bold text-sm">D</div>
+                    <span class="text-lg font-bold">Detrade</span>
+                </div>
+            </div>
+            <el-scrollbar class="flex-1">
+                <el-menu
+                    :default-active="currentPage"
+                    background-color="#001529"
+                    text-color="#fff"
+                    active-text-color="#409EFF"
+                    class="border-r-0"
+                >
+                    <el-sub-menu index="1">
+                        <template #title>
+                            <el-icon><el-icon-data-board /></el-icon>
+                            <span>运营看板</span>
+                        </template>
+                    </el-sub-menu>
+                    <el-sub-menu index="2">
+                        <template #title>
+                            <el-icon><el-icon-wallet /></el-icon>
+                            <span>备用金概览</span>
+                        </template>
+                    </el-sub-menu>
+                    <el-sub-menu index="agency" :default-openeds="['agency']">
+                        <template #title>
+                            <el-icon><el-icon-share /></el-icon>
+                            <span>代理中心</span>
+                        </template>
+                        <el-menu-item index="agent-manage" @click="currentPage = 'agent-manage'">
+                            <span class="ml-1">代理管理</span>
+                        </el-menu-item>
+                        <el-menu-item index="normal-invite" @click="currentPage = 'normal-invite'">
+                            <span class="ml-1">普通邀请管理</span>
+                        </el-menu-item>
+                    </el-sub-menu>
+                    <el-sub-menu index="user" :default-openeds="['user']">
+                        <template #title>
+                            <el-icon><el-icon-user /></el-icon>
+                            <span>用户管理</span>
+                        </template>
+                        <el-menu-item index="user-list" @click="currentPage = 'user-list'">
+                            <span class="ml-1">用户列表</span>
+                        </el-menu-item>
+                    </el-sub-menu>
+                </el-menu>
+            </el-scrollbar>
+        </aside>
+
+        <div class="flex-1 flex flex-col min-w-0 bg-[#f5f7fa]">
+            <header class="bg-[#1a1f36] h-14 flex items-center justify-end px-6 border-b border-gray-700 sticky top-0 z-10">
+                <!-- 右侧用户信息 -->
+                <div class="flex items-center gap-3">
+                    <span class="text-sm text-gray-300">你好, Admin</span>
+                    <el-avatar size="small" class="bg-blue-500">A</el-avatar>
+                </div>
+            </header>
+
+            <main class="flex-1 overflow-y-auto p-5 pt-16">
+
+                <!-- 顶部标签导航 -->
+                <div class="bg-white rounded-lg shadow-sm mb-4">
+                    <div class="flex items-center border-b overflow-x-auto" style="min-height: 44px;">
+                        <div class="flex items-center gap-1 px-4 py-2 cursor-pointer whitespace-nowrap text-sm text-gray-500 hover:text-gray-700" @click="currentPage = 'currency-manage'">
+                            <span>货币管理</span>
+                            <el-icon><el-icon-close /></el-icon>
+                        </div>
+                        <div class="flex items-center gap-1 px-4 py-2 bg-blue-50 border-b-2 border-blue-500 cursor-pointer whitespace-nowrap text-sm text-blue-500 font-medium" @click="currentPage = 'agent-manage'">
+                            <span>代理管理</span>
+                            <el-icon><el-icon-close /></el-icon>
+                        </div>
+                        <div class="flex items-center gap-1 px-4 py-2 cursor-pointer whitespace-nowrap text-sm text-gray-500 hover:text-gray-700" @click="currentPage = 'agent-detail'">
+                            <span>代理管理详情</span>
+                            <el-icon><el-icon-close /></el-icon>
+                        </div>
+                        <div class="flex items-center gap-1 px-4 py-2 cursor-pointer whitespace-nowrap text-sm text-gray-500 hover:text-gray-700" @click="currentPage = 'flex-config'">
+                            <span>灵活配置</span>
+                            <el-icon><el-icon-close /></el-icon>
+                        </div>
+                        <div class="flex items-center gap-1 px-4 py-2 cursor-pointer whitespace-nowrap text-sm text-gray-500 hover:text-gray-700" @click="currentPage = 'agent-overview'">
+                            <span>代理概况</span>
+                            <el-icon><el-icon-close /></el-icon>
+                        </div>
+                        <div class="flex items-center gap-1 px-4 py-2 cursor-pointer whitespace-nowrap text-sm text-gray-500 hover:text-gray-700" @click="currentPage = 'commission-overview'">
+                            <span>返佣概况</span>
+                            <el-icon><el-icon-close /></el-icon>
+                        </div>
+                        <div class="flex items-center gap-1 px-4 py-2 cursor-pointer whitespace-nowrap text-sm text-gray-500 hover:text-gray-700" @click="currentPage = 'user-list'">
+                            <span>用户列表</span>
+                            <el-icon><el-icon-close /></el-icon>
+                        </div>
+                        <div class="flex items-center gap-1 px-4 py-2 cursor-pointer whitespace-nowrap text-sm text-gray-500 hover:text-gray-700" @click="currentPage = 'invoice-manage'">
+                            <span>发票管理</span>
+                            <el-icon><el-icon-close /></el-icon>
+                        </div>
+                        <div class="flex items-center gap-1 px-4 py-2 cursor-pointer whitespace-nowrap text-sm text-gray-500 hover:text-gray-700" @click="currentPage = 'task-config'">
+                            <span>任务配置</span>
+                            <el-icon><el-icon-close /></el-icon>
+                        </div>
+                        <div class="flex items-center gap-1 px-4 py-2 cursor-pointer whitespace-nowrap text-sm text-gray-500 hover:text-gray-700" @click="currentPage = 'activity-config'">
+                            <span>活动配置</span>
+                            <el-icon><el-icon-close /></el-icon>
+                        </div>
+                        <div class="flex items-center gap-1 px-4 py-2 cursor-pointer whitespace-nowrap text-sm text-gray-500 hover:text-gray-700" @click="currentPage = 'trade-pair-config'">
+                            <span>交易对配置</span>
+                            <el-icon><el-icon-close /></el-icon>
+                        </div>
+                        <div class="flex items-center gap-1 px-4 py-2 cursor-pointer whitespace-nowrap text-sm text-gray-500 hover:text-gray-700" @click="currentPage = 'trade-pair-manage'">
+                            <span>交易对管理</span>
+                            <el-icon><el-icon-close /></el-icon>
+                        </div>
+                        <div class="flex items-center gap-1 px-4 py-2 bg-blue-50 border-b-2 border-blue-500 cursor-pointer whitespace-nowrap text-sm text-blue-500 font-medium" @click="currentPage = 'normal-invite'">
+                            <span>普通邀请管理</span>
+                            <el-icon><el-icon-close /></el-icon>
+                        </div>
+                        <div class="flex items-center gap-1 px-4 py-2 cursor-pointer whitespace-nowrap text-sm text-gray-500 hover:text-gray-700" @click="currentPage = 'simulator-monitor'">
+                            <span>仿真机监控</span>
+                            <el-icon><el-icon-close /></el-icon>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-if="currentPage === 'agent-manage'">
+                    <div class="grid grid-cols-7 gap-4 mb-5">
+                        <div class="stat-box">
+                            <div class="stat-icon bg-blue-50 text-blue-500"><el-icon><el-icon-user /></el-icon></div>
+                            <div class="stat-label">商务总数</div>
+                            <div class="stat-value">{{ bdList.length }}</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-icon bg-purple-50 text-purple-500"><el-icon><el-icon-user-filled /></el-icon></div>
+                            <div class="stat-label">一级代理总数</div>
+                            <div class="stat-value">{{ tier1List.length }}</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-icon bg-green-50 text-green-500"><el-icon><el-icon-user /></el-icon></div>
+                            <div class="stat-label">二级代理总数</div>
+                            <div class="stat-value">{{ tier2List.length }}</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-icon bg-orange-50 text-orange-500"><el-icon><el-icon-money /></el-icon></div>
+                            <div class="stat-label">NGR返佣</div>
+                            <div class="stat-value text-green-600">{{ formatNum(ngrTotal) }} <span class="text-xs font-normal text-gray-400">USDT</span></div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-icon bg-cyan-50 text-cyan-500"><el-icon><el-icon-coin /></el-icon></div>
+                            <div class="stat-label">PPL返佣</div>
+                            <div class="stat-value text-green-600">{{ formatNum(pplTotal) }} <span class="text-xs font-normal text-gray-400">USDT</span></div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-icon bg-yellow-50 text-yellow-500"><el-icon><el-icon-trend-charts /></el-icon></div>
+                            <div class="stat-label">UPDOWN返佣</div>
+                            <div class="stat-value text-green-600">{{ formatNum(updownTotal) }} <span class="text-xs font-normal text-gray-400">USDT</span></div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-icon bg-pink-50 text-pink-500"><el-icon><el-icon-wallet-filled /></el-icon></div>
+                            <div class="stat-label">总返佣金额</div>
+                            <div class="stat-value text-green-600">{{ formatNum(commissionTotal) }} <span class="text-xs font-normal text-gray-400">USDT</span></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow-sm p-4 mb-4">
+                        <div class="flex items-center gap-4">
+                            <div class="flex items-center">
+                                <span class="text-sm text-gray-600 mr-2 whitespace-nowrap">代理等级:</span>
+                                <el-select v-model="agentLevelFilter" size="small" style="width: 140px">
+                                    <el-option label="商务" value="bd"></el-option>
+                                    <el-option label="1级代理" value="tier1"></el-option>
+                                    <el-option label="2级代理" value="tier2"></el-option>
+                                </el-select>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="text-sm text-gray-600 mr-2 whitespace-nowrap">UID:</span>
+                                <el-input v-model="uidFilter" placeholder="请输入UID" clearable size="small" style="width: 180px"></el-input>
+                            </div>
+                            <div class="ml-auto flex gap-2">
+                                <el-button type="primary" size="small" @click="handleSearch">查询</el-button>
+                                <el-button size="small" @click="resetFilter">重置</el-button>
+                                <el-button type="primary" size="small" @click="openAddAgent">
+                                    <el-icon class="mr-1"><el-icon-plus /></el-icon> 添加代理
+                                </el-button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow-sm">
+                        <el-table :data="filteredAgentList" stripe style="width: 100%" :header-cell-style="{background:'#fafafa',color:'#666',fontSize:'13px'}">
+                            <template v-if="agentLevelFilter === 'bd'">
+                                <el-table-column label="代理等级" width="90" align="center">
+                                    <template #default="{ row }">
+                                        <el-tag type="warning" size="small">商务</el-tag>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="username" label="用户名" width="140"></el-table-column>
+                                <el-table-column prop="uid" label="UID" width="100"></el-table-column>
+                                <el-table-column label="1级人数" width="80" align="center">
+                                    <template #default="{ row }">{{ row.tier1Count }}</template>
+                                </el-table-column>
+                                <el-table-column label="2级人数" width="80" align="center">
+                                    <template #default="{ row }">{{ row.tier2Count }}</template>
+                                </el-table-column>
+                                <el-table-column label="团队总数" width="80" align="center">
+                                    <template #default="{ row }">{{ row.teamTotal }}</template>
+                                </el-table-column>
+                                <el-table-column label="团队AUM" width="120" align="right">
+                                    <template #default="{ row }"><span class="text-blue-600 font-semibold">${{ formatNum(row.teamAUM) }}</span></template>
+                                </el-table-column>
+                                <el-table-column label="NGR利润" width="100" align="right">
+                                    <template #default="{ row }"><span class="profit-green">${{ formatNum(row.ngrProfit) }}</span></template>
+                                </el-table-column>
+                                <el-table-column label="PPL利润" width="100" align="right">
+                                    <template #default="{ row }"><span class="profit-green">${{ formatNum(row.pplProfit) }}</span></template>
+                                </el-table-column>
+                                <el-table-column label="UP-DOWN利润" width="110" align="right">
+                                    <template #default="{ row }"><span class="profit-green">${{ formatNum(row.updownProfit) }}</span></template>
+                                </el-table-column>
+                                <el-table-column label="平台净利润" width="110" align="right">
+                                    <template #default="{ row }"><span class="font-bold">${{ formatNum(row.netProfit) }}</span></template>
+                                </el-table-column>
+                                <el-table-column prop="remark" label="备注" min-width="120" show-overflow-tooltip></el-table-column>
+                                <el-table-column label="状态" width="70" align="center">
+                                    <template #default="{ row }">
+                                        <el-tag :type="row.status === 'active' ? 'success' : 'danger'" size="small">{{ row.status === 'active' ? '正常' : '冻结' }}</el-tag>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column label="操作" width="80" align="center" fixed="right">
+                                    <template #default="{ row }">
+                                        <el-button link type="primary" size="small" @click="viewDetail(row)">详情</el-button>
+                                    </template>
+                                </el-table-column>
+                            </template>
+
+                            <template v-else>
+                                <el-table-column label="代理等级" width="90" align="center">
+                                    <template #default="{ row }">
+                                        <el-tag :type="row.level === 'tier1' ? 'primary' : 'success'" size="small">{{ row.levelLabel }}</el-tag>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="username" label="用户名" width="140"></el-table-column>
+                                <el-table-column prop="uid" label="UID" width="140"></el-table-column>
+                                <el-table-column label="商务/UID" width="180">
+                                    <template #default="{ row }">
+                                        <span class="text-sm">{{ getBDInfo(row.bdUid) }}</span>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="remark" label="备注" min-width="150" show-overflow-tooltip>
+                                    <template #default="{ row }">
+                                        <div class="flex items-center gap-1">
+                                            <span>{{ row.remark || '--' }}</span>
+                                            <el-button link type="primary" size="small">
+                                                <el-icon><el-icon-edit /></el-icon>
+                                            </el-button>
+                                        </div>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column label="下级代理数" width="90" align="center">
+                                    <template #default="{ row }">{{ row.tier2Count || row.childCount || 0 }}</template>
+                                </el-table-column>
+                                <el-table-column label="用户团队总数" width="100" align="center">
+                                    <template #default="{ row }">{{ row.teamUsers || row.childUsers || 0 }}</template>
+                                </el-table-column>
+                                <el-table-column label="返佣模式" width="180">
+                                    <template #default="{ row }">
+                                        <div class="flex gap-1">
+                                            <el-tag v-for="m in row.modes" :key="m" :class="'tag-' + m.toLowerCase()" size="small">{{ m }}</el-tag>
+                                        </div>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column label="NGR比例(%)" width="100" align="center">
+                                    <template #default="{ row }">
+                                        <span class="font-bold">{{ row.rates.NGR || '-' }}</span>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column label="PPL比例(%)" width="100" align="center">
+                                    <template #default="{ row }">
+                                        <span class="font-bold">{{ row.rates.PPL || '-' }}</span>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column label="UPDOWN比例(%)" width="110" align="center">
+                                    <template #default="{ row }">
+                                        <span class="font-bold">{{ row.rates.UPDOWN || '-' }}</span>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column label="状态" width="70" align="center">
+                                    <template #default="{ row }">
+                                        <el-tag :type="row.status === 'active' ? 'success' : 'danger'" size="small">{{ row.status === 'active' ? '正常' : '禁用' }}</el-tag>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column label="操作" width="180" fixed="right">
+                                    <template #default="{ row }">
+                                        <template v-if="row.level === 'tier1'">
+                                            <el-button link type="primary" size="small" @click="openSubAgentModal(row)">子代理列表</el-button>
+                                            <el-button link type="primary" size="small" @click="viewTier1Detail(row)">查看</el-button>
+                                            <el-button link type="primary" size="small" @click="openModifyRateModal(row)">修改比例</el-button>
+                                            <el-button link type="danger" size="small">锁定划转</el-button>
+                                        </template>
+                                        <template v-if="row.level === 'tier2'">
+                                            <el-button link type="primary" size="small">查看</el-button>
+                                            <el-button link type="primary" size="small" @click="openModifyRateModal(row)">修改比例</el-button>
+                                            <el-button link type="danger" size="small">锁定划转</el-button>
+                                        </template>
+                                    </template>
+                                </el-table-column>
+                            </template>
+                        </el-table>
+                        <div class="p-4 flex justify-end">
+                            <el-pagination layout="total, prev, pager, next" :total="filteredAgentList.length" :page-size="10"></el-pagination>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-if="currentPage === 'bd-detail'" class="space-y-4">
+                    <div class="flex items-center mb-2">
+                        <el-button type="primary" plain size="small" @click="currentPage = 'agent-manage'">
+                            <el-icon class="mr-1"><el-icon-arrow-left /></el-icon> 返回代理管理
+                        </el-button>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow-sm p-5">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-base font-bold border-l-4 border-blue-500 pl-3">商务信息</h3>
+                            <el-switch v-model="currentBD.status" active-value="active" inactive-value="frozen"
+                                active-text="启用" inactive-text="冻结" @change="toggleStatus" size="default"></el-switch>
+                        </div>
+                        <div class="grid grid-cols-4 gap-6">
+                            <div>
+                                <span class="text-xs text-gray-500">商务名称</span>
+                                <div class="text-base font-bold mt-1">{{ currentBD.username }}</div>
+                            </div>
+                            <div>
+                                <span class="text-xs text-gray-500">UID</span>
+                                <div class="text-base font-bold mt-1">{{ currentBD.uid }}</div>
+                            </div>
+                            <div>
+                                <span class="text-xs text-gray-500">注册时间</span>
+                                <div class="text-base mt-1">{{ currentBD.registerTime }}</div>
+                            </div>
+                            <div>
+                                <span class="text-xs text-gray-500">状态</span>
+                                <div class="mt-1">
+                                    <el-tag :type="currentBD.status === 'active' ? 'success' : 'danger'" size="small">
+                                        {{ currentBD.status === 'active' ? '启用' : '冻结' }}
+                                    </el-tag>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow-sm p-5">
+                        <h3 class="text-base font-bold border-l-4 border-green-500 pl-3 mb-4">数据统计</h3>
+                        <div class="grid grid-cols-4 gap-4">
+                            <div class="bg-blue-50 rounded-lg p-4">
+                                <div class="text-xs text-gray-500">下级人数</div>
+                                <div class="text-2xl font-bold text-blue-600 mt-1">{{ bdDetailData.totalSubs }}</div>
+                                <div class="text-xs text-green-500 mt-1">日涨幅: +{{ bdDetailData.dailyGrowth }}%</div>
+                            </div>
+                            <div class="bg-purple-50 rounded-lg p-4">
+                                <div class="text-xs text-gray-500">当期利润总额</div>
+                                <div class="text-2xl font-bold text-purple-600 mt-1">${{ formatNum(bdDetailData.totalProfit) }}</div>
+                            </div>
+                            <div class="bg-green-50 rounded-lg p-4">
+                                <div class="text-xs text-gray-500">团队AUM</div>
+                                <div class="text-2xl font-bold text-green-600 mt-1">${{ formatNum(bdDetailData.teamAUM) }}</div>
+                            </div>
+                            <div class="bg-orange-50 rounded-lg p-4">
+                                <div class="text-xs text-gray-500">平台净利润</div>
+                                <div class="text-2xl font-bold text-orange-600 mt-1">${{ formatNum(bdDetailData.netProfit) }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow-sm p-5">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-base font-bold border-l-4 border-orange-500 pl-3">一级代理列表</h3>
+                            <div class="flex gap-2">
+                                <el-button type="primary" size="small" @click="openAddTier1Modal">
+                                    <el-icon class="mr-1"><el-icon-plus /></el-icon> 添加一级代理
+                                </el-button>
+                                <el-button type="success" size="small" @click="openAddTier2FromBD">
+                                    <el-icon class="mr-1"><el-icon-plus /></el-icon> 添加二级代理
+                                </el-button>
+                            </div>
+                        </div>
+                        <el-table :data="bdDetailData.tier1Agents" stripe :header-cell-style="{background:'#fafafa',color:'#666',fontSize:'13px'}">
+                            <el-table-column prop="username" label="用户名" width="140"></el-table-column>
+                            <el-table-column prop="uid" label="UID" width="130"></el-table-column>
+                            <el-table-column label="返佣模式" width="180">
+                                <template #default="{ row }">
+                                    <div class="flex gap-1">
+                                        <el-tag v-for="m in row.modes" :key="m" :class="'tag-' + m.toLowerCase()" size="small">{{ m }}</el-tag>
+                                    </div>
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="返佣比例" min-width="200">
+                                <template #default="{ row }">
+                                    <div class="space-y-1">
+                                        <div v-for="m in row.modes" :key="m" class="flex items-center gap-2">
+                                            <span class="text-xs w-10">{{ m }}:</span>
+                                            <el-input-number v-model="row.rates[m]" :min="0" :max="100" :precision="2" size="small" style="width: 90px"
+                                                @change="saveRate(row, m)"></el-input-number>
+                                            <span class="text-xs">%</span>
+                                        </div>
+                                    </div>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="tier2Count" label="二级代理数" width="100" align="center"></el-table-column>
+                            <el-table-column prop="teamUsers" label="团队用户数" width="100" align="center"></el-table-column>
+                            <el-table-column prop="remark" label="备注" width="150" show-overflow-tooltip>
+                                <template #default="{ row }">
+                                    <div class="flex items-center gap-1">
+                                        <span>{{ row.remark || '--' }}</span>
+                                        <el-button link type="primary" size="small" @click="editRemark(row)">
+                                            <el-icon><el-icon-edit /></el-icon>
+                                        </el-button>
+                                    </div>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                    </div>
+                </div>
+
+                <div v-if="currentPage === 'tier1-detail'" class="space-y-4">
+                    <div class="flex items-center mb-2">
+                        <el-button type="primary" plain size="small" @click="currentPage = 'agent-manage'">
+                            <el-icon class="mr-1"><el-icon-arrow-left /></el-icon> 返回代理管理
+                        </el-button>
+                        <span class="ml-4 text-lg font-bold text-gray-900">一级代理详情</span>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow-sm p-5">
+                        <el-descriptions :column="4" border>
+                            <el-descriptions-item label="代理等级">一级代理</el-descriptions-item>
+                            <el-descriptions-item label="用户名">{{ tier1Detail.username }}</el-descriptions-item>
+                            <el-descriptions-item label="UID">{{ tier1Detail.uid }}</el-descriptions-item>
+                            <el-descriptions-item label="代理注册时间">{{ tier1Detail.registerTime }}</el-descriptions-item>
+                            <el-descriptions-item label="商务/UID" :span="tier1Detail.bdUid ? 1 : 3">
+                                <div v-if="tier1Detail.bdUid">
+                                    <span>{{ getBDInfo(tier1Detail.bdUid) }}</span>
+                                </div>
+                                <div v-else class="flex items-center gap-4">
+                                    <div class="flex items-center gap-2">
+                                        <el-icon class="text-orange-400 text-lg"><el-icon-warning-filled /></el-icon>
+                                        <span class="text-orange-500 font-medium">该一级代理暂未绑定商务</span>
+                                    </div>
+                                    <el-button type="primary" size="small" @click="openBindBDModal">
+                                        <el-icon class="mr-1"><el-icon-link /></el-icon> 立即绑定商务
+                                    </el-button>
+                                </div>
+                            </el-descriptions-item>
+                            <el-descriptions-item label="" v-if="tier1Detail.bdUid">
+                                <el-button type="primary" plain size="small" @click="openBindBDModal">
+                                    <el-icon class="mr-1"><el-icon-refresh /></el-icon> 换绑商务
+                                </el-button>
+                            </el-descriptions-item>
+                            <el-descriptions-item label="代理数">{{ tier1Detail.tier2Count }}</el-descriptions-item>
+                            <el-descriptions-item label="团队成员数">{{ tier1Detail.teamUsers }}</el-descriptions-item>
+                            <el-descriptions-item label="备注">
+                                <div class="flex items-center gap-1">
+                                    <span>{{ tier1Detail.remark || '--' }}</span>
+                                    <el-button link type="primary" size="small">
+                                        <el-icon><el-icon-edit /></el-icon>
+                                    </el-button>
+                                </div>
+                            </el-descriptions-item>
+                            <el-descriptions-item label="返佣模式">
+                                <div class="flex gap-1">
+                                    <el-tag v-for="m in tier1Detail.modes" :key="m" :class="'tag-' + m.toLowerCase()" size="small">{{ m }}</el-tag>
+                                </div>
+                            </el-descriptions-item>
+                            <el-descriptions-item label="当期NGR比例">{{ tier1Detail.rates?.NGR || 0 }}%</el-descriptions-item>
+                            <el-descriptions-item label="当期PPL比例">{{ tier1Detail.rates?.PPL || 0 }}%</el-descriptions-item>
+                            <el-descriptions-item label="当期UPDOWN比例">{{ tier1Detail.rates?.UPDOWN || 0 }}%</el-descriptions-item>
+                            <el-descriptions-item label="下期NGR比例">{{ tier1Detail.nextRates?.NGR || tier1Detail.rates?.NGR || 0 }}%</el-descriptions-item>
+                            <el-descriptions-item label="下期PPL比例">{{ tier1Detail.nextRates?.PPL || tier1Detail.rates?.PPL || 0 }}%</el-descriptions-item>
+                            <el-descriptions-item label="下期UPDOWN比例">{{ tier1Detail.nextRates?.UPDOWN || tier1Detail.rates?.UPDOWN || 0 }}%</el-descriptions-item>
+                            <el-descriptions-item label="累计净利润">{{ formatNum(tier1Detail.profitAmount) }} USDT</el-descriptions-item>
+                            <el-descriptions-item label="累计交易手续费">{{ formatNum(tier1Detail.feeAmount) }} USDT</el-descriptions-item>
+                            <el-descriptions-item label="总返佣金额">{{ formatNum(tier1Detail.totalCommission) }} USDT</el-descriptions-item>
+                            <el-descriptions-item label="平台净收益">
+                                {{ formatNum(tier1Detail.netEarning) }} USDT
+                                <div class="text-xs text-gray-400 mt-1">平台净收益=平台收益*(100% - 一级代理收益比例)</div>
+                            </el-descriptions-item>
+                        </el-descriptions>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow-sm p-5">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-base font-bold">下级代理列表({{ tier1Detail.tier2Count }})</h3>
+                            <div class="flex gap-2">
+                                <el-radio-group v-model="subAgentFilterType" size="small">
+                                    <el-radio-button label="all">全部</el-radio-button>
+                                    <el-radio-button label="single">单选</el-radio-button>
+                                </el-radio-group>
+                                <el-button type="primary" size="small" @click="openAddTier2FromTier1Detail">
+                                    <el-icon class="mr-1"><el-icon-plus /></el-icon> 添加二级代理
+                                </el-button>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="flex items-center">
+                                <span class="text-sm text-gray-600 mr-2 whitespace-nowrap">下级代理UID:</span>
+                                <el-input v-model="subAgentUidFilter" placeholder="" clearable size="small" style="width: 200px"></el-input>
+                            </div>
+                            <div class="ml-auto">
+                                <el-button type="primary" size="small">查询</el-button>
+                                <el-button size="small">重置</el-button>
+                            </div>
+                        </div>
+                        <el-table :data="filteredSubAgentList" stripe :header-cell-style="{background:'#fafafa',color:'#666',fontSize:'13px'}">
+                            <el-table-column prop="username" label="用户名" width="120"></el-table-column>
+                            <el-table-column prop="uid" label="UID" width="160"></el-table-column>
+                            <el-table-column prop="childUsers" label="团队用户数" width="100" align="center"></el-table-column>
+                            <el-table-column label="返佣模式" width="180">
+                                <template #default="{ row }">
+                                    <div class="flex gap-1">
+                                        <el-tag v-for="m in row.modes" :key="m" :class="'tag-' + m.toLowerCase()" size="small">{{ m }}</el-tag>
+                                    </div>
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="NGR比例(%)" width="110" align="center">
+                                <template #default="{ row }">
+                                    <span class="font-bold">{{ row.rates?.NGR || '-' }}</span>
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="PPL比例(%)" width="110" align="center">
+                                <template #default="{ row }">
+                                    <span class="font-bold">{{ row.rates?.PPL || '-' }}</span>
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="UPDOWN比例(%)" width="120" align="center">
+                                <template #default="{ row }">
+                                    <span class="font-bold">{{ row.rates?.UPDOWN || '-' }}</span>
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="状态" width="70" align="center">
+                                <template #default="{ row }">
+                                    <el-tag :type="row.status === 'active' ? 'success' : 'danger'" size="small">{{ row.status === 'active' ? '正常' : '禁用' }}</el-tag>
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="操作" width="200" fixed="right">
+                                <template #default="{ row }">
+                                    <el-button link type="primary" size="small" @click="openModifyRateModal(row)">修改比例</el-button>
+                                    <el-button link type="danger" size="small">锁定划转</el-button>
+                                    <el-button link type="warning" size="small">···</el-button>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                    </div>
+                </div>
+
+                <!-- 用户管理 - 用户列表 -->
+                <div v-if="currentPage === 'user-list'" class="space-y-4">
+                    <!-- 顶部标签导航 -->
+                    <div class="bg-white rounded-lg shadow-sm">
+                        <div class="flex items-center border-b overflow-x-auto" style="min-height: 44px;">
+                            <div class="flex items-center gap-1 px-4 py-2 cursor-pointer whitespace-nowrap text-sm text-gray-500 hover:text-gray-700" @click="currentPage = 'currency-manage'">
+                                <span>货币管理</span>
+                                <el-icon><el-icon-close /></el-icon>
+                            </div>
+                            <div class="flex items-center gap-1 px-4 py-2 cursor-pointer whitespace-nowrap text-sm text-gray-500 hover:text-gray-700" @click="currentPage = 'agent-manage'">
+                                <span>代理管理</span>
+                                <el-icon><el-icon-close /></el-icon>
+                            </div>
+                            <div class="flex items-center gap-1 px-4 py-2 cursor-pointer whitespace-nowrap text-sm text-gray-500 hover:text-gray-700" @click="currentPage = 'agent-detail'">
+                                <span>代理管理详情</span>
+                                <el-icon><el-icon-close /></el-icon>
+                            </div>
+                            <div class="flex items-center gap-1 px-4 py-2 cursor-pointer whitespace-nowrap text-sm text-gray-500 hover:text-gray-700" @click="currentPage = 'flex-config'">
+                                <span>灵活配置</span>
+                                <el-icon><el-icon-close /></el-icon>
+                            </div>
+                            <div class="flex items-center gap-1 px-4 py-2 cursor-pointer whitespace-nowrap text-sm text-gray-500 hover:text-gray-700" @click="currentPage = 'agent-overview'">
+                                <span>代理概况</span>
+                                <el-icon><el-icon-close /></el-icon>
+                            </div>
+                            <div class="flex items-center gap-1 px-4 py-2 cursor-pointer whitespace-nowrap text-sm text-gray-500 hover:text-gray-700" @click="currentPage = 'commission-overview'">
+                                <span>返佣概况</span>
+                                <el-icon><el-icon-close /></el-icon>
+                            </div>
+                            <div class="flex items-center gap-1 px-4 py-2 bg-blue-50 border-b-2 border-blue-500 cursor-pointer whitespace-nowrap text-sm text-blue-500 font-medium" @click="currentPage = 'user-list'">
+                                <span>用户列表</span>
+                                <el-icon><el-icon-close /></el-icon>
+                            </div>
+                            <div class="flex items-center gap-1 px-4 py-2 cursor-pointer whitespace-nowrap text-sm text-gray-500 hover:text-gray-700" @click="currentPage = 'invoice-manage'">
+                                <span>发票管理</span>
+                                <el-icon><el-icon-close /></el-icon>
+                            </div>
+                            <div class="flex items-center gap-1 px-4 py-2 cursor-pointer whitespace-nowrap text-sm text-gray-500 hover:text-gray-700" @click="currentPage = 'task-config'">
+                                <span>任务配置</span>
+                                <el-icon><el-icon-close /></el-icon>
+                            </div>
+                            <div class="flex items-center gap-1 px-4 py-2 cursor-pointer whitespace-nowrap text-sm text-gray-500 hover:text-gray-700" @click="currentPage = 'activity-config'">
+                                <span>活动配置</span>
+                                <el-icon><el-icon-close /></el-icon>
+                            </div>
+                            <div class="flex items-center gap-1 px-4 py-2 cursor-pointer whitespace-nowrap text-sm text-gray-500 hover:text-gray-700" @click="currentPage = 'trade-pair-config'">
+                                <span>交易对配置</span>
+                                <el-icon><el-icon-close /></el-icon>
+                            </div>
+                            <div class="flex items-center gap-1 px-4 py-2 cursor-pointer whitespace-nowrap text-sm text-gray-500 hover:text-gray-700" @click="currentPage = 'trade-pair-manage'">
+                                <span>交易对管理</span>
+                                <el-icon><el-icon-close /></el-icon>
+                            </div>
+                            <div class="flex items-center gap-1 px-4 py-2 cursor-pointer whitespace-nowrap text-sm text-gray-500 hover:text-gray-700" @click="currentPage = 'normal-invite'">
+                                <span>普通邀请管理</span>
+                                <el-icon><el-icon-close /></el-icon>
+                            </div>
+                            <div class="flex items-center gap-1 px-4 py-2 cursor-pointer whitespace-nowrap text-sm text-gray-500 hover:text-gray-700" @click="currentPage = 'simulator-monitor'">
+                                <span>仿真机监控</span>
+                                <el-icon><el-icon-close /></el-icon>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 筛选条件 -->
+                    <div class="bg-white rounded-lg shadow-sm p-5">
+                        <el-form :model="userFilter" inline label-width="80px" size="small">
+                            <el-form-item label="用户ID">
+                                <el-input v-model="userFilter.userId" placeholder="请输入用户ID(多个用户用逗号分隔)" style="width: 220px"></el-input>
+                            </el-form-item>
+                            <el-form-item label="昵称">
+                                <el-input v-model="userFilter.nickname" placeholder="请输入昵称" style="width: 160px"></el-input>
+                            </el-form-item>
+                            <el-form-item label="邮箱">
+                                <el-input v-model="userFilter.email" placeholder="请输入邮箱" style="width: 180px"></el-input>
+                            </el-form-item>
+                            <el-form-item label="邀请人ID">
+                                <el-input v-model="userFilter.inviterId" placeholder="请输入邀请人ID" style="width: 160px"></el-input>
+                            </el-form-item>
+                            <el-form-item label="等级">
+                                <el-select v-model="userFilter.level" placeholder="请输入等级" style="width: 140px">
+                                    <el-option label="全部" value=""></el-option>
+                                    <el-option label="1" value="1"></el-option>
+                                    <el-option label="2" value="2"></el-option>
+                                    <el-option label="3" value="3"></el-option>
+                                </el-select>
+                            </el-form-item>
+                            <el-form-item label="注册方式">
+                                <el-select v-model="userFilter.regType" placeholder="请输入注册方式" style="width: 160px">
+                                    <el-option label="全部" value=""></el-option>
+                                    <el-option label="email" value="email"></el-option>
+                                    <el-option label="phone" value="phone"></el-option>
+                                </el-select>
+                            </el-form-item>
+                            <el-form-item label="时间范围">
+                                <el-date-picker v-model="userFilter.dateRange" type="daterange" start-placeholder="开始日期" end-placeholder="结束日期" style="width: 280px"></el-date-picker>
+                            </el-form-item>
+                            <el-form-item label="注册国家">
+                                <el-input v-model="userFilter.regCountry" placeholder="请输入注册国家" style="width: 140px"></el-input>
+                            </el-form-item>
+                            <el-form-item label="渠道码">
+                                <el-input v-model="userFilter.channelCode" placeholder="请输入渠道码" style="width: 140px"></el-input>
+                            </el-form-item>
+                            <el-form-item label="原密码">
+                                <el-input v-model="userFilter.oldPassword" placeholder="请输入原密码" style="width: 160px"></el-input>
+                            </el-form-item>
+                            <el-form-item>
+                                <el-button type="primary">查询</el-button>
+                                <el-button @click="resetUserFilter">重置</el-button>
+                            </el-form-item>
+                        </el-form>
+                    </div>
+
+                    <!-- 用户列表 -->
+                    <div class="bg-white rounded-lg shadow-sm p-5">
+                        <el-table :data="filteredUserList" stripe :header-cell-style="{background:'#fafafa',color:'#666',fontSize:'13px'}" :row-key="row => row.uid">
+                            <!-- 用户信息列 -->
+                            <el-table-column label="用户信息" width="320">
+                                <template #default="{ row }">
+                                    <div class="py-2 text-sm leading-relaxed space-y-1">
+                                        <div>用户ID <span class="text-blue-500 cursor-pointer">{{ row.uid }}</span></div>
+                                        <div>昵称 <span class="text-blue-500 cursor-pointer">{{ row.nickname || '-' }}</span></div>
+                                        <div>注册方式 <span class="text-blue-500 cursor-pointer">{{ row.regType || '-' }}</span></div>
+                                        <div>邮箱 <span class="text-blue-500 cursor-pointer">{{ row.email || '-' }}</span></div>
+                                        <div>等级 <span class="text-blue-500 cursor-pointer">{{ row.level || '-' }}</span></div>
+                                        <div>渠道码 <span class="text-blue-500 cursor-pointer">{{ row.channelCode || '-' }}</span></div>
+                                        <div>备注 {{ row.remark || '-' }}</div>
+                                    </div>
+                                </template>
+                            </el-table-column>
+                            
+                            <!-- 邀请信息列 -->
+                            <el-table-column label="邀请信息" width="200">
+                                <template #default="{ row }">
+                                    <div class="py-2 text-sm leading-relaxed space-y-1">
+                                        <div>上级ID <span class="text-blue-500 cursor-pointer">{{ row.inviterId || '-' }}</span></div>
+                                        <div>邀请码 <span class="text-blue-500 cursor-pointer">{{ row.inviteCode || '-' }}</span></div>
+                                        <div>直推人数 {{ row.directInviteCount || 0 }}</div>
+                                        <div>直推充值金额 {{ row.directDepositAmount ? formatNum(row.directDepositAmount) : '-' }}</div>
+                                        <div>认证等级 {{ row.authLevel || '-' }}</div>
+                                    </div>
+                                </template>
+                            </el-table-column>
+                            
+                            <!-- 充提信息列 -->
+                            <el-table-column label="充提信息" width="300">
+                                <template #default="{ row }">
+                                    <div class="py-2 text-sm leading-relaxed space-y-1">
+                                        <div>充值次数/充值金额</div>
+                                        <div class="ml-4">{{ row.depositCount || 0 }}/{{ row.depositAmount ? formatNum(row.depositAmount) : 0 }}</div>
+                                        <div>提现次数/提现金额(成功)</div>
+                                        <div class="ml-4 text-green-600">{{ row.withdrawCountSuccess || 0 }}/{{ row.withdrawAmountSuccess ? formatNum(row.withdrawAmountSuccess) : 0 }}</div>
+                                        <div>提现次数/提现金额(待审批)</div>
+                                        <div class="ml-4 text-orange-600">{{ row.withdrawCountPending || 0 }}/{{ row.withdrawAmountPending ? formatNum(row.withdrawAmountPending) : 0 }}</div>
+                                        <div>余额 {{ row.balance ? formatNum(row.balance) : 0 }} <el-icon class="text-gray-400 cursor-pointer ml-1"><el-icon-info-filled /></el-icon></div>
+                                        <div>奖励金余额/可提现奖励金</div>
+                                        <div class="ml-4">{{ row.rewardBalance ? formatNum(row.rewardBalance) : 0 }}/{{ row.withdrawableReward ? formatNum(row.withdrawableReward) : 0 }}</div>
+                                        <div>手续费费率 {{ row.feeRate || '-' }}</div>
+                                    </div>
+                                </template>
+                            </el-table-column>
+                            
+                            <!-- 状态信息列 -->
+                            <el-table-column label="状态信息" width="280">
+                                <template #default="{ row }">
+                                    <div class="py-2 text-sm leading-relaxed space-y-1">
+                                        <div>注册IP <span class="text-blue-500 cursor-pointer">{{ row.regIp || '-' }}</span> <span v-if="row.regCountry" class="text-red-500">({{ row.regCountry }})</span></div>
+                                        <div>最后登录 {{ row.lastLogin || '-' }}</div>
+                                        <div>注册国家 {{ row.regCountry || '-' }}</div>
+                                        <div>注册时间 {{ row.regTime || '-' }}</div>
+                                    </div>
+                                </template>
+                            </el-table-column>
+                            
+                            <!-- 操作列 -->
+                            <el-table-column label="操作" width="160" fixed="right">
+                                <template #default="{ row }">
+                                    <div class="space-y-1">
+                                        <el-button link type="primary" size="small">查询</el-button>
+                                        <el-button link type="primary" size="small">重置密码</el-button>
+                                        <el-button link type="primary" size="small">更新备注</el-button>
+                                        <el-button link type="primary" size="small">交易流水</el-button>
+                                    </div>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                        <div class="p-4 flex justify-end">
+                            <el-pagination layout="total, prev, pager, next" :total="userList.length" :page-size="10"></el-pagination>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 普通用户邀请管理 -->
+                <div v-if="currentPage === 'normal-invite'" class="space-y-4">
+                    <!-- 统计概览卡片 -->
+                    <div class="grid grid-cols-4 gap-4">
+                        <div class="stat-box">
+                            <div class="stat-icon bg-blue-50 text-blue-500"><el-icon><el-icon-user /></el-icon></div>
+                            <div class="stat-label">邀请人数量</div>
+                            <div class="stat-value">{{ inviteStats.inviterCount }}</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-icon bg-green-50 text-green-500"><el-icon><el-icon-user-filled /></el-icon></div>
+                            <div class="stat-label">团队数量</div>
+                            <div class="stat-value">{{ inviteStats.inviteeCount }}</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-icon bg-orange-50 text-orange-500"><el-icon><el-icon-coin /></el-icon></div>
+                            <div class="stat-label">平台净盈利</div>
+                            <div class="stat-value text-green-600">{{ formatNum(inviteStats.platformNetProfit) }} <span class="text-xs font-normal text-gray-400">USDT</span></div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-icon bg-purple-50 text-purple-500"><el-icon><el-icon-wallet-filled /></el-icon></div>
+                            <div class="stat-label">总佣金</div>
+                            <div class="stat-value text-green-600">{{ formatNum(inviteStats.totalCommission) }} <span class="text-xs font-normal text-gray-400">USDT</span></div>
+                        </div>
+                    </div>
+
+                    <!-- 筛选条件 -->
+                    <div class="bg-white rounded-lg shadow-sm p-4">
+                        <div class="flex items-center gap-4 flex-wrap">
+                            <div class="flex items-center">
+                                <span class="text-sm text-gray-600 mr-2 whitespace-nowrap">名称:</span>
+                                <el-input v-model="inviteFilter.name" placeholder="请输入名称" clearable size="small" style="width: 160px"></el-input>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="text-sm text-gray-600 mr-2 whitespace-nowrap">UID:</span>
+                                <el-input v-model="inviteFilter.uid" placeholder="请输入UID" clearable size="small" style="width: 160px"></el-input>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="text-sm text-gray-600 mr-2 whitespace-nowrap">邀请码:</span>
+                                <el-input v-model="inviteFilter.inviteCode" placeholder="请输入邀请码" clearable size="small" style="width: 160px"></el-input>
+                            </div>
+                            <div class="ml-auto flex gap-2">
+                                <el-button type="primary" size="small" @click="handleInviteSearch">查询</el-button>
+                                <el-button size="small" @click="resetInviteFilter">重置</el-button>
+                                <el-button size="small" @click="exportInviteData">导出</el-button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 邀请人列表 -->
+                    <div class="bg-white rounded-lg shadow-sm">
+                        <div class="px-4 pt-4 pb-2 border-b border-gray-100">
+                            <h3 class="text-base font-bold border-l-4 border-blue-500 pl-3">邀请人列表</h3>
+                        </div>
+                        <el-table :data="filteredInviteList" stripe style="width: 100%" :header-cell-style="{background:'#fafafa',color:'#666',fontSize:'13px'}">
+                            <el-table-column prop="name" label="名称" width="150"></el-table-column>
+                            <el-table-column prop="uid" label="UID" width="160"></el-table-column>
+                            <el-table-column prop="inviteCode" label="邀请码" width="120" align="center">
+                                <template #default="{ row }">
+                                    <span class="text-blue-500 cursor-pointer">{{ row.inviteCode }}</span>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="inviteCount" label="邀请人数" width="100" align="center">
+                                <template #default="{ row }">
+                                    <span class="font-bold text-blue-600">{{ row.inviteCount }}</span>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="teamDepositTotal" label="团队充值总额" width="140" align="right">
+                                <template #default="{ row }">
+                                    <span class="font-semibold">{{ formatNum(row.teamDepositTotal) }} USDT</span>
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="团队账户余额" width="140" align="right">
+                                <template #default="{ row }">
+                                    <span class="font-semibold">{{ formatNum(row.teamAccountBalance) }} USDT</span>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="platformProfit" label="平台利润" width="130" align="right">
+                                <template #default="{ row }">
+                                    <span class="profit-green">{{ formatNum(row.platformProfit) }} USDT</span>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="commissionPaid" label="已发放返佣" width="130" align="right">
+                                <template #default="{ row }">
+                                    <span class="text-orange-600 font-semibold">{{ formatNum(row.commissionPaid) }} USDT</span>
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="操作" width="100" fixed="right" align="center">
+                                <template #default="{ row }">
+                                    <el-button link type="primary" size="small" @click="viewInviteeDetail(row)">团队详情</el-button>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                        <div class="p-4 flex justify-between items-center">
+                            <div class="text-sm text-gray-600">
+                                共 <span class="font-bold">{{ filteredInviteList.length }}</span> 条记录
+                            </div>
+                            <el-pagination layout="total, prev, pager, next" :total="filteredInviteList.length" :page-size="10"></el-pagination>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 受邀人详情页面（新标签页打开） -->
+                <div v-if="currentPage === 'invitee-detail'" class="space-y-4">
+                    <!-- 返回按钮 -->
+                    <div class="flex items-center gap-4">
+                        <el-button type="primary" plain size="small" @click="currentPage = 'normal-invite'">
+                            <el-icon class="mr-1"><el-icon-arrow-left /></el-icon> 返回普通邀请管理
+                        </el-button>
+                        <span class="text-lg font-bold text-gray-900">团队详情 - {{ currentInviteeDetail.inviterName }} (UID: {{ currentInviteeDetail.inviterUid }})</span>
+                    </div>
+
+                    <!-- 筛选条件 -->
+                    <div class="bg-white rounded-lg shadow-sm p-4">
+                        <div class="flex items-center gap-4 flex-wrap">
+                            <div class="flex items-center">
+                                <span class="text-sm text-gray-600 mr-2 whitespace-nowrap">名称:</span>
+                                <el-input v-model="inviteeDetailFilter.name" placeholder="请输入名称" clearable size="small" style="width: 160px"></el-input>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="text-sm text-gray-600 mr-2 whitespace-nowrap">UID:</span>
+                                <el-input v-model="inviteeDetailFilter.uid" placeholder="请输入UID" clearable size="small" style="width: 160px"></el-input>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="text-sm text-gray-600 mr-2 whitespace-nowrap">绑定时间范围:</span>
+                                <el-date-picker v-model="inviteeDetailFilter.bindDateRange" type="daterange" start-placeholder="开始日期" end-placeholder="结束日期" size="small" style="width: 260px"></el-date-picker>
+                            </div>
+                            <div class="ml-auto flex gap-2">
+                                <el-button type="primary" size="small" @click="handleInviteeDetailSearch">查询</el-button>
+                                <el-button size="small" @click="resetInviteeDetailFilter">重置</el-button>
+                                <el-button size="small" @click="exportInviteeDetailData">导出</el-button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 团队成员列表 -->
+                    <div class="bg-white rounded-lg shadow-sm">
+                        <div class="px-4 pt-4 pb-2 border-b border-gray-100">
+                            <h3 class="text-base font-bold border-l-4 border-green-500 pl-3">团队成员列表</h3>
+                        </div>
+                        <el-table :data="filteredInviteeDetailList" stripe :header-cell-style="{background:'#fafafa',color:'#666',fontSize:'13px'}">
+                            <el-table-column prop="name" label="名称" width="150"></el-table-column>
+                            <el-table-column prop="uid" label="UID" width="180"></el-table-column>
+                            <el-table-column prop="inviteDate" label="受邀日期" width="160"></el-table-column>
+                            <el-table-column prop="depositTotal" label="充值总额" width="130" align="right">
+                                <template #default="{ row }">
+                                    <span class="font-semibold">{{ formatNum(row.depositTotal) }} USDT</span>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="accountBalance" label="账户余额" width="120" align="right">
+                                <template #default="{ row }">
+                                    <span class="font-semibold">{{ formatNum(row.accountBalance) }} USDT</span>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="platformProfit" label="平台利润" width="130" align="right">
+                                <template #default="{ row }">
+                                    <span class="profit-green">{{ formatNum(row.platformProfit) }} USDT</span>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="commissionGenerated" label="产生佣金" width="130" align="right">
+                                <template #default="{ row }">
+                                    <span class="text-orange-600 font-semibold">{{ formatNum(row.commissionGenerated) }} USDT</span>
+                                </template>
+                            </el-table-column>
+                            <el-table-column label="操作" width="100" fixed="right" align="center">
+                                <template #default="{ row }">
+                                    <el-button link type="primary" size="small" @click="viewInviteeTradeDetail(row)">查看明细</el-button>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                        <div class="p-4 flex justify-between items-center">
+                            <div class="text-sm text-gray-600">
+                                共 <span class="font-bold">{{ filteredInviteeDetailList.length }}</span> 条记录
+                            </div>
+                            <el-pagination layout="total, prev, pager, next" :total="filteredInviteeDetailList.length" :page-size="10"></el-pagination>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+
+        <el-dialog v-model="addAgentModalVisible" title="添加代理" width="560px" :close-on-click-modal="false">
+            <el-form :model="addAgentForm" label-width="110px">
+                <el-form-item label="代理类型" required>
+                    <el-radio-group v-model="addAgentForm.agentType" @change="onAgentTypeChange">
+                        <el-radio label="agent">添加代理</el-radio>
+                        <el-radio label="bd">添加商务</el-radio>
+                    </el-radio-group>
+                </el-form-item>
+                
+                <!-- 商务信息（仅添加商务时显示） -->
+                <template v-if="addAgentForm.agentType === 'bd'">
+                    <el-form-item label="商务UID" required>
+                        <el-input v-model="addAgentForm.bdUid" placeholder="请输入商务用户UID"></el-input>
+                    </el-form-item>
+                    <el-form-item label="备注">
+                        <el-input v-model="addAgentForm.remark" type="textarea" rows="2" placeholder="可选"></el-input>
+                    </el-form-item>
+                </template>
+                
+                <!-- 代理信息（仅添加代理时显示） -->
+                <template v-if="addAgentForm.agentType === 'agent'">
+                    <el-form-item label="代理等级" required>
+                        <el-radio-group v-model="addAgentForm.level" @change="onLevelChange">
+                            <el-radio label="tier1">一级代理</el-radio>
+                            <el-radio label="tier2">二级代理</el-radio>
+                        </el-radio-group>
+                    </el-form-item>
+                    <el-form-item label="所属商务" required>
+                        <el-select v-model="addAgentForm.bdUid" placeholder="请选择商务" class="w-full" @change="onBDChange">
+                            <el-option v-for="bd in bdList" :key="bd.uid" :label="bd.username + ' (UID:' + bd.uid + ')'" :value="bd.uid"></el-option>
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item label="所属一级代理" required v-if="addAgentForm.level === 'tier2'">
+                        <el-select v-model="addAgentForm.parentAgentUid" placeholder="请选择一级代理" class="w-full" @change="onParentAgentChange" :disabled="!addAgentForm.bdUid">
+                            <el-option v-for="agent in availableTier1ForBD" :key="agent.uid" :label="agent.username + ' (UID:' + agent.uid + ')'" :value="agent.uid"></el-option>
+                        </el-select>
+                        <div class="text-xs text-gray-400 mt-1">仅显示所选商务下的一级代理</div>
+                    </el-form-item>
+                    <el-form-item label="UID" required>
+                        <el-input v-model="addAgentForm.uid" placeholder="请输入用户UID"></el-input>
+                    </el-form-item>
+                    <el-form-item label="返佣模式" required v-if="addAgentForm.level === 'tier1'">
+                        <div class="text-xs text-gray-400 mb-2">一级代理固定拥有 NGR+PPL+UPDOWN 三种返佣模式</div>
+                        <div class="flex gap-2">
+                            <el-tag type="primary" size="small">NGR</el-tag>
+                            <el-tag type="warning" size="small">PPL</el-tag>
+                            <el-tag type="success" size="small">UPDOWN</el-tag>
+                        </div>
+                    </el-form-item>
+                    <el-form-item v-if="addAgentForm.level === 'tier1'" label="NGR比例" required>
+                        <el-input-number v-model="addAgentForm.rates['NGR']" :min="0" :max="100" :precision="2" class="w-48">
+                            <template #append>%</template>
+                        </el-input-number>
+                    </el-form-item>
+                    <el-form-item v-if="addAgentForm.level === 'tier1'" label="PPL比例" required>
+                        <el-input-number v-model="addAgentForm.rates['PPL']" :min="0" :max="100" :precision="2" class="w-48">
+                            <template #append>%</template>
+                        </el-input-number>
+                    </el-form-item>
+                    <el-form-item v-if="addAgentForm.level === 'tier1'" label="UPDOWN比例" required>
+                        <el-input-number v-model="addAgentForm.rates['UPDOWN']" :min="0" :max="100" :precision="2" class="w-48">
+                            <template #append>%</template>
+                        </el-input-number>
+                    </el-form-item>
+                    <el-form-item label="返佣模式" required v-if="addAgentForm.level === 'tier2'">
+                        <div class="text-xs text-gray-400 mb-2">继承一级代理的NGR/PPL模式（单选），UPDOWN为必选项</div>
+                        <div v-if="inheritedNgrPplModes.length > 0">
+                            <div class="text-xs text-gray-500 mb-1">可选择的模式：</div>
+                            <el-radio-group v-model="addAgentForm.selectedNgrPpl">
+                                <el-radio v-for="m in inheritedNgrPplModes" :key="m" :label="m">{{ m }}</el-radio>
+                            </el-radio-group>
+                        </div>
+                        <div class="mt-2">
+                            <el-tag type="success" size="small">UPDOWN</el-tag>
+                            <span class="text-xs text-gray-400 ml-1">(必选)</span>
+                        </div>
+                        <div v-if="!addAgentForm.parentAgentUid" class="text-xs text-orange-400 mt-1">请先选择所属一级代理</div>
+                    </el-form-item>
+                    <el-form-item v-if="addAgentForm.level === 'tier2' && addAgentForm.selectedNgrPpl" :label="addAgentForm.selectedNgrPpl + ' 比例'" required>
+                        <el-input-number v-model="addAgentForm.rates[addAgentForm.selectedNgrPpl]" :min="0" :max="100" :precision="2" class="w-48">
+                            <template #append>%</template>
+                        </el-input-number>
+                    </el-form-item>
+                    <el-form-item v-if="addAgentForm.level === 'tier2' && addAgentForm.parentAgentUid" label="UPDOWN比例" required>
+                        <el-input-number v-model="addAgentForm.rates['UPDOWN']" :min="0" :max="100" :precision="2" class="w-48">
+                            <template #append>%</template>
+                        </el-input-number>
+                    </el-form-item>
+                    <el-form-item label="备注">
+                        <el-input v-model="addAgentForm.remark" type="textarea" rows="2" placeholder="可选"></el-input>
+                    </el-form-item>
+                </template>
+            </el-form>
+            <template #footer>
+                <el-button @click="addAgentModalVisible = false">取消</el-button>
+                <el-button type="primary" @click="submitAddAgent">确认添加</el-button>
+            </template>
+        </el-dialog>
+
+        <el-dialog v-model="addTier1ModalVisible" title="添加一级代理" width="560px" :close-on-click-modal="false">
+            <el-form :model="addTier1Form" label-width="110px">
+                <el-form-item label="所属商务">
+                    <el-input :value="currentBD.username + ' (UID:' + currentBD.uid + ')'" disabled></el-input>
+                </el-form-item>
+                <el-form-item label="代理等级">
+                    <el-tag type="primary">一级代理</el-tag>
+                </el-form-item>
+                <el-form-item label="UID" required>
+                    <el-input v-model="addTier1Form.uid" placeholder="请输入用户UID"></el-input>
+                </el-form-item>
+                <el-form-item label="返佣模式" required>
+                    <div class="text-xs text-gray-400 mb-2">一级代理固定拥有 NGR+PPL+UPDOWN 三种返佣模式</div>
+                    <div class="flex gap-2">
+                        <el-tag type="primary" size="small">NGR</el-tag>
+                        <el-tag type="warning" size="small">PPL</el-tag>
+                        <el-tag type="success" size="small">UPDOWN</el-tag>
+                    </div>
+                </el-form-item>
+                <el-form-item label="NGR比例" required>
+                    <el-input-number v-model="addTier1Form.rates['NGR']" :min="0" :max="100" :precision="2" class="w-48">
+                        <template #append>%</template>
+                    </el-input-number>
+                </el-form-item>
+                <el-form-item label="PPL比例" required>
+                    <el-input-number v-model="addTier1Form.rates['PPL']" :min="0" :max="100" :precision="2" class="w-48">
+                        <template #append>%</template>
+                    </el-input-number>
+                </el-form-item>
+                <el-form-item label="UPDOWN比例" required>
+                    <el-input-number v-model="addTier1Form.rates['UPDOWN']" :min="0" :max="100" :precision="2" class="w-48">
+                        <template #append>%</template>
+                    </el-input-number>
+                </el-form-item>
+                <el-form-item label="备注">
+                    <el-input v-model="addTier1Form.remark" type="textarea" rows="2" placeholder="可选"></el-input>
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <el-button @click="addTier1ModalVisible = false">取消</el-button>
+                <el-button type="primary" @click="submitAddTier1">确认添加</el-button>
+            </template>
+        </el-dialog>
+
+        <el-dialog v-model="addTier2FromBDModalVisible" title="添加二级代理" width="560px" :close-on-click-modal="false">
+            <el-form :model="addTier2FromBDForm" label-width="110px">
+                <el-form-item label="所属商务">
+                    <el-input :value="currentBD.username + ' (UID:' + currentBD.uid + ')'" disabled></el-input>
+                </el-form-item>
+                <el-form-item label="代理等级">
+                    <el-tag type="success">二级代理</el-tag>
+                </el-form-item>
+                <el-form-item label="所属一级代理" required>
+                    <el-select v-model="addTier2FromBDForm.parentAgentUid" placeholder="请选择一级代理" class="w-full" @change="onBDTier2ParentChange">
+                        <el-option v-for="agent in bdDetailData.tier1Agents" :key="agent.uid" :label="agent.username + ' (UID:' + agent.uid + ')'" :value="agent.uid"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="UID" required>
+                    <el-input v-model="addTier2FromBDForm.uid" placeholder="请输入用户UID"></el-input>
+                </el-form-item>
+                <el-form-item label="返佣模式" required v-if="addTier2FromBDForm.parentAgentUid">
+                    <div class="text-xs text-gray-400 mb-2">继承一级代理的NGR/PPL模式（单选），UPDOWN为必选项</div>
+                    <el-radio-group v-model="addTier2FromBDForm.selectedNgrPpl">
+                        <el-radio v-for="m in bdTier2InheritedModes" :key="m" :label="m">{{ m }}</el-radio>
+                    </el-radio-group>
+                    <div class="mt-2">
+                        <el-tag type="success" size="small">UPDOWN</el-tag>
+                        <span class="text-xs text-gray-400 ml-1">(必选)</span>
+                    </div>
+                </el-form-item>
+                <el-form-item v-if="addTier2FromBDForm.selectedNgrPpl" :label="addTier2FromBDForm.selectedNgrPpl + ' 比例'" required>
+                    <el-input-number v-model="addTier2FromBDForm.rates[addTier2FromBDForm.selectedNgrPpl]" :min="0" :max="100" :precision="2" class="w-48">
+                        <template #append>%</template>
+                    </el-input-number>
+                </el-form-item>
+                <el-form-item label="UPDOWN比例" required v-if="addTier2FromBDForm.parentAgentUid">
+                    <el-input-number v-model="addTier2FromBDForm.rates['UPDOWN']" :min="0" :max="100" :precision="2" class="w-48">
+                        <template #append>%</template>
+                    </el-input-number>
+                </el-form-item>
+                <el-form-item label="备注">
+                    <el-input v-model="addTier2FromBDForm.remark" type="textarea" rows="2" placeholder="可选"></el-input>
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <el-button @click="addTier2FromBDModalVisible = false">取消</el-button>
+                <el-button type="primary" @click="submitAddTier2FromBD">确认添加</el-button>
+            </template>
+        </el-dialog>
+
+        <el-dialog v-model="subAgentModalVisible" title="子代理列表" width="700px" :close-on-click-modal="false">
+            <div class="mb-4 flex items-center justify-between bg-gray-50 p-3 rounded">
+                <div>
+                    <span class="text-sm text-gray-500">一级代理用户名：</span>
+                    <span class="font-bold">{{ currentTier1Agent.username }}</span>
+                </div>
+                <div>
+                    <span class="text-sm text-gray-500">一级代理UID：</span>
+                    <span class="font-bold">{{ currentTier1Agent.uid }}</span>
+                </div>
+            </div>
+            <div class="mb-4 flex items-center gap-8 bg-gray-50 p-3 rounded">
+                <div>
+                    <span class="text-sm text-gray-500">当期NGR比例：</span>
+                    <span class="font-bold text-green-600">{{ currentTier1Agent.rates.NGR || 0 }}%</span>
+                </div>
+                <div>
+                    <span class="text-sm text-gray-500">当期PPL比例：</span>
+                    <span class="font-bold text-green-600">{{ currentTier1Agent.rates.PPL || 0 }}%</span>
+                </div>
+                <div>
+                    <span class="text-sm text-gray-500">当期UPDOWN比例：</span>
+                    <span class="font-bold text-green-600">{{ currentTier1Agent.rates.UPDOWN || 0 }}%</span>
+                </div>
+            </div>
+            <el-table :data="subAgentList" stripe :header-cell-style="{background:'#fafafa',color:'#666',fontSize:'13px'}">
+                <el-table-column prop="username" label="用户名" width="140"></el-table-column>
+                <el-table-column prop="uid" label="UID" width="140"></el-table-column>
+                <el-table-column prop="teamUsers" label="团队用户数" width="100" align="center"></el-table-column>
+                <el-table-column label="NGR比例(%)" width="100" align="center">
+                    <template #default="{ row }">
+                        <span class="font-bold">{{ row.rates.NGR || '-' }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column label="PPL比例(%)" width="100" align="center">
+                    <template #default="{ row }">
+                        <span class="font-bold">{{ row.rates.PPL || '-' }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column label="UPDOWN比例(%)" width="110" align="center">
+                    <template #default="{ row }">
+                        <span class="font-bold">{{ row.rates.UPDOWN || '-' }}</span>
+                    </template>
+                </el-table-column>
+            </el-table>
+        </el-dialog>
+
+        <el-dialog v-model="addTier2FromTier1ModalVisible" title="添加二级代理" width="560px" :close-on-click-modal="false">
+            <el-form :model="addTier2FromTier1Form" label-width="110px">
+                <el-form-item label="所属商务">
+                    <el-input :value="addTier2FromTier1Form.bdInfo" disabled></el-input>
+                </el-form-item>
+                <el-form-item label="所属一级代理">
+                    <el-input :value="addTier2FromTier1Form.parentAgentInfo" disabled></el-input>
+                </el-form-item>
+                <el-form-item label="UID" required>
+                    <el-input v-model="addTier2FromTier1Form.uid" placeholder="请输入用户UID"></el-input>
+                </el-form-item>
+                <el-form-item label="返佣模式" required>
+                    <div class="text-xs text-gray-400 mb-2">继承一级代理的NGR/PPL模式（单选），UPDOWN为必选项</div>
+                    <div v-if="tier2FromTier1InheritedModes.length > 0">
+                        <div class="text-xs text-gray-500 mb-1">可选择的模式：</div>
+                        <el-radio-group v-model="addTier2FromTier1Form.selectedNgrPpl">
+                            <el-radio v-for="m in tier2FromTier1InheritedModes" :key="m" :label="m">{{ m }}</el-radio>
+                        </el-radio-group>
+                    </div>
+                    <div class="mt-2">
+                        <el-tag type="success" size="small">UPDOWN</el-tag>
+                        <span class="text-xs text-gray-400 ml-1">(必选)</span>
+                    </div>
+                </el-form-item>
+                <el-form-item v-if="addTier2FromTier1Form.selectedNgrPpl" :label="addTier2FromTier1Form.selectedNgrPpl + ' 比例'" required>
+                    <el-input-number v-model="addTier2FromTier1Form.rates[addTier2FromTier1Form.selectedNgrPpl]" :min="0" :max="100" :precision="2" class="w-48">
+                        <template #append>%</template>
+                    </el-input-number>
+                </el-form-item>
+                <el-form-item label="UPDOWN比例" required>
+                    <el-input-number v-model="addTier2FromTier1Form.rates['UPDOWN']" :min="0" :max="100" :precision="2" class="w-48">
+                        <template #append>%</template>
+                    </el-input-number>
+                </el-form-item>
+                <el-form-item label="备注">
+                    <el-input v-model="addTier2FromTier1Form.remark" type="textarea" rows="2" placeholder="可选"></el-input>
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <el-button @click="addTier2FromTier1ModalVisible = false">取消</el-button>
+                <el-button type="primary" @click="submitAddTier2FromTier1">确认添加</el-button>
+            </template>
+        </el-dialog>
+
+        <el-dialog v-model="modifyRateModalVisible" title="修改比例（修改比例后不影响当期返佣，新返佣比例将在下周期生效）" width="600px" :close-on-click-modal="false">
+            <div class="mb-4 flex items-center justify-between bg-gray-50 p-3 rounded">
+                <div>
+                    <span class="text-sm text-gray-500">一级代理用户名</span>
+                    <div class="font-bold mt-1">{{ currentModifyAgent.username }}</div>
+                </div>
+                <div>
+                    <span class="text-sm text-gray-500">一级代理UID</span>
+                    <div class="font-bold mt-1">{{ currentModifyAgent.uid }}</div>
+                </div>
+            </div>
+            <div class="mb-4 grid grid-cols-2 gap-4 bg-gray-50 p-3 rounded">
+                <div v-for="m in currentModifyAgent.modes" :key="m">
+                    <span class="text-sm text-gray-500">当期{{ m }}比例</span>
+                    <div class="font-bold text-green-600 mt-1">{{ currentModifyAgent.rates[m] || 0 }}%</div>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <el-form-item v-for="m in currentModifyAgent.modes" :key="'next-'+m" :label="'* 下期' + m + '比例'" class="mb-4">
+                    <el-input-number v-model="modifyRateForm.rates[m]" :min="0" :max="100" :precision="2" class="w-full">
+                        <template #append>%</template>
+                    </el-input-number>
+                </el-form-item>
+            </div>
+            <template #footer>
+                <el-button @click="modifyRateModalVisible = false">取消</el-button>
+                <el-button type="primary" @click="submitModifyRate">确定</el-button>
+            </template>
+        </el-dialog>
+
+        <!-- 绑定/换绑商务弹窗 -->
+        <el-dialog v-model="bindBDModalVisible" :title="bindBDForm.hasBD ? '换绑商务' : '绑定商务'" width="480px" :close-on-click-modal="false">
+            <el-form :model="bindBDForm" label-width="100px">
+                <el-form-item label="一级代理">
+                    <div class="text-sm">{{ tier1Detail.username }} (UID: {{ tier1Detail.uid }})</div>
+                </el-form-item>
+                <el-form-item label="当前商务" v-if="bindBDForm.hasBD">
+                    <div class="text-sm text-gray-500">{{ getBDInfo(tier1Detail.bdUid) }}</div>
+                </el-form-item>
+                <el-form-item label="选择商务" required>
+                    <el-select v-model="bindBDForm.bdUid" placeholder="请选择商务" class="w-full">
+                        <el-option v-for="bd in bdList" :key="bd.uid" :label="bd.username + ' (UID:' + bd.uid + ')'" :value="bd.uid"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item v-if="bindBDForm.hasBD" label="换绑原因">
+                    <el-input v-model="bindBDForm.reason" type="textarea" rows="2" placeholder="请输入换绑原因"></el-input>
+                </el-form-item>
+            </el-form>
+            <div class="text-xs text-gray-400 mb-3">
+                <el-icon class="mr-1"><el-icon-warning /></el-icon>
+                {{ bindBDForm.hasBD ? '换绑商务后，该一级代理及其下级代理的商务归属将发生变更' : '绑定商务后，该一级代理将归属于所选商务' }}
+            </div>
+            <template #footer>
+                <el-button @click="bindBDModalVisible = false">取消</el-button>
+                <el-button type="primary" @click="showConfirmDialog = true">确认{{ bindBDForm.hasBD ? '换绑' : '绑定' }}</el-button>
+            </template>
+        </el-dialog>
+
+        <!-- 二次确认弹窗 -->
+        <el-dialog v-model="showConfirmDialog" :title="bindBDForm.hasBD ? '确认换绑' : '确认绑定'" width="420px" :close-on-click-modal="false">
+            <div class="flex items-start gap-3">
+                <el-icon class="text-orange-400 text-xl mt-0.5 flex-shrink-0"><el-icon-warning-filled /></el-icon>
+                <div>
+                    <p class="text-sm text-gray-700 mb-2">
+                        {{ bindBDForm.hasBD ? '换绑后，该一级代理及其下级代理将归属于新的商务，原商务的统计数据将减少。' : '绑定后，该一级代理及其下级代理将归属于所选商务。' }}
+                    </p>
+                    <p class="text-sm font-bold text-gray-900 mb-1">确认{{ bindBDForm.hasBD ? '换绑' : '绑定' }}商务？</p>
+                    <p class="text-sm text-gray-500">
+                        一级代理：{{ tier1Detail.username }} (UID: {{ tier1Detail.uid }})
+                    </p>
+                    <p class="text-sm text-gray-500" v-if="bindBDForm.hasBD">
+                        从 {{ getBDInfo(tier1Detail.bdUid) }}
+                    </p>
+                    <p class="text-sm text-blue-600 font-medium">
+                        到 {{ getBDInfo(bindBDForm.bdUid) }}
+                    </p>
+                </div>
+            </div>
+            <template #footer>
+                <el-button @click="showConfirmDialog = false">取消</el-button>
+                <el-button type="primary" @click="submitBindBD">确认{{ bindBDForm.hasBD ? '换绑' : '绑定' }}</el-button>
+            </template>
+        </el-dialog>
+
+        <!-- 交易明细弹窗 -->
+        <el-dialog v-model="tradeDetailModalVisible" title="交易明细" width="800px" :close-on-click-modal="false">
+            <div class="space-y-4">
+                <!-- 受邀人基本信息 -->
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <el-descriptions :column="3" border>
+                        <el-descriptions-item label="名称">{{ currentTradeDetail.name }}</el-descriptions-item>
+                        <el-descriptions-item label="UID">{{ currentTradeDetail.uid }}</el-descriptions-item>
+                        <el-descriptions-item label="受邀日期">{{ currentTradeDetail.inviteDate }}</el-descriptions-item>
+                        <el-descriptions-item label="充值总额">{{ formatNum(currentTradeDetail.depositTotal) }} USDT</el-descriptions-item>
+                        <el-descriptions-item label="账户余额">{{ formatNum(currentTradeDetail.accountBalance) }} USDT</el-descriptions-item>
+                        <el-descriptions-item label="平台利润">{{ formatNum(currentTradeDetail.platformProfit) }} USDT</el-descriptions-item>
+                    </el-descriptions>
+                </div>
+
+                <!-- 佣金概览 -->
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h4 class="text-base font-bold border-l-4 border-orange-500 pl-3 mb-3">佣金概览</h4>
+                    <div class="grid grid-cols-5 gap-3">
+                        <div class="bg-white rounded p-3 text-center">
+                            <div class="text-xs text-gray-500 mb-1">Futures 佣金</div>
+                            <div class="text-lg font-bold text-blue-600">{{ formatNum(currentTradeDetail.futuresCommission) }} USDT</div>
+                        </div>
+                        <div class="bg-white rounded p-3 text-center">
+                            <div class="text-xs text-gray-500 mb-1">HighLow 佣金</div>
+                            <div class="text-lg font-bold text-green-600">{{ formatNum(currentTradeDetail.highlowCommission) }} USDT</div>
+                        </div>
+                        <div class="bg-white rounded p-3 text-center">
+                            <div class="text-xs text-gray-500 mb-1">Spread 佣金</div>
+                            <div class="text-lg font-bold text-purple-600">{{ formatNum(currentTradeDetail.spreadCommission) }} USDT</div>
+                        </div>
+                        <div class="bg-white rounded p-3 text-center">
+                            <div class="text-xs text-gray-500 mb-1">TapTrading 佣金</div>
+                            <div class="text-lg font-bold text-orange-600">{{ formatNum(currentTradeDetail.tapTradingCommission) }} USDT</div>
+                        </div>
+                        <div class="bg-white rounded p-3 text-center">
+                            <div class="text-xs text-gray-500 mb-1">Updown 佣金</div>
+                            <div class="text-lg font-bold text-pink-600">{{ formatNum(currentTradeDetail.updownCommission) }} USDT</div>
+                        </div>
+                    </div>
+                    <div class="mt-3 bg-white rounded p-3 flex justify-between items-center">
+                        <span class="font-bold text-base">总佣金：</span>
+                        <span class="text-xl font-bold text-green-600">{{ formatNum(currentTradeDetail.totalCommission) }} USDT</span>
+                    </div>
+                </div>
+
+                <!-- 交易记录列表 -->
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <div class="flex justify-between items-center mb-3">
+                        <h4 class="text-base font-bold border-l-4 border-purple-500 pl-3">交易记录</h4>
+                        <el-select v-model="tradeRecordFilter.gameType" placeholder="全部玩法" clearable size="small" style="width: 160px" @change="filterTradeRecords">
+                            <el-option label="全部玩法" value=""></el-option>
+                            <el-option label="Futures" value="Futures"></el-option>
+                            <el-option label="HighLow" value="HighLow"></el-option>
+                            <el-option label="Spread" value="Spread"></el-option>
+                            <el-option label="TapTrading" value="TapTrading"></el-option>
+                            <el-option label="Updown" value="Updown"></el-option>
+                        </el-select>
+                    </div>
+                    <el-table :data="filteredTradeRecords" stripe :header-cell-style="{background:'#fafafa',color:'#666',fontSize:'13px'}">
+                        <el-table-column prop="tradeNo" label="交易流水号" width="180"></el-table-column>
+                        <el-table-column prop="gameType" label="玩法" width="120" align="center">
+                            <template #default="{ row }">
+                                <el-tag :class="row.gameType === 'Futures' ? 'tag-ppl' : row.gameType === 'HighLow' ? 'tag-updown' : row.gameType === 'Spread' ? 'tag-ngr' : row.gameType === 'TapTrading' ? 'tag-ppl' : 'tag-updown'" size="small">{{ row.gameType }}</el-tag>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="commissionMode" label="返佣模式" width="100" align="center">
+                            <template #default="{ row }">
+                                <el-tag :class="row.commissionMode === 'PPL' ? 'tag-ppl' : 'tag-updown'" size="small">{{ row.commissionMode }}</el-tag>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="tradeAmount" label="交易金额" width="120" align="right">
+                            <template #default="{ row }">{{ formatNum(row.tradeAmount) }} USDT</template>
+                        </el-table-column>
+                        <el-table-column prop="profitLoss" label="盈亏" width="120" align="right">
+                            <template #default="{ row }">
+                                <span :class="row.profitLoss >= 0 ? 'profit-green' : 'text-red-600'">{{ row.profitLoss >= 0 ? '+' : '' }}{{ formatNum(row.profitLoss) }} USDT</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="commissionRate" label="佣金比例" width="100" align="center">
+                            <template #default="{ row }">
+                                <span class="font-bold">{{ row.commissionRate }}%</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="commission" label="佣金" width="120" align="right">
+                            <template #default="{ row }">
+                                <span class="profit-green">{{ formatNum(row.commission) }} USDT</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="createTime" label="交易时间" width="170"></el-table-column>
+                    </el-table>
+                </div>
+            </div>
+            <template #footer>
+                <el-button @click="tradeDetailModalVisible = false">关闭</el-button>
+            </template>
+        </el-dialog>
+
+    </div>
+    <script>
+        const { createApp, reactive, ref, computed } = Vue;
+        const { ElMessage } = ElementPlus;
+
+        const app = createApp({
+            setup() {
+                const currentPage = ref('agent-manage');
+                const agentLevelFilter = ref('bd');
+                const uidFilter = ref('');
+                const subAgentFilterType = ref('all');
+                const subAgentUidFilter = ref('');
+
+                const bdList = ref([
+                    { uid: 2533, username: 'manbo', registerTime: '2023-10-27 14:30', tier1Count: 5, tier2Count: 12, teamTotal: 17, teamAUM: 125000, ngrProfit: 1250, pplProfit: 300, updownProfit: 450, netProfit: 2000, remark: '长期合作伙伴', status: 'active', level: 'bd', levelLabel: '商务', modes: ['NGR','PPL','UPDOWN'] },
+                    { uid: 2531, username: 'fanpei kong', registerTime: '2023-10-26 09:15', tier1Count: 8, tier2Count: 15, teamTotal: 23, teamAUM: 210500, ngrProfit: 2100.5, pplProfit: 500, updownProfit: 600, netProfit: 3200.5, remark: '需重点关注', status: 'active', level: 'bd', levelLabel: '商务', modes: ['NGR','PPL','UPDOWN'] },
+                    { uid: 2530, username: 'sUbHH', registerTime: '2023-10-25 16:45', tier1Count: 3, tier2Count: 5, teamTotal: 8, teamAUM: 45000, ngrProfit: 450, pplProfit: 100, updownProfit: 200, netProfit: 750, remark: '普通代理', status: 'active', level: 'bd', levelLabel: '商务', modes: ['NGR','PPL','UPDOWN'] },
+                    { uid: 2528, username: 'yifan test 1', registerTime: '2023-10-24 11:20', tier1Count: 10, tier2Count: 25, teamTotal: 35, teamAUM: 350000, ngrProfit: 3500, pplProfit: 800, updownProfit: 1000, netProfit: 5300, remark: '测试账号', status: 'active', level: 'bd', levelLabel: '商务', modes: ['NGR','PPL','UPDOWN'] },
+                    { uid: 2527, username: 'yifan test', registerTime: '2023-10-23 08:00', tier1Count: 2, tier2Count: 3, teamTotal: 5, teamAUM: 15000, ngrProfit: 150, pplProfit: 50, updownProfit: 100, netProfit: 300, remark: '无', status: 'active', level: 'bd', levelLabel: '商务', modes: ['NGR','PPL','UPDOWN'] },
+                ]);
+
+                const tier1List = ref([
+                    { uid: 10001, username: 'Agent_T1_01', bdUid: 2533, modes: ['NGR','PPL','UPDOWN'], rates: { NGR: 25, PPL: 15, UPDOWN: 30 }, profitRate: 50, feeRate: 70, nextProfitRate: 50, nextFeeRate: 70, profitAmount: 0, feeAmount: 0, netEarning: 0, totalCommission: 0, tier2Count: 8, teamUsers: 0, remark: '11111', level: 'tier1', levelLabel: '一级代理', status: 'active', registerTime: '2025-10-11 14:43:02' },
+                    { uid: 10002, username: 'Agent_T1_02', bdUid: 2533, modes: ['NGR','PPL','UPDOWN'], rates: { NGR: 20, PPL: 15, UPDOWN: 25 }, profitRate: 20, feeRate: 40, nextProfitRate: 20, nextFeeRate: 40, profitAmount: 0, feeAmount: 0, netEarning: 0, totalCommission: 0, tier2Count: 2, teamUsers: 0, remark: '30指30指30指30指30指30指30指30指30指30指', level: 'tier1', levelLabel: '一级代理', status: 'active', registerTime: '2025-09-15 10:20:30' },
+                    { uid: 10003, username: 'Agent_T1_03', bdUid: null, modes: ['NGR','PPL','UPDOWN'], rates: { NGR: 20, PPL: 10, UPDOWN: 28 }, profitRate: 11, feeRate: 22, nextProfitRate: 11, nextFeeRate: 22, profitAmount: 0, feeAmount: 0, netEarning: 0, totalCommission: 0, tier2Count: 0, teamUsers: 0, remark: '待绑定商务', level: 'tier1', levelLabel: '一级代理', status: 'active', registerTime: '2025-08-20 16:15:00' },
+                    { uid: 10004, username: 'Agent_T1_04', bdUid: 2528, modes: ['NGR','PPL','UPDOWN'], rates: { NGR: 22, PPL: 12, UPDOWN: 32 }, profitRate: 30, feeRate: 80, nextProfitRate: 30, nextFeeRate: 80, profitAmount: 0, feeAmount: 0, netEarning: 0, totalCommission: 0, tier2Count: 0, teamUsers: 0, remark: '', level: 'tier1', levelLabel: '一级代理', status: 'active', registerTime: '2025-07-10 09:30:00' },
+                    { uid: 10005, username: 'Agent_T1_05', bdUid: 2528, modes: ['NGR','PPL','UPDOWN'], rates: { NGR: 18, PPL: 12, UPDOWN: 20 }, profitRate: 30, feeRate: 20, nextProfitRate: 30, nextFeeRate: 20, profitAmount: 0, feeAmount: 0, netEarning: 0, totalCommission: 0, tier2Count: 4, teamUsers: 35, remark: '新代理', level: 'tier1', levelLabel: '一级代理', status: 'active', registerTime: '2025-06-05 11:00:00' },
+                ]);
+
+                const tier2List = ref([
+                    { uid: '9664156800448', username: '???', bdUid: 2533, parentAgentUid: 10001, modes: ['NGR','UPDOWN'], rates: { NGR: 15, PPL: 0, UPDOWN: 20 }, profitRate: 10, feeRate: 10, childCount: 0, childUsers: 0, createTime: '2026-01-15 11:58:03', remark: '', level: 'tier2', levelLabel: '二级代理', status: 'active' },
+                    { uid: '9664168293568', username: 'detrade69726', bdUid: 2533, parentAgentUid: 10001, modes: ['NGR','UPDOWN'], rates: { NGR: 15, PPL: 0, UPDOWN: 20 }, profitRate: 10, feeRate: 10, childCount: 0, childUsers: 0, createTime: '2026-01-15 11:58:03', remark: '', level: 'tier2', levelLabel: '二级代理', status: 'active' },
+                    { uid: '9682035019456', username: 'jack ace', bdUid: 2533, parentAgentUid: 10001, modes: ['NGR','UPDOWN'], rates: { NGR: 15, PPL: 0, UPDOWN: 20 }, profitRate: 10, feeRate: 10, childCount: 0, childUsers: 0, createTime: '2026-01-15 11:58:03', remark: '', level: 'tier2', levelLabel: '二级代理', status: 'active' },
+                    { uid: '10397849118560', username: 'zhigang ye', bdUid: 2533, parentAgentUid: 10001, modes: ['NGR','UPDOWN'], rates: { NGR: 15, PPL: 0, UPDOWN: 20 }, profitRate: 10, feeRate: 10, childCount: 0, childUsers: 0, createTime: '2026-01-15 11:58:03', remark: '', level: 'tier2', levelLabel: '二级代理', status: 'active' },
+                    { uid: '10676480297568', username: 'A1CDEF1112', bdUid: 2533, parentAgentUid: 10001, modes: ['NGR','UPDOWN'], rates: { NGR: 15, PPL: 0, UPDOWN: 20 }, profitRate: 10, feeRate: 10, childCount: 0, childUsers: 0, createTime: '2026-01-15 11:58:03', remark: '', level: 'tier2', levelLabel: '二级代理', status: 'active' },
+                ]);
+
+                const ngrTotal = computed(() => [...bdList.value, ...tier1List.value, ...tier2List.value].reduce((s, a) => s + (a.ngrProfit || 0), 0));
+                const pplTotal = computed(() => [...bdList.value, ...tier1List.value, ...tier2List.value].reduce((s, a) => s + (a.pplProfit || 0), 0));
+                const updownTotal = computed(() => [...bdList.value, ...tier1List.value, ...tier2List.value].reduce((s, a) => s + (a.updownProfit || 0), 0));
+                const commissionTotal = computed(() => ngrTotal.value + pplTotal.value + updownTotal.value);
+
+                const formatNum = (num) => num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+                const getBDInfo = (bdUid) => {
+                    if (!bdUid) return '--';
+                    const bd = bdList.value.find(b => b.uid === bdUid);
+                    return bd ? `${bd.username} (UID:${bd.uid})` : '--';
+                };
+
+                const handleSearch = () => { ElMessage.success('查询完成'); };
+                const resetFilter = () => { agentLevelFilter.value = 'bd'; uidFilter.value = ''; };
+
+                const filteredAgentList = computed(() => {
+                    let list;
+                    if (agentLevelFilter.value === 'bd') list = bdList.value;
+                    else if (agentLevelFilter.value === 'tier1') list = tier1List.value;
+                    else list = tier2List.value;
+                    if (!uidFilter.value) return list;
+                    return list.filter(item => String(item.uid).includes(uidFilter.value));
+                });
+
+                const addAgentModalVisible = ref(false);
+                const addAgentForm = reactive({
+                    agentType: 'agent', level: 'tier1', bdUid: '', uid: '', parentAgentUid: '',
+                    selectedNgrPpl: '',
+                    rates: { NGR: 0, PPL: 0, UPDOWN: 0 }, remark: ''
+                });
+
+                const availableTier1ForBD = computed(() => tier1List.value.filter(a => a.bdUid === addAgentForm.bdUid));
+
+                const inheritedNgrPplModes = computed(() => {
+                    if (!addAgentForm.parentAgentUid) return [];
+                    const parent = tier1List.value.find(a => a.uid === addAgentForm.parentAgentUid);
+                    return parent ? parent.modes.filter(m => m !== 'UPDOWN') : [];
+                });
+
+                const openAddAgent = () => {
+                    Object.assign(addAgentForm, {
+                        agentType: 'agent', level: 'tier1', bdUid: '', uid: '', parentAgentUid: '',
+                        selectedNgrPpl: '', rates: { NGR: 0, PPL: 0, UPDOWN: 0 }, remark: ''
+                    });
+                    addAgentModalVisible.value = true;
+                };
+
+                const onAgentTypeChange = () => {
+                    // 切换类型时清空表单
+                    if (addAgentForm.agentType === 'bd') {
+                        addAgentForm.bdUid = '';
+                    }
+                };
+
+                const onLevelChange = () => {
+                    addAgentForm.selectedNgrPpl = '';
+                    addAgentForm.parentAgentUid = '';
+                    addAgentForm.rates = { NGR: 0, PPL: 0, UPDOWN: 0 };
+                };
+
+                const onBDChange = () => {
+                    addAgentForm.parentAgentUid = '';
+                    addAgentForm.selectedNgrPpl = '';
+                };
+
+                const onParentAgentChange = () => {
+                    addAgentForm.selectedNgrPpl = '';
+                };
+
+                const submitAddAgent = () => {
+                    if (addAgentForm.agentType === 'bd') {
+                        if (!addAgentForm.bdUid) { ElMessage.error('请输入商务UID'); return; }
+                        ElMessage.success('商务添加成功');
+                    } else {
+                        if (!addAgentForm.bdUid || !addAgentForm.uid) { ElMessage.error('请填写完整信息'); return; }
+                        if (addAgentForm.level === 'tier2' && !addAgentForm.parentAgentUid) { ElMessage.error('请选择所属一级代理'); return; }
+                        if (addAgentForm.level === 'tier2' && !addAgentForm.selectedNgrPpl) { ElMessage.error('请选择返佣模式'); return; }
+                        ElMessage.success(`${addAgentForm.level === 'tier1' ? '一级' : '二级'}代理添加成功`);
+                    }
+                    addAgentModalVisible.value = false;
+                };
+
+                const currentBD = ref({});
+                const bdDetailData = reactive({
+                    totalSubs: 0, dailyGrowth: 0, totalProfit: 0, teamAUM: 0, netProfit: 0, tier1Agents: []
+                });
+
+                const viewDetail = (row) => {
+                    currentBD.value = { ...row };
+                    bdDetailData.totalSubs = row.tier1Count + row.tier2Count;
+                    bdDetailData.dailyGrowth = 2.5;
+                    bdDetailData.totalProfit = row.ngrProfit + row.pplProfit + row.updownProfit;
+                    bdDetailData.teamAUM = row.teamAUM;
+                    bdDetailData.netProfit = row.netProfit;
+                    bdDetailData.tier1Agents = tier1List.value.filter(a => a.bdUid === row.uid).map(a => ({...a}));
+                    currentPage.value = 'bd-detail';
+                };
+
+                const toggleStatus = () => {
+                    ElMessage.success(`状态已切换为 ${currentBD.value.status === 'active' ? '启用' : '冻结'}`);
+                };
+
+                const saveRate = (agent, mode) => {
+                    ElMessage.success(`${mode} 返佣比例已更新为 ${agent.rates[mode]}%`);
+                };
+
+                const editRemark = (agent) => { ElMessage.info(`修改 ${agent.username} 的备注`); };
+
+                const tier1Detail = ref({});
+
+                const filteredSubAgentList = computed(() => {
+                    if (!subAgentUidFilter.value) return tier2List.value.filter(a => a.parentAgentUid === (tier1Detail.value.uid || 0));
+                    return tier2List.value.filter(a => a.parentAgentUid === (tier1Detail.value.uid || 0) && String(a.uid).includes(subAgentUidFilter.value));
+                });
+
+                const viewTier1Detail = (row) => {
+                    const subAgents = tier2List.value.filter(a => a.parentAgentUid === row.uid);
+                    tier1Detail.value = {
+                        ...row,
+                        totalCommission: subAgents.reduce((s, a) => s + (a.totalCommission || 0), 0),
+                        ngrAmount: subAgents.reduce((s, a) => s + (a.cumulativeProfit || 0), 0) * 0.4,
+                        pplAmount: 0,
+                        updownAmount: subAgents.reduce((s, a) => s + (a.cumulativeFee || 0), 0),
+                        netEarning: subAgents.reduce((s, a) => s + (a.totalCommission || 0), 0) * 0.3,
+                        registerTime: '2025-10-11 14:43:02'
+                    };
+                    currentPage.value = 'tier1-detail';
+                };
+
+                const openAddTier2FromTier1Detail = () => {
+                    const bd = bdList.value.find(b => b.uid === tier1Detail.value.bdUid);
+                    Object.assign(addTier2FromTier1Form, {
+                        bdUid: tier1Detail.value.bdUid,
+                        bdInfo: bd ? (bd.username + ' (UID:' + bd.uid + ')') : '--',
+                        parentAgentUid: tier1Detail.value.uid,
+                        parentAgentInfo: tier1Detail.value.username + ' (UID:' + tier1Detail.value.uid + ')',
+                        uid: '',
+                        selectedNgrPpl: '',
+                        rates: { NGR: 0, PPL: 0, UPDOWN: 0 },
+                        remark: ''
+                    });
+                    addTier2FromTier1ModalVisible.value = true;
+                };
+
+                const addTier2FromTier1ModalVisible = ref(false);
+                const addTier2FromTier1Form = reactive({
+                    bdUid: '', bdInfo: '', parentAgentUid: '', parentAgentInfo: '',
+                    uid: '', selectedNgrPpl: '', rates: { NGR: 0, PPL: 0, UPDOWN: 0 }, remark: ''
+                });
+
+                const tier2FromTier1InheritedModes = computed(() => {
+                    if (!addTier2FromTier1Form.parentAgentUid) return [];
+                    const parent = tier1List.value.find(a => a.uid === addTier2FromTier1Form.parentAgentUid);
+                    return parent ? parent.modes.filter(m => m !== 'UPDOWN') : [];
+                });
+
+                const submitAddTier2FromTier1 = () => {
+                    if (!addTier2FromTier1Form.uid || !addTier2FromTier1Form.selectedNgrPpl) { ElMessage.error('请填写完整信息'); return; }
+                    ElMessage.success('二级代理添加成功');
+                    addTier2FromTier1ModalVisible.value = false;
+                };
+
+                const addTier1ModalVisible = ref(false);
+                const addTier1Form = reactive({ uid: '', rates: { NGR: 0, PPL: 0, UPDOWN: 0 }, remark: '' });
+
+                const openAddTier1Modal = () => {
+                    Object.assign(addTier1Form, { uid: '', rates: { NGR: 0, PPL: 0, UPDOWN: 0 }, remark: '' });
+                    addTier1ModalVisible.value = true;
+                };
+
+                const submitAddTier1 = () => {
+                    if (!addTier1Form.uid) { ElMessage.error('请填写完整信息'); return; }
+                    ElMessage.success('一级代理添加成功');
+                    addTier1ModalVisible.value = false;
+                };
+
+                const addTier2FromBDModalVisible = ref(false);
+                const addTier2FromBDForm = reactive({ uid: '', parentAgentUid: '', selectedNgrPpl: '', rates: { NGR: 0, PPL: 0, UPDOWN: 0 }, remark: '' });
+
+                const bdTier2InheritedModes = computed(() => {
+                    if (!addTier2FromBDForm.parentAgentUid) return [];
+                    const parent = bdDetailData.tier1Agents.find(a => a.uid === addTier2FromBDForm.parentAgentUid);
+                    return parent ? parent.modes.filter(m => m !== 'UPDOWN') : [];
+                });
+
+                const openAddTier2FromBD = () => {
+                    Object.assign(addTier2FromBDForm, { uid: '', parentAgentUid: '', selectedNgrPpl: '', rates: { NGR: 0, PPL: 0, UPDOWN: 0 }, remark: '' });
+                    addTier2FromBDModalVisible.value = true;
+                };
+
+                const onBDTier2ParentChange = () => {
+                    addTier2FromBDForm.selectedNgrPpl = '';
+                    addTier2FromBDForm.rates = { NGR: 0, PPL: 0, UPDOWN: 0 };
+                };
+
+                const submitAddTier2FromBD = () => {
+                    if (!addTier2FromBDForm.uid || !addTier2FromBDForm.parentAgentUid || !addTier2FromBDForm.selectedNgrPpl) { ElMessage.error('请填写完整信息'); return; }
+                    ElMessage.success('二级代理添加成功');
+                    addTier2FromBDModalVisible.value = false;
+                };
+
+                const subAgentModalVisible = ref(false);
+                const currentTier1Agent = ref({});
+                const subAgentList = ref([]);
+
+                const openSubAgentModal = (row) => {
+                    currentTier1Agent.value = { ...row };
+                    subAgentList.value = tier2List.value.filter(a => a.parentAgentUid === row.uid).map(a => ({...a}));
+                    subAgentModalVisible.value = true;
+                };
+
+                const modifyRateModalVisible = ref(false);
+                const currentModifyAgent = ref({});
+                const modifyRateForm = reactive({ rates: { NGR: 0, PPL: 0, UPDOWN: 0 } });
+
+                const openModifyRateModal = (row) => {
+                    currentModifyAgent.value = { ...row };
+                    modifyRateForm.rates = { ...row.rates };
+                    modifyRateModalVisible.value = true;
+                };
+
+                const submitModifyRate = () => {
+                    ElMessage.success('比例修改成功，新比例将在下周期生效');
+                    modifyRateModalVisible.value = false;
+                };
+
+                // ========== 用户管理相关 ==========
+                const userFilter = reactive({
+                    userId: '', nickname: '', email: '', inviterId: '',
+                    level: '', regType: '', dateRange: null,
+                    regCountry: '', channelCode: '', oldPassword: ''
+                });
+
+                const userList = ref([
+                    { uid: '1664694934668288', nickname: 'CLZrG111', regType: 'email', email: '1082468953240@zhershnow.uk', level: '1', channelCode: '', remark: '', tags: [], inviterId: '', inviteCode: '', directInviteCount: 0, directDepositAmount: 0, authLevel: '', depositCount: 0, depositAmount: 0, withdrawCountSuccess: 0, withdrawAmountSuccess: 0, withdrawCountPending: 0, withdrawAmountPending: 0, balance: 300000, rewardBalance: 10000, withdrawableReward: 0, feeRate: '0.0043', regIp: '160.22.157.108', lastLogin: '', regCountry: 'HK', regTime: '2026-04-27 08:53:08 (UTC +00:00)' },
+                    { uid: '1664687586822144', nickname: 'JiVRHx', regType: 'email', email: 'Firstquan@linshiyou.com', level: '', channelCode: '', remark: '', tags: ['VIP用户'], inviterId: '', inviteCode: '', directInviteCount: 0, directDepositAmount: 0, authLevel: '', depositCount: 0, depositAmount: 0, withdrawCountSuccess: 0, withdrawAmountSuccess: 0, withdrawCountPending: 0, withdrawAmountPending: 0, balance: 0, rewardBalance: 0, withdrawableReward: 0, feeRate: '', regIp: '182.248.77.169', lastLogin: '', regCountry: 'NL', regTime: '2026-04-27 08:45:39 (UTC +00:00)' },
+                    { uid: '1664678197864576', nickname: 'WUKmJ', regType: 'email', email: 'abc@tempmail.com', level: '2', channelCode: 'CH001', remark: '测试用户', tags: ['测试', '新用户'], inviterId: '99887766', inviteCode: 'ABC123', directInviteCount: 3, directDepositAmount: 5000, authLevel: '1', depositCount: 5, depositAmount: 50000, withdrawCountSuccess: 2, withdrawAmountSuccess: 10000, withdrawCountPending: 1, withdrawAmountPending: 5000, balance: 150000, rewardBalance: 2000, withdrawableReward: 2000, feeRate: '0.004', regIp: '192.168.1.100', lastLogin: '2026-04-28 10:30:00', regCountry: 'CN', regTime: '2026-04-26 15:20:00 (UTC +00:00)' },
+                ]);
+
+                const filteredUserList = computed(() => {
+                    let list = [...userList.value];
+                    if (userFilter.userId) {
+                        const ids = userFilter.userId.split(',').map(id => id.trim()).filter(Boolean);
+                        list = list.filter(u => ids.some(id => String(u.uid).includes(id)));
+                    }
+                    if (userFilter.nickname) list = list.filter(u => u.nickname && u.nickname.includes(userFilter.nickname));
+                    if (userFilter.email) list = list.filter(u => u.email && u.email.includes(userFilter.email));
+                    if (userFilter.level) list = list.filter(u => u.level === userFilter.level);
+                    if (userFilter.regType) list = list.filter(u => u.regType === userFilter.regType);
+                    if (userFilter.regCountry) list = list.filter(u => u.regCountry && u.regCountry.includes(userFilter.regCountry));
+                    return list;
+                });
+
+                const resetUserFilter = () => {
+                    Object.keys(userFilter).forEach(key => { userFilter[key] = key === 'dateRange' ? null : ''; });
+                };
+
+                // 绑定/换绑商务
+                const bindBDModalVisible = ref(false);
+                const showConfirmDialog = ref(false);
+                const bindBDForm = reactive({ hasBD: false, bdUid: '', reason: '' });
+
+                const inviteStats = reactive({
+                    inviterCount: 0,
+                    inviteeCount: 0,
+                    platformNetProfit: 0,
+                    totalCommission: 0
+                });
+
+                const inviteFilter = reactive({
+                    name: '',
+                    uid: '',
+                    inviteCode: ''
+                });
+
+                const inviteeDetailFilter = reactive({
+                    name: '',
+                    uid: '',
+                    bindDateRange: null
+                });
+
+                const inviteList = ref([
+                    {
+                        id: 1,
+                        name: '张三',
+                        uid: '1664694934668288',
+                        inviteCode: 'ABC123',
+                        inviteCount: 3,
+                        teamDepositTotal: 150000,
+                        teamAccountBalance: 95000,
+                        platformProfit: 5200.50,
+                        commissionPaid: 1560.15,
+                        invitees: [
+                            {
+                                name: '李四',
+                                uid: '1664687586822144',
+                                inviteDate: '2026-04-27',
+                                depositTotal: 50000,
+                                accountBalance: 35000,
+                                platformProfit: 1800.25,
+                                commissionGenerated: 540.08,
+                                futuresCommission: 95.50,
+                                highlowCommission: 45.30,
+                                spreadCommission: 32.20,
+                                tapTradingCommission: 15.80,
+                                updownCommission: 351.28,
+                                totalCommission: 540.08,
+                                tradeRecords: [
+                                    { tradeNo: 'TRD202605150001', gameType: 'Futures', commissionMode: 'PPL', tradeAmount: 10000, profitLoss: 350.50, commissionRate: 0.3, commission: 30.00, createTime: '2026-05-15 10:23:45' },
+                                    { tradeNo: 'TRD202605150002', gameType: 'Futures', commissionMode: 'PPL', tradeAmount: 22000, profitLoss: 800.00, commissionRate: 0.3, commission: 65.50, createTime: '2026-05-15 10:45:20' },
+                                    { tradeNo: 'TRD202605150003', gameType: 'HighLow', commissionMode: 'PPL', tradeAmount: 5000, profitLoss: -800.00, commissionRate: 0.3, commission: 15.00, createTime: '2026-05-15 11:30:12' },
+                                    { tradeNo: 'TRD202605150004', gameType: 'HighLow', commissionMode: 'PPL', tradeAmount: 10100, profitLoss: 200.00, commissionRate: 0.3, commission: 30.30, createTime: '2026-05-15 11:55:30' },
+                                    { tradeNo: 'TRD202605150005', gameType: 'Spread', commissionMode: 'PPL', tradeAmount: 8000, profitLoss: 150.00, commissionRate: 0.3, commission: 24.00, createTime: '2026-05-15 13:10:05' },
+                                    { tradeNo: 'TRD202605150006', gameType: 'Spread', commissionMode: 'PPL', tradeAmount: 2733, profitLoss: -50.00, commissionRate: 0.3, commission: 8.20, createTime: '2026-05-15 13:35:45' },
+                                    { tradeNo: 'TRD202605150007', gameType: 'TapTrading', commissionMode: 'PPL', tradeAmount: 5267, profitLoss: 80.00, commissionRate: 0.3, commission: 15.80, createTime: '2026-05-15 14:00:20' },
+                                    { tradeNo: 'TRD202605150008', gameType: 'Updown', commissionMode: 'UPDOWN', tradeAmount: 8000, profitLoss: 1200.00, commissionRate: 50, commission: 351.28, createTime: '2026-05-15 14:15:30' }
+                                ]
+                            },
+                            {
+                                name: '王五',
+                                uid: '1664678197864576',
+                                inviteDate: '2026-04-26',
+                                depositTotal: 60000,
+                                accountBalance: 42000,
+                                platformProfit: 2100.75,
+                                commissionGenerated: 630.23,
+                                futuresCommission: 120.30,
+                                highlowCommission: 85.45,
+                                spreadCommission: 48.20,
+                                tapTradingCommission: 36.28,
+                                updownCommission: 340.00,
+                                totalCommission: 630.23,
+                                tradeRecords: [
+                                    { tradeNo: 'TRD202605140001', gameType: 'Futures', commissionMode: 'PPL', tradeAmount: 12000, profitLoss: 450.00, commissionRate: 0.3, commission: 36.00, createTime: '2026-05-14 09:20:15' },
+                                    { tradeNo: 'TRD202605140002', gameType: 'Futures', commissionMode: 'PPL', tradeAmount: 28100, profitLoss: 920.00, commissionRate: 0.3, commission: 84.30, createTime: '2026-05-14 09:55:40' },
+                                    { tradeNo: 'TRD202605140003', gameType: 'HighLow', commissionMode: 'PPL', tradeAmount: 15000, profitLoss: 300.00, commissionRate: 0.3, commission: 45.00, createTime: '2026-05-14 11:20:30' },
+                                    { tradeNo: 'TRD202605140004', gameType: 'HighLow', commissionMode: 'PPL', tradeAmount: 13483, profitLoss: -150.00, commissionRate: 0.3, commission: 40.45, createTime: '2026-05-14 11:50:15' },
+                                    { tradeNo: 'TRD202605140005', gameType: 'Spread', commissionMode: 'PPL', tradeAmount: 16067, profitLoss: 500.00, commissionRate: 0.3, commission: 48.20, createTime: '2026-05-14 13:30:20' },
+                                    { tradeNo: 'TRD202605140006', gameType: 'TapTrading', commissionMode: 'PPL', tradeAmount: 12093, profitLoss: 250.00, commissionRate: 0.3, commission: 36.28, createTime: '2026-05-14 15:10:45' },
+                                    { tradeNo: 'TRD202605140007', gameType: 'Updown', commissionMode: 'UPDOWN', tradeAmount: 15000, profitLoss: 2500.00, commissionRate: 50, commission: 340.00, createTime: '2026-05-14 16:45:30' }
+                                ]
+                            },
+                            {
+                                name: '赵六',
+                                uid: '1664695123456789',
+                                inviteDate: '2026-05-01',
+                                depositTotal: 40000,
+                                accountBalance: 18000,
+                                platformProfit: 1299.50,
+                                commissionGenerated: 389.84,
+                                futuresCommission: 55.50,
+                                highlowCommission: 38.20,
+                                spreadCommission: 22.80,
+                                tapTradingCommission: 18.50,
+                                updownCommission: 254.84,
+                                totalCommission: 389.84,
+                                tradeRecords: [
+                                    { tradeNo: 'TRD202605130001', gameType: 'Futures', commissionMode: 'PPL', tradeAmount: 8000, profitLoss: 200.00, commissionRate: 0.3, commission: 24.00, createTime: '2026-05-13 10:20:30' },
+                                    { tradeNo: 'TRD202605130002', gameType: 'Futures', commissionMode: 'PPL', tradeAmount: 10500, profitLoss: 350.00, commissionRate: 0.3, commission: 31.50, createTime: '2026-05-13 10:55:15' },
+                                    { tradeNo: 'TRD202605130003', gameType: 'HighLow', commissionMode: 'PPL', tradeAmount: 6000, profitLoss: -500.00, commissionRate: 0.3, commission: 18.00, createTime: '2026-05-13 11:30:45' },
+                                    { tradeNo: 'TRD202605130004', gameType: 'HighLow', commissionMode: 'PPL', tradeAmount: 6733, profitLoss: 100.00, commissionRate: 0.3, commission: 20.20, createTime: '2026-05-13 12:05:20' },
+                                    { tradeNo: 'TRD202605130005', gameType: 'Spread', commissionMode: 'PPL', tradeAmount: 7600, profitLoss: -80.00, commissionRate: 0.3, commission: 22.80, createTime: '2026-05-13 13:40:10' },
+                                    { tradeNo: 'TRD202605130006', gameType: 'TapTrading', commissionMode: 'PPL', tradeAmount: 6167, profitLoss: 150.00, commissionRate: 0.3, commission: 18.50, createTime: '2026-05-13 14:15:35' },
+                                    { tradeNo: 'TRD202605130007', gameType: 'Updown', commissionMode: 'UPDOWN', tradeAmount: 9000, profitLoss: 1500.00, commissionRate: 50, commission: 254.84, createTime: '2026-05-13 15:20:10' }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        id: 2,
+                        name: 'CLZrG111',
+                        uid: '1664694934668288',
+                        inviteCode: 'DEF456',
+                        inviteCount: 2,
+                        teamDepositTotal: 80000,
+                        teamAccountBalance: 48000,
+                        platformProfit: 3500.25,
+                        commissionPaid: 1050.08,
+                        invitees: [
+                            {
+                                name: 'JiVRHx',
+                                uid: '1664687586822144',
+                                inviteDate: '2026-04-25',
+                                depositTotal: 45000,
+                                accountBalance: 28000,
+                                platformProfit: 1900.50,
+                                commissionGenerated: 570.15,
+                                futuresCommission: 88.80,
+                                highlowCommission: 72.25,
+                                spreadCommission: 41.50,
+                                tapTradingCommission: 28.50,
+                                updownCommission: 339.10,
+                                totalCommission: 570.15,
+                                tradeRecords: [
+                                    { tradeNo: 'TRD202605120001', gameType: 'Futures', commissionMode: 'PPL', tradeAmount: 8000, profitLoss: 300.00, commissionRate: 0.3, commission: 24.00, createTime: '2026-05-12 10:15:30' },
+                                    { tradeNo: 'TRD202605120002', gameType: 'Futures', commissionMode: 'PPL', tradeAmount: 21600, profitLoss: 750.00, commissionRate: 0.3, commission: 64.80, createTime: '2026-05-12 10:50:45' },
+                                    { tradeNo: 'TRD202605120003', gameType: 'HighLow', commissionMode: 'PPL', tradeAmount: 12000, profitLoss: -200.00, commissionRate: 0.3, commission: 36.00, createTime: '2026-05-12 12:20:15' },
+                                    { tradeNo: 'TRD202605120004', gameType: 'HighLow', commissionMode: 'PPL', tradeAmount: 12083, profitLoss: 400.00, commissionRate: 0.3, commission: 36.25, createTime: '2026-05-12 12:55:30' },
+                                    { tradeNo: 'TRD202605120005', gameType: 'Spread', commissionMode: 'PPL', tradeAmount: 13833, profitLoss: 250.00, commissionRate: 0.3, commission: 41.50, createTime: '2026-05-12 13:30:20' },
+                                    { tradeNo: 'TRD202605120006', gameType: 'TapTrading', commissionMode: 'PPL', tradeAmount: 9500, profitLoss: 180.00, commissionRate: 0.3, commission: 28.50, createTime: '2026-05-12 14:00:10' },
+                                    { tradeNo: 'TRD202605120007', gameType: 'Updown', commissionMode: 'UPDOWN', tradeAmount: 11000, profitLoss: 1800.00, commissionRate: 50, commission: 339.10, createTime: '2026-05-12 14:30:45' }
+                                ]
+                            },
+                            {
+                                name: 'WUKmJ',
+                                uid: '1664678197864576',
+                                inviteDate: '2026-04-28',
+                                depositTotal: 35000,
+                                accountBalance: 20000,
+                                platformProfit: 1599.75,
+                                commissionGenerated: 479.93,
+                                futuresCommission: 72.25,
+                                highlowCommission: 58.50,
+                                spreadCommission: 35.70,
+                                tapTradingCommission: 22.50,
+                                updownCommission: 290.98,
+                                totalCommission: 479.93,
+                                tradeRecords: [
+                                    { tradeNo: 'TRD202605110001', gameType: 'Futures', commissionMode: 'PPL', tradeAmount: 9000, profitLoss: 150.00, commissionRate: 0.3, commission: 27.00, createTime: '2026-05-11 09:10:30' },
+                                    { tradeNo: 'TRD202605110002', gameType: 'Futures', commissionMode: 'PPL', tradeAmount: 15083, profitLoss: 500.00, commissionRate: 0.3, commission: 45.25, createTime: '2026-05-11 09:40:15' },
+                                    { tradeNo: 'TRD202605110003', gameType: 'HighLow', commissionMode: 'PPL', tradeAmount: 7000, profitLoss: -600.00, commissionRate: 0.3, commission: 21.00, createTime: '2026-05-11 10:15:20' },
+                                    { tradeNo: 'TRD202605110004', gameType: 'HighLow', commissionMode: 'PPL', tradeAmount: 12500, profitLoss: 300.00, commissionRate: 0.3, commission: 37.50, createTime: '2026-05-11 10:50:45' },
+                                    { tradeNo: 'TRD202605110005', gameType: 'Spread', commissionMode: 'PPL', tradeAmount: 11900, profitLoss: 180.00, commissionRate: 0.3, commission: 35.70, createTime: '2026-05-11 11:25:30' },
+                                    { tradeNo: 'TRD202605110006', gameType: 'TapTrading', commissionMode: 'PPL', tradeAmount: 7500, profitLoss: 120.00, commissionRate: 0.3, commission: 22.50, createTime: '2026-05-11 13:00:15' },
+                                    { tradeNo: 'TRD202605110007', gameType: 'Updown', commissionMode: 'UPDOWN', tradeAmount: 10000, profitLoss: 1600.00, commissionRate: 50, commission: 290.98, createTime: '2026-05-11 16:20:35' }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        id: 3,
+                        name: '孙七',
+                        uid: '1664688888888888',
+                        inviteCode: 'GHI789',
+                        inviteCount: 1,
+                        teamDepositTotal: 25000,
+                        teamAccountBalance: 12000,
+                        platformProfit: 1200.00,
+                        commissionPaid: 360.00,
+                        invitees: [
+                            {
+                                name: '周八',
+                                uid: '1664699999999999',
+                                inviteDate: '2026-05-10',
+                                depositTotal: 25000,
+                                accountBalance: 12000,
+                                platformProfit: 1200.00,
+                                commissionGenerated: 360.00,
+                                futuresCommission: 45.50,
+                                highlowCommission: 35.00,
+                                spreadCommission: 25.50,
+                                tapTradingCommission: 14.00,
+                                updownCommission: 240.00,
+                                totalCommission: 360.00,
+                                tradeRecords: [
+                                    { tradeNo: 'TRD202605100001', gameType: 'Futures', commissionMode: 'PPL', tradeAmount: 5000, profitLoss: 200.00, commissionRate: 0.3, commission: 15.00, createTime: '2026-05-10 10:20:30' },
+                                    { tradeNo: 'TRD202605100002', gameType: 'Futures', commissionMode: 'PPL', tradeAmount: 10167, profitLoss: 400.00, commissionRate: 0.3, commission: 30.50, createTime: '2026-05-10 10:55:15' },
+                                    { tradeNo: 'TRD202605100003', gameType: 'HighLow', commissionMode: 'PPL', tradeAmount: 6000, profitLoss: -100.00, commissionRate: 0.3, commission: 18.00, createTime: '2026-05-10 12:30:45' },
+                                    { tradeNo: 'TRD202605100004', gameType: 'HighLow', commissionMode: 'PPL', tradeAmount: 5667, profitLoss: 150.00, commissionRate: 0.3, commission: 17.00, createTime: '2026-05-10 13:05:20' },
+                                    { tradeNo: 'TRD202605100005', gameType: 'Spread', commissionMode: 'PPL', tradeAmount: 8500, profitLoss: 200.00, commissionRate: 0.3, commission: 25.50, createTime: '2026-05-10 13:40:10' },
+                                    { tradeNo: 'TRD202605100006', gameType: 'TapTrading', commissionMode: 'PPL', tradeAmount: 4667, profitLoss: 80.00, commissionRate: 0.3, commission: 14.00, createTime: '2026-05-10 14:15:35' },
+                                    { tradeNo: 'TRD202605100007', gameType: 'Updown', commissionMode: 'UPDOWN', tradeAmount: 6000, profitLoss: 950.00, commissionRate: 50, commission: 240.00, createTime: '2026-05-10 15:45:20' }
+                                ]
+                            }
+                        ]
+                    }
+                ]);
+
+                const filteredInviteList = computed(() => {
+                    let list = [...inviteList.value];
+                    if (inviteFilter.name) {
+                        list = list.filter(item => item.name.includes(inviteFilter.name));
+                    }
+                    if (inviteFilter.uid) {
+                        list = list.filter(item => item.uid.includes(inviteFilter.uid));
+                    }
+                    if (inviteFilter.inviteCode) {
+                        list = list.filter(item => item.inviteCode.includes(inviteFilter.inviteCode));
+                    }
+                    return list;
+                });
+
+                const currentInviteeDetail = reactive({
+                    inviterName: '',
+                    inviterUid: '',
+                    inviterInviteCode: '',
+                    inviteeList: []
+                });
+
+                const filteredInviteeDetailList = computed(() => {
+                    let list = [...currentInviteeDetail.inviteeList];
+                    if (inviteeDetailFilter.name) {
+                        list = list.filter(item => item.name.includes(inviteeDetailFilter.name));
+                    }
+                    if (inviteeDetailFilter.uid) {
+                        list = list.filter(item => item.uid.includes(inviteeDetailFilter.uid));
+                    }
+                    return list;
+                });
+
+                const tradeDetailModalVisible = ref(false);
+                const tradeRecordFilter = reactive({
+                    gameType: ''
+                });
+                const filteredTradeRecords = computed(() => {
+                    let list = [...currentTradeDetail.tradeRecords];
+                    if (tradeRecordFilter.gameType) {
+                        list = list.filter(item => item.gameType === tradeRecordFilter.gameType);
+                    }
+                    return list;
+                });
+                const currentTradeDetail = reactive({
+                    name: '',
+                    uid: '',
+                    inviteDate: '',
+                    depositTotal: 0,
+                    accountBalance: 0,
+                    platformProfit: 0,
+                    futuresCommission: 0,
+                    highlowCommission: 0,
+                    spreadCommission: 0,
+                    tapTradingCommission: 0,
+                    updownCommission: 0,
+                    totalCommission: 0,
+                    tradeRecords: []
+                });
+
+                const updateInviteStats = () => {
+                    const allInviters = inviteList.value.length;
+                    const allInvitees = inviteList.value.reduce((sum, item) => sum + item.inviteCount, 0);
+                    const allPlatformProfit = inviteList.value.reduce((sum, item) => sum + item.platformProfit, 0);
+                    const allCommission = inviteList.value.reduce((sum, item) => sum + item.commissionPaid, 0);
+                    
+                    inviteStats.inviterCount = allInviters;
+                    inviteStats.inviteeCount = allInvitees;
+                    inviteStats.platformNetProfit = allPlatformProfit;
+                    inviteStats.totalCommission = allCommission;
+                };
+
+                const handleInviteSearch = () => {
+                    ElMessage.success('查询完成');
+                };
+
+                const resetInviteFilter = () => {
+                    inviteFilter.name = '';
+                    inviteFilter.uid = '';
+                    inviteFilter.inviteCode = '';
+                };
+
+                const exportInviteData = () => {
+                    ElMessage.success('导出功能开发中');
+                };
+
+                const handleInviteeDetailSearch = () => {
+                    ElMessage.success('查询完成');
+                };
+
+                const resetInviteeDetailFilter = () => {
+                    inviteeDetailFilter.name = '';
+                    inviteeDetailFilter.uid = '';
+                    inviteeDetailFilter.bindDateRange = null;
+                };
+
+                const exportInviteeDetailData = () => {
+                    ElMessage.success('导出功能开发中');
+                };
+
+                const viewInviteeDetail = (row) => {
+                    currentInviteeDetail.inviterName = row.name;
+                    currentInviteeDetail.inviterUid = row.uid;
+                    currentInviteeDetail.inviterInviteCode = row.inviteCode;
+                    currentInviteeDetail.inviteeList = row.invitees || [];
+                    inviteeDetailFilter.name = '';
+                    inviteeDetailFilter.uid = '';
+                    inviteeDetailFilter.bindDateRange = null;
+                    currentPage.value = 'invitee-detail';
+                };
+
+                const viewInviteeTradeDetail = (row) => {
+                    currentTradeDetail.name = row.name;
+                    currentTradeDetail.uid = row.uid;
+                    currentTradeDetail.inviteDate = row.inviteDate;
+                    currentTradeDetail.depositTotal = row.depositTotal;
+                    currentTradeDetail.accountBalance = row.accountBalance;
+                    currentTradeDetail.platformProfit = row.platformProfit;
+                    currentTradeDetail.futuresCommission = row.futuresCommission;
+                    currentTradeDetail.highlowCommission = row.highlowCommission;
+                    currentTradeDetail.spreadCommission = row.spreadCommission;
+                    currentTradeDetail.tapTradingCommission = row.tapTradingCommission;
+                    currentTradeDetail.updownCommission = row.updownCommission;
+                    currentTradeDetail.totalCommission = row.totalCommission;
+                    currentTradeDetail.tradeRecords = row.tradeRecords || [];
+                    tradeRecordFilter.gameType = '';
+                    tradeDetailModalVisible.value = true;
+                };
+
+                const filterTradeRecords = () => {
+                };
+
+                const openBindBDModal = () => {
+                    bindBDForm.hasBD = !!tier1Detail.value.bdUid;
+                    bindBDForm.bdUid = '';
+                    bindBDForm.reason = '';
+                    bindBDModalVisible.value = true;
+                };
+
+                const submitBindBD = () => {
+                    if (!bindBDForm.bdUid) { ElMessage.error('请选择商务'); return; }
+                    // 更新一级代理的商务归属
+                    const agent = tier1List.value.find(a => a.uid === tier1Detail.value.uid);
+                    if (agent) {
+                        agent.bdUid = bindBDForm.bdUid;
+                    }
+                    tier1Detail.value.bdUid = bindBDForm.bdUid;
+                    ElMessage.success(`${bindBDForm.hasBD ? '换绑' : '绑定'}商务成功`);
+                    bindBDModalVisible.value = false;
+                    showConfirmDialog.value = false;
+                };
+
+                const pageTitle = computed(() => {
+                    const titles = { 'agent-manage': '代理管理', 'bd-detail': '商务详情', 'tier1-detail': '一级代理详情', 'normal-invite': '普通邀请管理', 'invitee-detail': '受邀人详情' };
+                    return titles[currentPage.value] || '';
+                });
+
+                updateInviteStats();
+
+                return {
+                    currentPage, agentLevelFilter, uidFilter, subAgentFilterType, subAgentUidFilter,
+                    bdList, tier1List, tier2List, filteredAgentList,
+                    ngrTotal, pplTotal, updownTotal, commissionTotal, formatNum, handleSearch, resetFilter,
+                    addAgentModalVisible, addAgentForm, availableTier1ForBD, inheritedNgrPplModes,
+                    openAddAgent, onLevelChange, onBDChange, onParentAgentChange, submitAddAgent,
+                    currentBD, bdDetailData, viewDetail, toggleStatus, saveRate, editRemark,
+                    tier1Detail, filteredSubAgentList, viewTier1Detail, openAddTier2FromTier1Detail,
+                    addTier2FromTier1ModalVisible, addTier2FromTier1Form, tier2FromTier1InheritedModes, submitAddTier2FromTier1,
+                    addTier1ModalVisible, addTier1Form, openAddTier1Modal, submitAddTier1,
+                    addTier2FromBDModalVisible, addTier2FromBDForm, bdTier2InheritedModes,
+                    openAddTier2FromBD, onBDTier2ParentChange, submitAddTier2FromBD,
+                    subAgentModalVisible, currentTier1Agent, subAgentList, openSubAgentModal,
+                    modifyRateModalVisible, currentModifyAgent, modifyRateForm, openModifyRateModal, submitModifyRate,
+                    getBDInfo,
+                    userFilter, userList, filteredUserList, resetUserFilter,
+                    inviteStats, inviteFilter, inviteList, filteredInviteList,
+                    inviteeDetailFilter, currentInviteeDetail, filteredInviteeDetailList,
+                    tradeDetailModalVisible, tradeRecordFilter, filteredTradeRecords, currentTradeDetail,
+                    handleInviteSearch, resetInviteFilter, exportInviteData,
+                    handleInviteeDetailSearch, resetInviteeDetailFilter, exportInviteeDetailData,
+                    viewInviteeDetail, viewInviteeTradeDetail, filterTradeRecords,
+                    bindBDModalVisible, showConfirmDialog, bindBDForm, openBindBDModal, submitBindBD,
+                    pageTitle
+                };
+            }
+        });
+
+        for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+            app.component(key, component);
+        }
+        app.use(ElementPlus);
+        app.mount('#app');
+    </script>
+</body>
+</html>

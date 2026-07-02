@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detrade - Trading Competition</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-plus@2.9.1/dist/index.css">
+  <script src="https://cdn.jsdelivr.net/npm/vue@3.5.13/dist/vue.global.prod.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/element-plus@2.9.1/dist/index.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@element-plus/icons-vue@2.3.1/dist/index.iife.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bg: { base: '#0d1117', card: '#161b22', hover: '#1c2333', border: '#30363d' },
+            gold: { light: '#fbbf24', DEFAULT: '#f59e0b', dark: '#d97706' },
+            worldcup: { green: '#006633', gold: '#FFD700', red: '#D32F2F', dark: '#1a0a00' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0d1117; color: #e6edf3; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #161b22; }
+    ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #484f58; }
+
+    .gold-gradient { background: linear-gradient(135deg, #FFD700 0%, #f59e0b 50%, #d97706 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .gold-gradient-bg { background: linear-gradient(135deg, #FFD700 0%, #f59e0b 50%, #d97706 100%); }
+    .card-gradient { background: linear-gradient(180deg, rgba(245,158,11,0.08) 0%, rgba(22,27,34,0) 40%); }
+    .glow-gold { box-shadow: 0 0 20px rgba(245,158,11,0.15); }
+    .glow-gold-hover:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 20px rgba(245,158,11,0.1); }
+
+    .activity-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid #30363d; position: relative; overflow: hidden; }
+    .activity-card:hover { transform: translateY(-4px); border-color: rgba(245,158,11,0.4); box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 20px rgba(245,158,11,0.1); }
+    .activity-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, #f59e0b, transparent); opacity: 0; transition: opacity 0.3s; }
+    .activity-card:hover::before { opacity: 1; }
+
+    .tag-demo { background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.3); }
+    .tag-real { background: rgba(251,191,36,0.15); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
+
+    .el-button--primary { background: linear-gradient(135deg, #f59e0b, #d97706) !important; border: none !important; color: #000 !important; font-weight: 600 !important; }
+    .el-button--primary:hover { background: linear-gradient(135deg, #fbbf24, #f59e0b) !important; }
+
+    .leaderboard-table th { background: #0d1117 !important; color: #8b949e !important; font-weight: 500 !important; border-bottom: 1px solid #30363d !important; }
+    .leaderboard-table td { border-bottom: 1px solid #21262d !important; color: #c9d1d9 !important; }
+    .leaderboard-table tr:hover td { background: #1c2333 !important; }
+
+    .rank-1 { color: #fbbf24; }
+    .rank-2 { color: #c0c0c0; }
+    .rank-3 { color: #cd7f32; }
+
+    .countdown-pulse { animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+
+    .filter-btn { transition: all 0.2s; }
+    .filter-btn.active { background: linear-gradient(135deg, rgba(245,158,11,0.2), rgba(217,119,6,0.2)); border-color: rgba(245,158,11,0.5); color: #fbbf24; }
+
+    /* World Cup Banner */
+    .wc-banner {
+      background: linear-gradient(135deg, #003d1f 0%, #006633 30%, #004d26 60%, #1a0a00 100%);
+      position: relative; overflow: hidden;
+    }
+    .wc-banner::before {
+      content: ''; position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse at 20% 50%, rgba(255,215,0,0.15) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 30%, rgba(255,215,0,0.1) 0%, transparent 50%),
+        repeating-linear-gradient(90deg, transparent 0px, transparent 98px, rgba(255,255,255,0.04) 98px, rgba(255,255,255,0.04) 100px);
+      pointer-events: none;
+    }
+    .wc-banner::after {
+      content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 60px;
+      background: linear-gradient(0deg, #0d1117 0%, transparent 100%);
+      pointer-events: none;
+    }
+    .wc-field-lines {
+      position: absolute; inset: 0; pointer-events: none; opacity: 0.08;
+      background:
+        linear-gradient(0deg, transparent 48%, rgba(255,255,255,0.3) 48%, rgba(255,255,255,0.3) 52%, transparent 52%),
+        radial-gradient(circle at 50% 50%, transparent 14%, rgba(255,255,255,0.3) 14.5%, rgba(255,255,255,0.3) 15.5%, transparent 16%);
+    }
+    .wc-trophy-glow {
+      position: absolute; top: 10px; right: 8%; width: 120px; height: 120px;
+      background: radial-gradient(circle, rgba(255,215,0,0.2) 0%, transparent 70%);
+      border-radius: 50%; pointer-events: none;
+    }
+    .wc-stadium-lights {
+      position: absolute; top: 0; left: 0; right: 0; height: 40px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, transparent 100%);
+      pointer-events: none;
+    }
+    .wc-crowd {
+      position: absolute; bottom: 0; left: 0; right: 0; height: 40px; opacity: 0.05;
+      background: repeating-linear-gradient(90deg, #fff 0px, #fff 2px, transparent 2px, transparent 8px);
+      pointer-events: none;
+    }
+    .wc-ball-decor { position: absolute; bottom: 20px; left: 5%; opacity: 0.1; pointer-events: none; }
+    .wc-ball-decor-2 { position: absolute; top: 15px; right: 25%; opacity: 0.06; pointer-events: none; transform: rotate(25deg); }
+
+    /* Page transition */
+    .page-enter-active { animation: pageFadeIn 0.25s ease-out; }
+    .page-leave-active { animation: pageFadeOut 0.15s ease-in; }
+    @keyframes pageFadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pageFadeOut { from { opacity: 1; } to { opacity: 0; } }
+
+    .my-rank-highlight td { background: rgba(245,158,11,0.08) !important; }
+
+    .est-reward-badge {
+      background: linear-gradient(135deg, rgba(245,158,11,0.25), rgba(245,158,11,0.1));
+      border: 1px solid rgba(245,158,11,0.4);
+      animation: rewardPulse 2s infinite;
+    }
+    @keyframes rewardPulse { 0%, 100% { box-shadow: 0 0 8px rgba(245,158,11,0.2); } 50% { box-shadow: 0 0 20px rgba(245,158,11,0.4); } }
+
+    .reward-row-detail { border-left: 3px solid rgba(245,158,11,0.3); background: rgba(245,158,11,0.03); padding: 12px; border-radius: 0 8px 8px 0; margin-bottom: 8px; }
+
+    @media (max-width: 768px) {
+      .activity-card .prize-amount { font-size: 1.5rem !important; }
+      .hero-stats { flex-direction: column !important; gap: 12px !important; }
+      .hero-stats .stat-card { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <!-- ===================== HEADER ===================== -->
+  <header class="sticky top-0 z-40 bg-[#0d1117]/95 backdrop-blur-sm border-b border-[#30363d]">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3 cursor-pointer" @click="goHome">
+        <div class="w-8 h-8 rounded-lg gold-gradient-bg flex items-center justify-center">
+          <span class="text-black font-bold text-sm">D</span>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold text-white">{{ t('title') }}</h1>
+          <p class="text-xs text-[#8b949e]">{{ t('subtitle') }}</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <button @click="goMyRanking" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#161b22] border border-[#30363d] hover:border-[#f59e0b]/50 transition-colors">
+          <el-icon class="text-[#f59e0b]"><Trophy /></el-icon>
+          <span class="text-sm text-[#e6edf3] hidden sm:inline">{{ t('myRanking') }}</span>
+          <span class="text-xs text-[#fbbf24] font-bold">#{{ myGlobalRank }}</span>
+        </button>
+        <button @click="toggleLang" class="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#161b22] border border-[#30363d] hover:border-[#f59e0b]/50 transition-colors">
+          <el-icon><Switch /></el-icon>
+          <span class="text-xs text-[#e6edf3] hidden sm:inline">{{ lang === 'zh' ? 'EN' : '中文' }}</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===================== HOME PAGE ===================== -->
+  <transition name="page" mode="out-in">
+  <div v-if="currentPage === 'home'" key="home" class="page-enter-active">
+
+    <!-- Hero Banner (World Cup Themed) -->
+    <section class="wc-banner border-b border-[#30363d]">
+      <div class="wc-field-lines"></div>
+      <div class="wc-stadium-lights"></div>
+      <div class="wc-crowd"></div>
+      <div class="wc-trophy-glow"></div>
+      <svg class="wc-ball-decor" width="80" height="80" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="45" fill="none" stroke="white" stroke-width="2"/>
+        <polygon points="50,15 65,35 58,55 42,55 35,35" fill="none" stroke="white" stroke-width="1.5"/>
+        <line x1="50" y1="15" x2="50" y2="5" stroke="white" stroke-width="1.5"/>
+        <line x1="65" y1="35" x2="78" y2="30" stroke="white" stroke-width="1.5"/>
+        <line x1="58" y1="55" x2="65" y2="70" stroke="white" stroke-width="1.5"/>
+        <line x1="42" y1="55" x2="35" y2="70" stroke="white" stroke-width="1.5"/>
+        <line x1="35" y1="35" x2="22" y2="30" stroke="white" stroke-width="1.5"/>
+      </svg>
+      <svg class="wc-ball-decor-2" width="60" height="60" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="45" fill="none" stroke="#FFD700" stroke-width="2"/>
+        <polygon points="50,15 65,35 58,55 42,55 35,35" fill="none" stroke="#FFD700" stroke-width="1.5"/>
+      </svg>
+      <div class="relative max-w-7xl mx-auto px-4 py-10">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+          <div class="text-center md:text-left z-10">
+            <svg class="inline-block mb-3" width="56" height="56" viewBox="0 0 64 64">
+              <defs><linearGradient id="trophyGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#FFD700"/><stop offset="100%" style="stop-color:#f59e0b"/></linearGradient></defs>
+              <path d="M20 8h24v4h8v8c0 4.4-3.6 8-8 8h-1.2c-2.1 4.6-6.2 8-11.2 9.2V42h6v6H26v-6h6v-4.8C27 36 22.9 32.6 20.8 28H20c-4.4 0-8-3.6-8-8v-8h8V8z" fill="url(#trophyGrad)" opacity="0.9"/>
+              <rect x="24" y="48" width="16" height="8" rx="1" fill="url(#trophyGrad)" opacity="0.7"/>
+              <rect x="20" y="56" width="24" height="4" rx="2" fill="url(#trophyGrad)" opacity="0.8"/>
+            </svg>
+            <h2 class="text-2xl md:text-3xl font-bold mb-2">
+              <span class="gold-gradient">{{ t('bannerTitle') }}</span>
+            </h2>
+            <p class="text-[#8b949e] text-sm">{{ t('bannerDesc') }} <span class="text-[#FFD700] font-bold text-lg">$50,000</span> {{ t('bannerDescEnd') }}</p>
+          </div>
+          <div class="flex gap-4 hero-stats z-10">
+            <div class="stat-card rounded-xl px-5 py-3 text-center" style="background:linear-gradient(135deg,rgba(245,158,11,0.05),transparent);border:1px solid rgba(245,158,11,0.15);">
+              <div class="text-[#FFD700] text-2xl font-bold">{{ formatNumber(totalPrizePool) }}</div>
+              <div class="text-[#8b949e] text-xs mt-1">{{ t('totalPrizePool') }}</div>
+            </div>
+            <div class="stat-card rounded-xl px-5 py-3 text-center" style="background:linear-gradient(135deg,rgba(245,158,11,0.05),transparent);border:1px solid rgba(245,158,11,0.15);">
+              <div class="text-[#4ade80] text-2xl font-bold">{{ activeCompetitions }}</div>
+              <div class="text-[#8b949e] text-xs mt-1">{{ t('ongoing') }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Filter Section -->
+    <section class="max-w-7xl mx-auto px-4 py-6">
+      <div class="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+        <div class="flex flex-wrap gap-3 items-center">
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-[#8b949e]">{{ t('gameType') }}</span>
+            <button v-for="g in gameTypeFilters" :key="g.value"
+                    @click="filters.gameType = g.value"
+                    :class="['filter-btn px-3 py-1.5 rounded-full text-xs border transition-all whitespace-nowrap',
+                             filters.gameType === g.value ? 'active' : 'border-[#30363d] text-[#8b949e] hover:text-[#e6edf3]']">
+              {{ g.label }}
+            </button>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-[#8b949e]">{{ t('mode') }}</span>
+            <button v-for="m in modeFilters" :key="m.value"
+                    @click="filters.mode = m.value"
+                    :class="['filter-btn px-3 py-1.5 rounded-full text-xs border transition-all',
+                             filters.mode === m.value ? 'active' : 'border-[#30363d] text-[#8b949e] hover:text-[#e6edf3]']">
+              {{ m.label }}
+            </button>
+          </div>
+        </div>
+        <el-input v-model="filters.search" :placeholder="t('searchPlaceholder')" class="w-full lg:w-64"
+                  :prefix-icon="Search" clearable
+                  :style="{ '--el-input-bg-color': '#161b22', '--el-input-border-color': '#30363d', '--el-input-hover-border-color': '#484f58' }">
+        </el-input>
+      </div>
+    </section>
+
+    <!-- Activity Cards Grid -->
+    <section class="max-w-7xl mx-auto px-4 pb-8">
+      <div v-if="filteredActivities.length === 0" class="text-center py-16">
+        <el-icon class="text-4xl text-[#484f58] mb-4"><DocumentDelete /></el-icon>
+        <p class="text-[#8b949e]">{{ t('noActivities') }}</p>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div v-for="act in filteredActivities" :key="act.id"
+             @click="goDetail(act)"
+             class="activity-card rounded-xl bg-[#161b22] cursor-pointer glow-gold-hover">
+          <div class="card-gradient px-5 pt-5 pb-3">
+            <div class="flex items-start justify-between mb-3">
+              <div class="flex-1 min-w-0">
+                <h3 class="text-base font-bold text-white truncate">{{ lang === 'zh' ? act.name : (act.nameEn || act.name) }}</h3>
+                <p v-if="act.subTitle" class="text-xs text-[#8b949e] mt-1 truncate">{{ lang === 'zh' ? act.subTitle : (act.subTitleEn || act.subTitle) }}</p>
+              </div>
+              <span :class="['px-2 py-0.5 rounded text-[10px] font-medium shrink-0',
+                            act.mode === 'demo' ? 'tag-demo' : 'tag-real']">
+                {{ act.mode === 'demo' ? t('demo') : t('real') }}
+              </span>
+            </div>
+            <div class="flex items-baseline gap-1">
+              <span class="text-[#8b949e] text-xs">{{ t('prizePool') }}</span>
+              <span class="text-2xl font-bold gold-gradient prize-amount">${{ formatNumber(act.prizePool) }}</span>
+              <span class="text-[#8b949e] text-xs">USDT</span>
+            </div>
+          </div>
+          <div class="px-5 py-3 border-t border-[#21262d]">
+            <div class="flex items-center gap-2 text-xs text-[#8b949e] mb-3">
+              <el-icon><Clock /></el-icon>
+              <span>{{ act.startTime }} ~ {{ act.endTime }}</span>
+            </div>
+            <div class="flex items-center gap-2 mb-3">
+              <span class="text-xs text-[#8b949e]">{{ t('endsIn') }}</span>
+              <span class="countdown-pulse font-mono text-sm text-[#f59e0b] font-bold">{{ getCountdown(act) }}</span>
+            </div>
+            <div class="flex items-center justify-between text-xs text-[#8b949e] mb-4">
+              <div class="flex items-center gap-1.5">
+                <el-icon><TrendCharts /></el-icon>
+                <span>{{ getGameTypeLabel(act.gameType) }}</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <el-icon><Medal /></el-icon>
+                <span>{{ t('myRankLabel') }} #{{ act.myRank || '-' }}</span>
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <!-- Join button: only show when NOT logged in -->
+              <el-button v-if="!isLoggedIn" class="flex-1" type="primary" size="small"
+                         @click.stop="handleLoginRedirect">
+                {{ t('joinNow') }}
+              </el-button>
+              <el-button v-else class="flex-1" type="default" size="small"
+                         :class="'border-[#30363d] text-[#4ade80]'">
+                <el-icon><Check /></el-icon>
+                {{ t('autoJoined') }}
+              </el-button>
+              <el-button size="small" class="border-[#30363d] text-[#8b949e]" @click.stop="goDetail(act)">
+                {{ t('viewDetail') }}
+              </el-button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ===================== DETAIL PAGE ===================== -->
+  <div v-else-if="currentPage === 'detail'" key="detail" class="page-enter-active">
+    <div class="max-w-5xl mx-auto px-4 py-6">
+      <button @click="goHome" class="flex items-center gap-2 text-[#8b949e] hover:text-[#e6edf3] transition-colors mb-6">
+        <el-icon><ArrowLeft /></el-icon>
+        <span class="text-sm">{{ t('back') }}</span>
+      </button>
+
+      <div v-if="detailActivity" class="space-y-5">
+        <!-- Activity Header -->
+        <div class="flex items-start justify-between flex-wrap gap-3">
+          <div>
+            <h2 class="text-2xl font-bold text-white">{{ lang === 'zh' ? detailActivity.name : (detailActivity.nameEn || detailActivity.name) }}</h2>
+            <p v-if="detailActivity.subTitle" class="text-sm text-[#8b949e] mt-1">{{ lang === 'zh' ? detailActivity.subTitle : (detailActivity.subTitleEn || detailActivity.subTitle) }}</p>
+          </div>
+          <span :class="['px-3 py-1 rounded text-xs font-medium',
+                        detailActivity.mode === 'demo' ? 'tag-demo' : 'tag-real']">
+            {{ detailActivity.mode === 'demo' ? t('demo') : t('real') }}
+          </span>
+        </div>
+
+        <!-- Prize & Stats -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="rounded-lg p-3 text-center" style="background:linear-gradient(135deg,rgba(245,158,11,0.05),transparent);border:1px solid rgba(245,158,11,0.15);">
+            <div class="text-lg font-bold gold-gradient">${{ formatNumber(detailActivity.prizePool) }}</div>
+            <div class="text-xs text-[#8b949e] mt-1">{{ t('prizePool') }}</div>
+          </div>
+          <div class="rounded-lg p-3 text-center bg-[#0d1117] border border-[#30363d]">
+            <div class="text-lg font-bold text-[#4ade80]">{{ getCountdown(detailActivity) }}</div>
+            <div class="text-xs text-[#8b949e] mt-1">{{ t('endsIn') }}</div>
+          </div>
+          <div class="rounded-lg p-3 text-center bg-[#0d1117] border border-[#30363d]">
+            <div class="text-lg font-bold text-[#c084fc]">#{{ detailActivity.myRank || '-' }}</div>
+            <div class="text-xs text-[#8b949e] mt-1">{{ t('myRankLabel') }}</div>
+          </div>
+          <div class="rounded-lg p-3 text-center bg-[#0d1117] border border-[#30363d]">
+            <div class="text-lg font-bold text-[#60a5fa]">{{ getGameTypeLabel(detailActivity.gameType) }}</div>
+            <div class="text-xs text-[#8b949e] mt-1">{{ t('gameType') }}</div>
+          </div>
+        </div>
+
+        <!-- Time Range -->
+        <div class="rounded-lg bg-[#0d1117] border border-[#30363d] p-4">
+          <div class="flex items-center gap-2 mb-2">
+            <el-icon class="text-[#f59e0b]"><Clock /></el-icon>
+            <span class="text-sm font-medium text-white">{{ t('activityTime') }}</span>
+          </div>
+          <div class="text-sm text-[#8b949e]">{{ detailActivity.startTime }} {{ t('to') }} {{ detailActivity.endTime }}</div>
+        </div>
+
+        <!-- Game Type & Trading Pairs -->
+        <div class="rounded-lg bg-[#0d1117] border border-[#30363d] p-4">
+          <div class="flex items-center gap-2 mb-2">
+            <el-icon class="text-[#60a5fa]"><Connection /></el-icon>
+            <span class="text-sm font-medium text-white">{{ t('gameTypeAndPairs') }}</span>
+          </div>
+          <div class="flex items-center gap-3 flex-wrap">
+            <span class="px-3 py-1.5 rounded-lg bg-[#161b22] border border-[#30363d] text-sm text-[#c9d1d9] flex items-center gap-1.5">
+              <el-icon><TrendCharts /></el-icon>
+              {{ getGameTypeLabel(detailActivity.gameType) }}
+            </span>
+          </div>
+          <div class="flex flex-wrap gap-2 mt-3">
+            <span v-for="pair in detailActivity.pairs" :key="pair" class="px-2.5 py-1 rounded bg-[#161b22] border border-[#30363d] text-xs text-[#c9d1d9]">{{ pair }}</span>
+          </div>
+        </div>
+
+        <!-- Competition Rules -->
+        <div class="rounded-lg bg-[#0d1117] border border-[#30363d] p-4">
+          <div class="flex items-center gap-2 mb-3">
+            <el-icon class="text-[#8b949e]"><Document /></el-icon>
+            <span class="text-sm font-medium text-white">{{ t('rules') }}</span>
+          </div>
+          <div class="text-sm text-[#8b949e] space-y-2" :innerHTML="lang === 'zh' ? detailActivity.rules : (detailActivity.rulesEn || detailActivity.rules)"></div>
+        </div>
+
+        <!-- Rank Rewards (expanded detail view) -->
+        <div class="rounded-lg bg-[#0d1117] border border-[#30363d] p-4">
+          <div class="flex items-center gap-2 mb-4">
+            <el-icon class="text-[#f59e0b]"><Medal /></el-icon>
+            <span class="text-sm font-medium text-white">{{ t('rankRewards') }}</span>
+          </div>
+          <!-- Each reward row expanded with full detail -->
+          <div v-for="(reward, idx) in detailActivity.rewards" :key="idx" class="reward-row-detail mb-3">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <div class="flex items-center gap-3">
+                <span class="text-lg font-bold gold-gradient">{{ reward.rank }}</span>
+                <span class="px-2 py-0.5 rounded text-xs" style="background:rgba(245,158,11,0.15);color:#fbbf24;border:1px solid rgba(245,158,11,0.3);">
+                  {{ getRewardTypeLabel(reward.rewardType) }}
+                </span>
+              </div>
+              <span class="text-xl font-bold text-[#fbbf24]">{{ reward.amount }} USDT</span>
+            </div>
+            <!-- Unlock condition detail -->
+            <div v-if="reward.rechargeAmount || reward.realTradeCount" class="mt-3 pt-3 border-t border-[#30363d]/50">
+              <div class="flex items-center gap-2 text-xs text-[#8b949e]">
+                <el-icon><CircleCheck /></el-icon>
+                <span class="text-[#e6edf3] font-medium">{{ t('unlockRequirement') }}：</span>
+              </div>
+              <div class="flex flex-wrap gap-3 mt-2 text-xs">
+                <span v-if="reward.rechargeAmount" class="px-2 py-1 rounded bg-[#161b22] border border-[#30363d]">
+                  {{ t('rechargeAmount') }} ≥ ${{ reward.rechargeAmount }}
+                </span>
+                <span v-if="reward.realTradeCount" class="px-2 py-1 rounded bg-[#161b22] border border-[#30363d]">
+                  {{ t('realTradeCount') }} ≥ {{ reward.realTradeCount }}
+                </span>
+              </div>
+              <p class="text-[10px] text-[#8b949e] mt-2">{{ t('unlockTip') }}</p>
+            </div>
+            <div v-else class="mt-2 text-xs text-[#4ade80]">
+              <el-icon><Check /></el-icon>
+              {{ t('noUnlockReq') }}
+            </div>
+          </div>
+          <!-- Reward rules summary -->
+          <div class="mt-4 pt-4 border-t border-[#30363d] text-xs text-[#8b949e] space-y-1">
+            <p>• {{ t('rewardRule1') }}</p>
+            <p>• {{ t('rewardRule2') }}</p>
+            <p>• {{ t('rewardRule3') }}</p>
+          </div>
+        </div>
+
+        <!-- Participation Threshold -->
+        <div class="rounded-lg bg-[#0d1117] border border-[#30363d] p-4">
+          <div class="flex items-center gap-2 mb-3">
+            <el-icon class="text-[#60a5fa]"><CircleCheck /></el-icon>
+            <span class="text-sm font-medium text-white">{{ t('participationThreshold') }}</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="rounded-lg bg-[#161b22] border border-[#30363d] p-3">
+              <div class="text-xs text-[#8b949e]">{{ t('minTradeAmount') }}</div>
+              <div class="text-sm text-[#e6edf3] font-medium mt-1">${{ detailActivity.minTradeAmount || 0 }}</div>
+            </div>
+            <div class="rounded-lg bg-[#161b22] border border-[#30363d] p-3">
+              <div class="text-xs text-[#8b949e]">{{ t('maxTradeAmount') }}</div>
+              <div class="text-sm text-[#e6edf3] font-medium mt-1">{{ detailActivity.maxTradeAmount ? '$' + formatNumber(detailActivity.maxTradeAmount) : t('unlimited') }}</div>
+            </div>
+            <div class="rounded-lg bg-[#161b22] border border-[#30363d] p-3">
+              <div class="text-xs text-[#8b949e]">{{ t('minTradeCount') }}</div>
+              <div class="text-sm text-[#e6edf3] font-medium mt-1">{{ detailActivity.minTradeCount || 0 }} {{ t('trades') }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Reward Distribution -->
+        <div class="rounded-lg bg-[#0d1117] border border-[#30363d] p-4">
+          <div class="flex items-center gap-2 mb-3">
+            <el-icon class="text-[#f59e0b]"><Coin /></el-icon>
+            <span class="text-sm font-medium text-white">{{ t('rewardDistribution') }}</span>
+          </div>
+          <div class="flex items-center gap-3 flex-wrap">
+            <span class="px-3 py-1.5 rounded-lg bg-[#161b22] border border-[#30363d] text-sm">
+              <span class="text-[#8b949e]">{{ t('distributionMode') }}：</span>
+              <span class="text-[#e6edf3]">{{ detailActivity.autoReward ? t('autoDistribution') : t('manualDistribution') }}</span>
+            </span>
+            <span v-if="detailActivity.autoReward && detailActivity.rewardDelay" class="px-3 py-1.5 rounded-lg bg-[#161b22] border border-[#30363d] text-sm">
+              <span class="text-[#8b949e]">{{ t('rewardDelay') }}：</span>
+              <span class="text-[#fbbf24]">{{ getRewardDelayText(detailActivity.rewardDelay) }}</span>
+            </span>
+          </div>
+        </div>
+
+        <!-- Leaderboard (single ranking metric per competition) -->
+        <div class="rounded-lg bg-[#0d1117] border border-[#30363d] p-4">
+          <div class="flex items-center justify-between mb-3 flex-wrap gap-3">
+            <div class="flex items-center gap-2">
+              <el-icon class="text-[#f59e0b]"><Rank /></el-icon>
+              <span class="text-sm font-medium text-white">{{ t('leaderboard') }} TOP 20</span>
+            </div>
+            <span class="px-3 py-1.5 rounded-lg bg-[#161b22] border border-[#30363d] text-xs">
+              <span class="text-[#8b949e]">{{ t('rankByLabel') }}：</span>
+              <span class="text-[#fbbf24] font-medium">{{ getRankByLabel(detailActivity.rankBy) }}</span>
+            </span>
+          </div>
+          <el-table :data="filteredLeaderboard.slice(0, 20)" class="leaderboard-table" style="width: 100%" :row-style="{ background: 'transparent' }"
+                    :row-class-name="({ row }) => row.isMe ? 'my-rank-highlight' : ''">
+            <el-table-column prop="rank" :label="t('rank')" width="90">
+              <template #default="{ row }">
+                <span :class="row.rank <= 3 ? `rank-${row.rank} font-bold` : 'text-[#8b949e]'">
+                  <template v-if="row.rank === 1">🥇 </template>
+                  <template v-else-if="row.rank === 2">🥈 </template>
+                  <template v-else-if="row.rank === 3">🥉 </template>
+                  #{{ row.rank }}
+                </span>
+              </template>
+            </el-table-column>
+            <el-table-column :label="t('user')" width="140">
+              <template #default="{ row }">
+                <span :class="row.isMe ? 'text-[#fbbf24] font-bold' : 'text-[#c9d1d9]'">
+                  {{ row.userId }}{{ row.isMe ? ` (${t('me')})` : '' }}
+                </span>
+              </template>
+            </el-table-column>
+            <!-- Single metric column based on competition's rankBy -->
+            <el-table-column v-if="detailActivity.rankBy === 'pnl'" :label="t('pnl')" width="150">
+              <template #default="{ row }">
+                <span :class="row.pnl >= 0 ? 'text-[#4ade80]' : 'text-[#f87171]'">
+                  {{ row.pnl >= 0 ? '+' : '' }}${{ formatNumber(Math.abs(row.pnl)) }}
+                </span>
+              </template>
+            </el-table-column>
+            <el-table-column v-else-if="detailActivity.rankBy === 'roi'" :label="t('roi')" width="100">
+              <template #default="{ row }">
+                <span class="text-[#c084fc]">{{ row.roi }}%</span>
+              </template>
+            </el-table-column>
+            <el-table-column v-else-if="detailActivity.rankBy === 'singleRoi'" :label="t('singleRoi')" width="130">
+              <template #default="{ row }">
+                <span :class="(row.singleRoi || 0) >= 0 ? 'text-[#4ade80]' : 'text-[#f87171]'">
+                  {{ row.singleRoi >= 0 ? '+' : '' }}{{ row.singleRoi }}%
+                </span>
+              </template>
+            </el-table-column>
+            <el-table-column v-else-if="detailActivity.rankBy === 'winRate'" :label="t('winRate')" width="100">
+              <template #default="{ row }">
+                <span class="text-[#fbbf24]">{{ row.winRate }}%</span>
+              </template>
+            </el-table-column>
+            <el-table-column v-else-if="detailActivity.rankBy === 'absProfit'" :label="t('absProfit')" width="140">
+              <template #default="{ row }">
+                <span class="text-[#60a5fa]">${{ formatNumber(row.absProfit || 0) }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column :label="t('estReward')" width="110">
+              <template #default="{ row }">
+                <span class="text-[#fbbf24]">${{ row.estReward }}</span>
+              </template>
+            </el-table-column>
+          </el-table>
+          <!-- Show user's rank if not in top 20, with dynamic metric -->
+          <div v-if="detailActivity.myRank && detailActivity.myRank > 20" class="mt-3 pt-3 border-t border-[#30363d]">
+            <div class="my-rank-highlight rounded-lg px-4 py-3 border border-[#f59e0b]/20">
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-[#fbbf24] font-bold">{{ t('myRankLabel') }}：#{{ detailActivity.myRank }} {{ t('me') }}</span>
+                <!-- Dynamic metric display -->
+                <span v-if="detailActivity.rankBy === 'pnl'" :class="(detailActivity.myPnl || 0) >= 0 ? 'text-[#4ade80]' : 'text-[#f87171]'">
+                  {{ (detailActivity.myPnl || 0) >= 0 ? '+' : '' }}${{ formatNumber(Math.abs(detailActivity.myPnl || 0)) }}
+                </span>
+                <span v-else-if="detailActivity.rankBy === 'roi'" class="text-[#c084fc]">
+                  {{ detailActivity.myRoi || 0 }}%
+                </span>
+                <span v-else-if="detailActivity.rankBy === 'singleRoi'" :class="(detailActivity.mySingleRoi || 0) >= 0 ? 'text-[#4ade80]' : 'text-[#f87171]'">
+                  {{ (detailActivity.mySingleRoi || 0) >= 0 ? '+' : '' }}{{ detailActivity.mySingleRoi || 0 }}%
+                </span>
+                <span v-else-if="detailActivity.rankBy === 'winRate'" class="text-[#fbbf24]">
+                  {{ detailActivity.myWinRate || 0 }}%
+                </span>
+                <span v-else-if="detailActivity.rankBy === 'absProfit'" class="text-[#60a5fa]">
+                  ${{ formatNumber(detailActivity.myAbsProfit || 0) }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Join / Login Button -->
+        <div class="flex justify-center pt-2 pb-4">
+          <el-button v-if="!isLoggedIn" type="primary" size="large" class="px-12" @click="handleLoginRedirect">
+            {{ t('joinNow') }}
+          </el-button>
+          <div v-else class="flex items-center gap-2 px-6 py-3 rounded-lg bg-[#161b22] border border-[#30363d]">
+            <el-icon class="text-[#4ade80]"><Check /></el-icon>
+            <span class="text-sm text-[#4ade80]">{{ t('autoJoinedTip') }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== MY RANKING PAGE ===================== -->
+  <div v-else-if="currentPage === 'myRanking'" key="myRanking" class="page-enter-active">
+    <div class="max-w-5xl mx-auto px-4 py-6">
+      <button @click="goHome" class="flex items-center gap-2 text-[#8b949e] hover:text-[#e6edf3] transition-colors mb-6">
+        <el-icon><ArrowLeft /></el-icon>
+        <span class="text-sm">{{ t('back') }}</span>
+      </button>
+
+      <h2 class="text-2xl font-bold text-white mb-6">{{ t('myRankings') }}</h2>
+
+      <!-- Summary Stats -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+        <div class="rounded-xl bg-gradient-to-r from-[#f59e0b]/10 to-transparent border border-[#f59e0b]/30 p-4 text-center">
+          <div class="text-[#fbbf24] text-2xl font-bold">#{{ myBestRank }}</div>
+          <div class="text-xs text-[#8b949e] mt-1">{{ t('bestRank') }}</div>
+        </div>
+        <div class="rounded-xl bg-[#0d1117] border border-[#30363d] p-4 text-center">
+          <div class="text-[#4ade80] text-2xl font-bold">{{ myRankedOngoing.length }}</div>
+          <div class="text-xs text-[#8b949e] mt-1">{{ t('ongoing') }}</div>
+        </div>
+        <div class="rounded-xl bg-[#0d1117] border border-[#30363d] p-4 text-center">
+          <div class="text-[#60a5fa] text-2xl font-bold">{{ myRankedCompleted.length }}</div>
+          <div class="text-xs text-[#8b949e] mt-1">{{ t('completed') }}</div>
+        </div>
+        <div class="rounded-xl bg-[#0d1117] border border-[#30363d] p-4 text-center">
+          <div :class="['text-2xl font-bold', myTotalPnl >= 0 ? 'text-[#4ade80]' : 'text-[#f87171]']">
+            {{ myTotalPnl >= 0 ? '+' : '' }}${{ formatNumber(Math.abs(myTotalPnl)) }}
+          </div>
+          <div class="text-xs text-[#8b949e] mt-1">{{ t('totalPnl') }}</div>
+        </div>
+      </div>
+
+      <div v-if="allMyRankings.length === 0" class="text-center py-16">
+        <el-icon class="text-4xl text-[#484f58] mb-4"><Trophy /></el-icon>
+        <p class="text-[#8b949e] mb-4">{{ t('noRankings') }}</p>
+        <el-button type="primary" @click="goHome">{{ t('joinNow') }}</el-button>
+      </div>
+
+      <!-- Ongoing competitions with estimated reward -->
+      <div v-if="myRankedOngoing.length > 0" class="mb-8">
+        <h3 class="text-sm font-medium text-[#8b949e] mb-3">{{ t('ongoingCompetitions') }}</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div v-for="act in myRankedOngoing" :key="'ongoing-' + act.id"
+               @click="goDetail(act)"
+               class="activity-card rounded-xl bg-[#161b22] cursor-pointer glow-gold-hover relative">
+            <div class="card-gradient px-5 pt-5 pb-3">
+              <div class="flex items-start justify-between mb-2">
+                <div class="flex-1 min-w-0">
+                  <h4 class="text-sm font-bold text-white truncate">{{ lang === 'zh' ? act.name : (act.nameEn || act.name) }}</h4>
+                </div>
+                <span :class="['px-2 py-0.5 rounded text-[10px] font-medium shrink-0',
+                              act.mode === 'demo' ? 'tag-demo' : 'tag-real']">
+                  {{ act.mode === 'demo' ? t('demo') : t('real') }}
+                </span>
+              </div>
+              <div class="flex items-center justify-between mt-3">
+                <div>
+                  <div class="text-xs text-[#8b949e]">{{ t('myRankLabel') }}</div>
+                  <div class="text-2xl font-bold gold-gradient">#{{ act.myRank }}</div>
+                </div>
+                <div class="text-right">
+                  <div class="text-xs text-[#8b949e]">{{ t('endsIn') }}</div>
+                  <div class="text-sm text-[#f59e0b] font-bold countdown-pulse">{{ getCountdown(act) }}</div>
+                </div>
+              </div>
+            </div>
+            <div class="px-5 py-3 border-t border-[#21262d]">
+              <!-- Dynamic stats based on rank_by -->
+              <div class="grid grid-cols-4 gap-2 text-xs mb-3">
+                <div class="text-center">
+                  <div class="text-[#8b949e]">{{ t('gameType') }}</div>
+                  <div class="text-[#60a5fa] font-medium mt-0.5">{{ getGameTypeLabel(act.gameType) }}</div>
+                </div>
+                <!-- Show only the metric relevant to this competition's rank_by -->
+                <template v-if="act.rankBy === 'pnl'">
+                  <div class="col-span-3 text-center">
+                    <div class="text-[#8b949e]">{{ t('pnl') }}</div>
+                    <div :class="['font-medium mt-0.5 text-sm', (act.myPnl || 0) >= 0 ? 'text-[#4ade80]' : 'text-[#f87171]']">
+                      {{ (act.myPnl || 0) >= 0 ? '+' : '' }}${{ formatNumber(Math.abs(act.myPnl || 0)) }}
+                    </div>
+                  </div>
+                </template>
+                <template v-else-if="act.rankBy === 'roi'">
+                  <div class="col-span-3 text-center">
+                    <div class="text-[#8b949e]">ROI</div>
+                    <div class="text-[#c084fc] font-medium mt-0.5 text-sm">{{ act.myRoi || 0 }}%</div>
+                  </div>
+                </template>
+                <template v-else-if="act.rankBy === 'singleRoi'">
+                  <div class="col-span-3 text-center">
+                    <div class="text-[#8b949e]">{{ t('singleRoi') }}</div>
+                    <div :class="['font-medium mt-0.5 text-sm', (act.mySingleRoi || 0) >= 0 ? 'text-[#4ade80]' : 'text-[#f87171]']">
+                      {{ (act.mySingleRoi || 0) >= 0 ? '+' : '' }}{{ act.mySingleRoi || 0 }}%
+                    </div>
+                  </div>
+                </template>
+                <template v-else-if="act.rankBy === 'winRate'">
+                  <div class="col-span-3 text-center">
+                    <div class="text-[#8b949e]">{{ t('winRate') }}</div>
+                    <div class="text-[#fbbf24] font-medium mt-0.5 text-sm">{{ act.myWinRate || 0 }}%</div>
+                  </div>
+                </template>
+                <template v-else-if="act.rankBy === 'absProfit'">
+                  <div class="col-span-3 text-center">
+                    <div class="text-[#8b949e]">{{ t('absProfit') }}</div>
+                    <div class="text-[#60a5fa] font-medium mt-0.5 text-sm">${{ formatNumber(act.myAbsProfit || 0) }}</div>
+                  </div>
+                </template>
+              </div>
+              <!-- Estimated reward badge -->
+              <div class="est-reward-badge rounded-lg px-3 py-2 text-center">
+                <div class="text-[10px] text-[#8b949e]">{{ t('estRewardByCurrentRank') }}</div>
+                <div class="text-lg font-bold text-[#fbbf24]">${{ getEstRewardForAct(act) }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Completed competitions with reward details -->
+      <div v-if="myRankedCompleted.length > 0" class="mb-8">
+        <h3 class="text-sm font-medium text-[#8b949e] mb-3">{{ t('completedCompetitions') }}</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div v-for="act in myRankedCompleted" :key="'completed-' + act.id"
+               @click="goDetail(act)"
+               class="activity-card rounded-xl bg-[#161b22] cursor-pointer opacity-80 hover:opacity-100">
+            <div class="px-5 pt-5 pb-3">
+              <div class="flex items-start justify-between mb-2">
+                <div class="flex-1 min-w-0">
+                  <h4 class="text-sm font-bold text-white truncate">{{ lang === 'zh' ? act.name : (act.nameEn || act.name) }}</h4>
+                </div>
+                <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-[#30363d]/50 text-[#8b949e]">
+                  {{ t('ended') }}
+                </span>
+              </div>
+              <div class="flex items-center justify-between mt-3">
+                <div>
+                  <div class="text-xs text-[#8b949e]">{{ t('finalRank') }}</div>
+                  <div class="text-2xl font-bold gold-gradient">#{{ act.myRank }}</div>
+                </div>
+                <div class="text-right">
+                  <div class="text-xs text-[#8b949e]">{{ t('myReward') }}</div>
+                  <div class="text-sm text-[#fbbf24] font-bold">{{ act.myReward ? '$' + act.myReward : t('notWon') }}</div>
+                </div>
+              </div>
+            </div>
+            <div class="px-5 py-3 border-t border-[#21262d]">
+              <!-- Dynamic stats based on rank_by -->
+              <div class="grid grid-cols-3 gap-2 text-xs mb-3">
+                <div class="text-center">
+                  <div class="text-[#8b949e]">{{ t('gameType') }}</div>
+                  <div class="text-[#60a5fa] font-medium mt-0.5">{{ getGameTypeLabel(act.gameType) }}</div>
+                </div>
+                <template v-if="act.rankBy === 'pnl'">
+                  <div class="text-center">
+                    <div class="text-[#8b949e]">{{ t('pnl') }}</div>
+                    <div :class="['font-medium mt-0.5', (act.myPnl || 0) >= 0 ? 'text-[#4ade80]' : 'text-[#f87171]']">
+                      {{ (act.myPnl || 0) >= 0 ? '+' : '' }}${{ formatNumber(Math.abs(act.myPnl || 0)) }}
+                    </div>
+                  </div>
+                </template>
+                <template v-else-if="act.rankBy === 'roi'">
+                  <div class="text-center">
+                    <div class="text-[#8b949e]">ROI</div>
+                    <div class="text-[#c084fc] font-medium mt-0.5">{{ act.myRoi || 0 }}%</div>
+                  </div>
+                </template>
+                <template v-else-if="act.rankBy === 'singleRoi'">
+                  <div class="text-center">
+                    <div class="text-[#8b949e]">{{ t('singleRoi') }}</div>
+                    <div class="text-[#4ade80] font-medium mt-0.5">{{ act.mySingleRoi || 0 }}%</div>
+                  </div>
+                </template>
+                <template v-else-if="act.rankBy === 'winRate'">
+                  <div class="text-center">
+                    <div class="text-[#8b949e]">{{ t('winRate') }}</div>
+                    <div class="text-[#fbbf24] font-medium mt-0.5">{{ act.myWinRate || 0 }}%</div>
+                  </div>
+                </template>
+                <template v-else-if="act.rankBy === 'absProfit'">
+                  <div class="text-center">
+                    <div class="text-[#8b949e]">{{ t('absProfit') }}</div>
+                    <div class="text-[#60a5fa] font-medium mt-0.5">${{ formatNumber(act.myAbsProfit || 0) }}</div>
+                  </div>
+                </template>
+                <div class="text-center">
+                  <div class="text-[#8b949e]">{{ t('rewardStatus') }}</div>
+                  <div :class="['font-medium mt-0.5', act.rewardStatus === 'distributed' ? 'text-[#4ade80]' : 'text-[#f59e0b]']">
+                    {{ act.rewardStatus === 'distributed' ? t('rewardDistributed') : t('rewardPending') }}
+                  </div>
+                </div>
+              </div>
+              <!-- Reward detail -->
+              <div v-if="act.myReward" class="rounded-lg bg-[#0d1117] border border-[#30363d] p-2 text-xs">
+                <div class="flex items-center justify-between">
+                  <span class="text-[#8b949e]">{{ t('rewardType') }}</span>
+                  <span class="text-[#e6edf3]">{{ getRewardTypeLabel(act.myRewardType) }}</span>
+                </div>
+                <div class="flex items-center justify-between mt-1">
+                  <span class="text-[#8b949e]">{{ t('rewardAmount') }}</span>
+                  <span class="text-[#fbbf24] font-bold">${{ act.myReward }}</span>
+                </div>
+                <div v-if="act.rewardDistributeTime" class="flex items-center justify-between mt-1">
+                  <span class="text-[#8b949e]">{{ t('distributeTime') }}</span>
+                  <span class="text-[#e6edf3]">{{ act.rewardDistributeTime }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </transition>
+</div>
+
+<script>
+const { createApp, ref, computed, reactive, onMounted, onUnmounted } = Vue;
+const { Search, Clock, TrendCharts, Medal, Trophy, Rank, DocumentDelete, Document, Connection, Coin, Check, Switch, ArrowLeft, CircleCheck } = ElementPlusIconsVue;
+
+const app = createApp({
+  setup() {
+    const lang = ref('zh');
+    const isLoggedIn = ref(true); // Simulated login state; set to false to show login button
+
+    const translations = {
+      zh: {
+        title: '交易大赛', subtitle: 'Trading Competition Center',
+        bannerTitle: '2026 FIFA 世界杯™ 交易挑战赛',
+        bannerDesc: '总奖金池', bannerDescEnd: '，等你来挑战',
+        totalPrizePool: '总奖金池 (USDT)', ongoing: '进行中', completed: '已结束',
+        gameType: '玩法', mode: '模式', searchPlaceholder: '搜索活动名称...',
+        noActivities: '暂无符合条件的活动',
+        prizePool: '奖金', endsIn: '距结束', myRankLabel: '我的排名',
+        joinNow: '立即参与', autoJoined: '自动参与中', viewDetail: '查看详情',
+        back: '返回', myRanking: '我的排名', myRankings: '我的排名',
+        bestRank: '最佳排名', totalPnl: '总盈亏',
+        noRankings: '暂无排名数据，参与比赛即可上榜',
+        ongoingCompetitions: '进行中的比赛', completedCompetitions: '已完成的比赛',
+        finalRank: '最终排名', activityTime: '活动时间', to: '至',
+        gameTypeAndPairs: '关联玩法 & 交易对', rules: '活动规则',
+        rankRewards: '排名奖励', rank: '排名', rewardType: '奖励类型',
+        rewardAmount: '奖励金额', unlockCondition: '解锁条件',
+        participationThreshold: '参赛门槛', minTradeAmount: '最小有效单笔金额',
+        maxTradeAmount: '最大有效单笔金额', minTradeCount: '最低交易笔数',
+        trades: '笔', unlimited: '无限制',
+        rewardDistribution: '奖励发放', distributionMode: '发放方式',
+        autoDistribution: '自动发放', manualDistribution: '手动发放',
+        rewardDelay: '延期时间',
+        leaderboard: '排行榜', user: '用户', pnl: 'PnL', roi: 'ROI',
+        singleRoi: '单笔ROI', winRate: '胜率', absProfit: '利润绝对值',
+        estReward: '预计奖励', me: '我',
+        rankBy: '排名方式', rankByLabel: '排名依据',
+        unlockRequirement: '解锁要求', unlockTip: '充值金额与真金交易笔数需同时满足才可解锁，设为 0 表示该项不限制',
+        noUnlockReq: '无解锁要求，按排名自动获得',
+        rewardRule1: '奖励将在活动结束后根据设置的发放方式发放',
+        rewardRule2: '解锁条件需同时满足充值金额与真金交易笔数要求',
+        rewardRule3: '默认全员参与，无需报名，满足参赛门槛的交易自动计入排行榜',
+        estRewardByCurrentRank: '当前排名预计可获',
+        myReward: '获得奖励', notWon: '未获奖',
+        rewardStatus: '发奖状态', rewardDistributed: '已发放', rewardPending: '待发放',
+        distributeTime: '发放时间',
+        autoJoinedTip: '交易大赛默认全员参与，满足参赛门槛的交易将自动计入排行',
+        loginToJoin: '请先登录后参与活动',
+        all: '全部', futures: '合约', updown: '涨跌', highlow: '高低',
+        spread: '点差', tapTrading: 'Tap Trading',
+        rewardBonus: '奖励金', rewardTrial: '体验金', rewardFeeVoucher: '手续费抵扣券',
+        rewardReal: '真金', rewardPhysical: '实物',
+        rechargeAmount: '充值金额', realTradeCount: '真金交易笔数',
+        delay0h: '延期 0H', delay1h: '延期 1H', delay1d: '延期 1 天',
+        demo: '模拟金', real: '真金'
+      },
+      en: {
+        title: 'Trading Competition', subtitle: 'Compete & Win',
+        bannerTitle: '2026 FIFA World Cup™ Trading Challenge',
+        bannerDesc: 'Total Prize Pool', bannerDescEnd: '— Are You Ready?',
+        totalPrizePool: 'Total Prize Pool (USDT)', ongoing: 'Ongoing', completed: 'Ended',
+        gameType: 'Game Type', mode: 'Mode', searchPlaceholder: 'Search activities...',
+        noActivities: 'No matching activities found',
+        prizePool: 'Prize', endsIn: 'Ends In', myRankLabel: 'My Rank',
+        joinNow: 'Join Now', autoJoined: 'Auto-Joined', viewDetail: 'Details',
+        back: 'Back', myRanking: 'My Ranking', myRankings: 'My Rankings',
+        bestRank: 'Best Rank', totalPnl: 'Total PnL',
+        noRankings: 'No rankings yet. Join a competition to get ranked.',
+        ongoingCompetitions: 'Ongoing Competitions', completedCompetitions: 'Completed Competitions',
+        finalRank: 'Final Rank', activityTime: 'Activity Period', to: 'to',
+        gameTypeAndPairs: 'Game Type & Trading Pairs', rules: 'Rules',
+        rankRewards: 'Rank Rewards', rank: 'Rank', rewardType: 'Reward Type',
+        rewardAmount: 'Reward Amount', unlockCondition: 'Unlock Condition',
+        participationThreshold: 'Participation Threshold', minTradeAmount: 'Min Trade Amount',
+        maxTradeAmount: 'Max Trade Amount', minTradeCount: 'Min Trade Count',
+        trades: 'trades', unlimited: 'Unlimited',
+        rewardDistribution: 'Reward Distribution', distributionMode: 'Distribution Mode',
+        autoDistribution: 'Auto Distribution', manualDistribution: 'Manual Distribution',
+        rewardDelay: 'Delay Time',
+        leaderboard: 'Leaderboard', user: 'User', pnl: 'PnL', roi: 'ROI',
+        singleRoi: 'Single ROI', winRate: 'Win Rate', absProfit: 'Abs Profit',
+        estReward: 'Est. Reward', me: 'Me',
+        rankBy: 'Rank By', rankByLabel: 'Rank By',
+        unlockRequirement: 'Unlock Requirement', unlockTip: 'Both recharge amount and real trade count must be met. Set to 0 for no restriction.',
+        noUnlockReq: 'No unlock requirement. Rewards are auto-granted by rank.',
+        rewardRule1: 'Rewards will be distributed after the event ends according to the configured distribution mode.',
+        rewardRule2: 'Unlock conditions require both recharge amount and real trade count to be met.',
+        rewardRule3: 'All users participate by default. No registration needed. Trades meeting the threshold are automatically ranked.',
+        estRewardByCurrentRank: 'Est. Reward at Current Rank',
+        myReward: 'Reward Earned', notWon: 'No Reward',
+        rewardStatus: 'Status', rewardDistributed: 'Distributed', rewardPending: 'Pending',
+        distributeTime: 'Distribute Time',
+        autoJoinedTip: 'All users participate by default. Trades meeting the threshold are automatically ranked.',
+        loginToJoin: 'Please log in to join the competition.',
+        all: 'All', futures: 'Futures', updown: 'UpDown', highlow: 'HighLow',
+        spread: 'Spread', tapTrading: 'Tap Trading',
+        rewardBonus: 'Bonus', rewardTrial: 'Trial Fund', rewardFeeVoucher: 'Fee Voucher',
+        rewardReal: 'Real Money', rewardPhysical: 'Physical',
+        rechargeAmount: 'Recharge Amount', realTradeCount: 'Real Trade Count',
+        delay0h: 'Delay 0H', delay1h: 'Delay 1H', delay1d: 'Delay 1 Day',
+        demo: 'Demo', real: 'Real'
+      }
+    };
+
+    function t(key) {
+      return translations[lang.value]?.[key] || translations.en?.[key] || key;
+    }
+    function toggleLang() { lang.value = lang.value === 'zh' ? 'en' : 'zh'; }
+
+    // ========== Filters ==========
+    const filters = reactive({ gameType: 'all', mode: 'all', search: '' });
+    const gameTypeFilters = computed(() => [
+      { label: t('all'), value: 'all' },
+      { label: t('futures'), value: 'Futures' },
+      { label: t('updown'), value: 'UpDown' },
+      { label: t('highlow'), value: 'HighLow' },
+      { label: t('spread'), value: 'Spread' },
+      { label: t('tapTrading'), value: 'Tap Trading' }
+    ]);
+    const modeFilters = computed(() => [
+      { label: t('all'), value: 'all' },
+      { label: t('demo'), value: 'demo' },
+      { label: t('real'), value: 'real' }
+    ]);
+
+    // ========== Page routing ==========
+    const currentPage = ref('home');
+    const detailActivity = ref(null);
+    function goHome() { currentPage.value = 'home'; detailActivity.value = null; }
+    function goDetail(act) { detailActivity.value = act; currentPage.value = 'detail'; window.scrollTo(0, 0); }
+    function goMyRanking() { currentPage.value = 'myRanking'; window.scrollTo(0, 0); }
+
+    // ========== Countdown ==========
+    const now = ref(Date.now());
+    let timer = null;
+    const myGlobalRank = ref(12);
+
+    // ========== Generate leaderboard ==========
+    function generateLeaderboard(activity) {
+      const users = [];
+      const rewards = activity.rewards || [];
+
+      function getEstReward(rank) {
+        for (const r of rewards) {
+          const rankNum = parseInt(r.rank.replace(/[^0-9]/g, ''));
+          const parts = r.rank.replace('#', '').split('-');
+          if (parts.length === 2) {
+            const start = parseInt(parts[0]);
+            const end = parseInt(parts[1]);
+            if (rank >= start && rank <= end) {
+              const amounts = r.amount.replace(/,/g, '').split('-');
+              return amounts[0] || '-';
+            }
+          } else if (rank === rankNum) {
+            return r.amount.replace(/,/g, '');
+          }
+        }
+        return '-';
+      }
+
+      const count = 50;
+      for (let i = 1; i <= count; i++) {
+        const basePnl = Math.max(100, 50000 - (i * 900) + Math.random() * 200);
+        const baseRoi = Math.max(1, 120 - (i * 2.2) + Math.random() * 5);
+        const baseSingleRoi = Math.max(-5, 80 - (i * 1.5) + Math.random() * 3);
+        const baseWinRate = Math.max(30, 75 - (i * 0.8) + Math.random() * 2);
+        const baseAbsProfit = Math.max(500, Math.abs(basePnl) + Math.random() * 5000);
+        const isMe = (i === activity.myRank);
+
+        users.push({
+          rank: i,
+          userId: isMe ? '我' : `User_${String(Math.floor(Math.random() * 9000 + 1000))}`,
+          pnl: Math.round(basePnl),
+          roi: Math.round(baseRoi * 10) / 10,
+          singleRoi: Math.round(baseSingleRoi * 10) / 10,
+          winRate: Math.round(baseWinRate * 10) / 10,
+          absProfit: Math.round(baseAbsProfit),
+          estReward: getEstReward(i),
+          isMe
+        });
+      }
+      return users;
+    }
+
+    // ========== Mock activities (competition only) ==========
+    const activities = ref([
+      {
+        id: 'ACT1001',
+        name: 'BTC 周常交易大赛',
+        nameEn: 'BTC Weekly Trading Competition',
+        subTitle: '每周模拟交易冲刺赛，丰厚奖金等你拿',
+        subTitleEn: 'Weekly demo trading sprint with generous rewards',
+        mode: 'demo',
+        gameType: 'Futures',
+        pairs: ['BTC/USDT', 'ETH/USDT'],
+        prizePool: 50000,
+        startTime: '2026-06-08 00:00',
+        endTime: '2026-06-14 23:59',
+        endTimeStamp: new Date('2026-06-14T23:59:00').getTime(),
+        myRank: 12,
+        rankBy: 'pnl',
+        rewards: [
+          { rank: '#1', rewardType: 'rewardBonus', amount: '5,000', rechargeAmount: 0, realTradeCount: 0 },
+          { rank: '#2-3', rewardType: 'rewardBonus', amount: '3,000', rechargeAmount: 5, realTradeCount: 5 },
+          { rank: '#4-10', rewardType: 'rewardBonus', amount: '500-1,000', rechargeAmount: 2, realTradeCount: 2 },
+          { rank: '#11-20', rewardType: 'rewardFeeVoucher', amount: '100-300', rechargeAmount: 0, realTradeCount: 0 }
+        ],
+        rules: `1. 使用模拟金账户进行交易<br>2. 排名依据为<strong class="text-[#fbbf24]">盈亏额</strong><br>3. 最小有效单笔金额：$1,000<br>4. 最大有效单笔金额：无限制<br>5. 最低交易笔数：10笔<br>6. 满足门槛的交易自动计入排行榜`,
+        rulesEn: `1. Trade using a demo account<br>2. Rankings based on <strong class="text-[#fbbf24]">PnL</strong><br>3. Min valid single trade: $1,000<br>4. Max valid single trade: Unlimited<br>5. Min trade count: 10<br>6. Trades meeting the threshold are auto-ranked`,
+        leaderboard: [],
+        minTradeAmount: 1000, maxTradeAmount: null, minTradeCount: 10,
+        autoReward: true, rewardDelay: '0h',
+        myVolume: 158000, myPnl: 12500, myRoi: 45.8, mySingleRoi: 38.2, myWinRate: 68.5, myAbsProfit: 15200
+      },
+      {
+        id: 'ACT1003',
+        name: '全球月度交易锦标赛',
+        nameEn: 'Global Monthly Trading Championship',
+        subTitle: '真金实盘对决，百万奖金池',
+        subTitleEn: 'Real-money showdown with massive prize pool',
+        mode: 'real',
+        gameType: 'Futures',
+        pairs: ['BTC/USDT', 'ETH/USDT', 'SOL/USDT', 'BNB/USDT', 'DOGE/USDT'],
+        prizePool: 100000,
+        startTime: '2026-06-01 00:00',
+        endTime: '2026-06-30 23:59',
+        endTimeStamp: new Date('2026-06-30T23:59:00').getTime(),
+        myRank: null,
+        rankBy: 'roi',
+        rewards: [
+          { rank: '#1', rewardType: 'rewardReal', amount: '30,000', rechargeAmount: 0, realTradeCount: 0 },
+          { rank: '#2-5', rewardType: 'rewardBonus', amount: '5,000-10,000', rechargeAmount: 50, realTradeCount: 20 },
+          { rank: '#6-20', rewardType: 'rewardBonus', amount: '1,000-3,000', rechargeAmount: 20, realTradeCount: 10 }
+        ],
+        rules: `1. 使用真金账户进行交易<br>2. 排名依据为<strong class="text-[#fbbf24]">ROI</strong><br>3. 最小有效单笔金额：$10,000<br>4. 最低交易笔数：50笔<br>5. 解锁条件：充值金额与真金交易笔数需同时满足`,
+        rulesEn: `1. Trade using a real-money account<br>2. Rankings based on <strong class="text-[#fbbf24]">ROI</strong><br>3. Min valid single trade: $10,000<br>4. Min trade count: 50<br>5. Unlock: both recharge & real trade count must be met`,
+        leaderboard: [],
+        minTradeAmount: 10000, maxTradeAmount: null, minTradeCount: 50,
+        autoReward: true, rewardDelay: '1h',
+        myVolume: null, myPnl: null, myRoi: null, mySingleRoi: null, myWinRate: null, myAbsProfit: null
+      },
+      {
+        id: 'ACT1005',
+        name: '合约新手体验赛',
+        nameEn: 'Futures Newcomer Trial',
+        subTitle: '零门槛参与，新手专属奖励',
+        subTitleEn: 'Zero barrier entry, exclusive newcomer rewards',
+        mode: 'demo',
+        gameType: 'Futures',
+        pairs: ['BTC/USDT', 'ETH/USDT'],
+        prizePool: 10000,
+        startTime: '2026-06-01 00:00',
+        endTime: '2026-07-31 23:59',
+        endTimeStamp: new Date('2026-07-31T23:59:00').getTime(),
+        myRank: null,
+        rankBy: 'pnl',
+        rewards: [
+          { rank: '#1', rewardType: 'rewardTrial', amount: '500', rechargeAmount: 0, realTradeCount: 0 },
+          { rank: '#2-10', rewardType: 'rewardTrial', amount: '100-200', rechargeAmount: 0, realTradeCount: 0 }
+        ],
+        rules: `1. 仅限新注册用户参与<br>2. 系统提供 50,000 Demo USDT 初始资金<br>3. 排名依据为<strong class="text-[#fbbf24]">盈亏额</strong><br>4. 无解锁条件要求`,
+        rulesEn: `1. Only for newly registered users<br>2. System provides 50,000 Demo USDT starting balance<br>3. Rankings based on <strong class="text-[#fbbf24]">PnL</strong><br>4. No unlock condition required`,
+        leaderboard: [],
+        minTradeAmount: 500, maxTradeAmount: null, minTradeCount: 5,
+        autoReward: true, rewardDelay: '0h',
+        myVolume: null, myPnl: null, myRoi: null, mySingleRoi: null, myWinRate: null, myAbsProfit: null
+      },
+      {
+        id: 'ACT1006',
+        name: '周末涨跌狂欢赛',
+        nameEn: 'Weekend UpDown Carnival',
+        subTitle: '周末专属，UpDown 玩法特别活动',
+        subTitleEn: 'Weekend exclusive UpDown special event',
+        mode: 'real',
+        gameType: 'UpDown',
+        pairs: ['BTC/USDT', 'ETH/USDT', 'SOL/USDT', 'BNB/USDT'],
+        prizePool: 25000,
+        startTime: '2026-06-13 00:00',
+        endTime: '2026-06-15 23:59',
+        endTimeStamp: new Date('2026-06-15T23:59:00').getTime(),
+        myRank: null,
+        rankBy: 'winRate',
+        rewards: [
+          { rank: '#1', rewardType: 'rewardBonus', amount: '8,000', rechargeAmount: 20, realTradeCount: 0 },
+          { rank: '#2-5', rewardType: 'rewardBonus', amount: '2,000-4,000', rechargeAmount: 10, realTradeCount: 0 },
+          { rank: '#6-20', rewardType: 'rewardFeeVoucher', amount: '100-500', rechargeAmount: 0, realTradeCount: 0 }
+        ],
+        rules: `1. 仅限 UpDown 玩法参与<br>2. 排名依据为<strong class="text-[#fbbf24]">胜率</strong><br>3. 最低交易笔数：5笔<br>4. 最小有效单笔金额：$100`,
+        rulesEn: `1. Only UpDown game type eligible<br>2. Rankings based on <strong class="text-[#fbbf24]">Win Rate</strong><br>3. Min trade count: 5<br>4. Min valid single trade: $100`,
+        leaderboard: [],
+        minTradeAmount: 100, maxTradeAmount: null, minTradeCount: 5,
+        autoReward: false, rewardDelay: null,
+        myVolume: null, myPnl: null, myRoi: null, mySingleRoi: null, myWinRate: null, myAbsProfit: null
+      },
+      {
+        id: 'ACT1007',
+        name: 'Tap Trading 闪电赛',
+        nameEn: 'Tap Trading Lightning Challenge',
+        subTitle: '极速交易，Tap Trading 专属赛事',
+        subTitleEn: 'Lightning-fast trading, Tap Trading exclusive',
+        mode: 'demo',
+        gameType: 'Tap Trading',
+        pairs: ['BTC/USDT', 'ETH/USDT'],
+        prizePool: 15000,
+        startTime: '2026-06-10 00:00',
+        endTime: '2026-06-16 23:59',
+        endTimeStamp: new Date('2026-06-16T23:59:00').getTime(),
+        myRank: null,
+        rankBy: 'singleRoi',
+        rewards: [
+          { rank: '#1', rewardType: 'rewardBonus', amount: '5,000', rechargeAmount: 20, realTradeCount: 20 },
+          { rank: '#2-5', rewardType: 'rewardBonus', amount: '1,000-2,000', rechargeAmount: 10, realTradeCount: 10 },
+          { rank: '#6-15', rewardType: 'rewardTrial', amount: '200-500', rechargeAmount: 5, realTradeCount: 0 }
+        ],
+        rules: `1. 仅限 Tap Trading 玩法<br>2. 排名依据为<strong class="text-[#fbbf24]">单笔 ROI</strong><br>3. 最低交易笔数：20笔<br>4. 单笔 ROI ≤ 0 不计入排行榜`,
+        rulesEn: `1. Tap Trading game type only<br>2. Rankings based on <strong class="text-[#fbbf24]">Single ROI</strong><br>3. Min trade count: 20<br>4. Single ROI ≤ 0 not ranked`,
+        leaderboard: [],
+        minTradeAmount: 200, maxTradeAmount: null, minTradeCount: 20,
+        autoReward: true, rewardDelay: '0h',
+        myVolume: null, myPnl: null, myRoi: null, mySingleRoi: null, myWinRate: null, myAbsProfit: null
+      },
+      {
+        id: 'ACT1008',
+        name: '高低点差精英赛',
+        nameEn: 'HighLow Spread Elite',
+        subTitle: '高阶玩家对决，HighLow + 点差混合玩法',
+        subTitleEn: 'Elite player showdown, HighLow + Spread mixed',
+        mode: 'real',
+        gameType: 'HighLow',
+        pairs: ['BTC/USDT', 'ETH/USDT', 'SOL/USDT'],
+        prizePool: 30000,
+        startTime: '2026-06-05 00:00',
+        endTime: '2026-06-20 23:59',
+        endTimeStamp: new Date('2026-06-20T23:59:00').getTime(),
+        myRank: 8,
+        rankBy: 'pnl',
+        rewards: [
+          { rank: '#1', rewardType: 'rewardReal', amount: '10,000', rechargeAmount: 0, realTradeCount: 0 },
+          { rank: '#2-3', rewardType: 'rewardBonus', amount: '5,000', rechargeAmount: 100, realTradeCount: 50 },
+          { rank: '#4-10', rewardType: 'rewardBonus', amount: '1,000-3,000', rechargeAmount: 50, realTradeCount: 20 }
+        ],
+        rules: `1. 仅限 HighLow 玩法<br>2. 排名依据为<strong class="text-[#fbbf24]">盈亏额</strong><br>3. 最低交易笔数：30笔<br>4. 最小有效单笔金额：$5,000`,
+        rulesEn: `1. Only HighLow game type<br>2. Rankings based on <strong class="text-[#fbbf24]">PnL</strong><br>3. Min trade count: 30<br>4. Min valid single trade: $5,000`,
+        leaderboard: [],
+        minTradeAmount: 5000, maxTradeAmount: null, minTradeCount: 30,
+        autoReward: true, rewardDelay: '1d',
+        myVolume: 85000, myPnl: 8200, myRoi: 32.5, mySingleRoi: 28.1, myWinRate: 61.2, myAbsProfit: 10500
+      },
+      {
+        id: 'ACT1009',
+        name: '5月交易大师赛（已结束）',
+        nameEn: 'May Trading Masters (Ended)',
+        subTitle: '5月收官之战，恭喜所有获奖者',
+        subTitleEn: 'May finale, congratulations to all winners',
+        mode: 'real',
+        gameType: 'Futures',
+        pairs: ['BTC/USDT', 'ETH/USDT', 'SOL/USDT'],
+        prizePool: 80000,
+        startTime: '2026-05-01 00:00',
+        endTime: '2026-05-31 23:59',
+        endTimeStamp: new Date('2026-05-31T23:59:00').getTime(),
+        myRank: 5,
+        rankBy: 'roi',
+        rewards: [
+          { rank: '#1', rewardType: 'rewardReal', amount: '25,000', rechargeAmount: 0, realTradeCount: 0 },
+          { rank: '#2-3', rewardType: 'rewardBonus', amount: '8,000', rechargeAmount: 50, realTradeCount: 20 },
+          { rank: '#4-10', rewardType: 'rewardBonus', amount: '2,000-5,000', rechargeAmount: 20, realTradeCount: 10 }
+        ],
+        rules: `1. 真金账户交易<br>2. 排名依据为<strong class="text-[#fbbf24]">ROI</strong><br>3. 最低交易笔数：30笔`,
+        rulesEn: `1. Real-money account trading<br>2. Rankings based on <strong class="text-[#fbbf24]">ROI</strong><br>3. Min trade count: 30`,
+        leaderboard: [],
+        minTradeAmount: 5000, maxTradeAmount: null, minTradeCount: 30,
+        autoReward: true, rewardDelay: '1h',
+        myPnl: 15800, myRoi: 72.3, mySingleRoi: 45.6, myWinRate: 71.2, myAbsProfit: 18900,
+        myReward: '3,500', myRewardType: 'rewardBonus',
+        rewardStatus: 'distributed', rewardDistributeTime: '2026-06-02 14:00'
+      },
+      {
+        id: 'ACT1010',
+        name: '4月模拟挑战赛（已结束）',
+        nameEn: 'April Demo Challenge (Ended)',
+        subTitle: '模拟金试炼，4月完美收官',
+        subTitleEn: 'Demo trial, perfect April finish',
+        mode: 'demo',
+        gameType: 'UpDown',
+        pairs: ['BTC/USDT', 'ETH/USDT'],
+        prizePool: 15000,
+        startTime: '2026-04-01 00:00',
+        endTime: '2026-04-30 23:59',
+        endTimeStamp: new Date('2026-04-30T23:59:00').getTime(),
+        myRank: 3,
+        rankBy: 'winRate',
+        rewards: [
+          { rank: '#1', rewardType: 'rewardBonus', amount: '3,000', rechargeAmount: 0, realTradeCount: 0 },
+          { rank: '#2-5', rewardType: 'rewardTrial', amount: '500-1,000', rechargeAmount: 0, realTradeCount: 0 }
+        ],
+        rules: `1. 模拟金账户<br>2. 排名依据为<strong class="text-[#fbbf24]">胜率</strong>`,
+        rulesEn: `1. Demo account<br>2. Rankings based on <strong class="text-[#fbbf24]">Win Rate</strong>`,
+        leaderboard: [],
+        minTradeAmount: 100, maxTradeAmount: null, minTradeCount: 10,
+        autoReward: true, rewardDelay: '0h',
+        myPnl: 8500, myRoi: 35.2, mySingleRoi: 22.1, myWinRate: 75.8, myAbsProfit: 9800,
+        myReward: '800', myRewardType: 'rewardTrial',
+        rewardStatus: 'distributed', rewardDistributeTime: '2026-05-02 10:00'
+      }
+    ]);
+
+    // Initialize leaderboards
+    activities.value.forEach(act => {
+      act.leaderboard = generateLeaderboard(act);
+    });
+
+    // ========== Computed ==========
+    const filteredActivities = computed(() => {
+      return activities.value.filter(act => {
+        if (filters.gameType !== 'all' && act.gameType !== filters.gameType) return false;
+        if (filters.mode !== 'all' && act.mode !== filters.mode) return false;
+        if (filters.search) {
+          const s = filters.search.toLowerCase();
+          const name = (lang.value === 'zh' ? act.name : (act.nameEn || act.name)).toLowerCase();
+          if (!name.includes(s)) return false;
+        }
+        return true;
+      });
+    });
+
+    const totalPrizePool = computed(() => activities.value.reduce((sum, a) => sum + a.prizePool, 0));
+    const activeCompetitions = computed(() => activities.value.filter(a => a.endTimeStamp > Date.now()).length);
+
+    // My rankings
+    const myRankedActivities = computed(() => activities.value.filter(a => a.myRank != null));
+    const myRankedOngoing = computed(() => myRankedActivities.value.filter(a => a.endTimeStamp > Date.now()));
+    const myRankedCompleted = computed(() => myRankedActivities.value.filter(a => a.endTimeStamp <= Date.now()));
+    const allMyRankings = computed(() => myRankedActivities.value);
+
+    const myBestRank = computed(() => {
+      const ranks = myRankedActivities.value.map(a => a.myRank);
+      return ranks.length > 0 ? Math.min(...ranks) : '-';
+    });
+    const myTotalPnl = computed(() => myRankedActivities.value.reduce((sum, a) => sum + (a.myPnl || 0), 0));
+
+    // ========== Detail page leaderboard (sorted by competition's rankBy) ==========
+    const filteredLeaderboard = computed(() => {
+      if (!detailActivity.value) return [];
+      const lb = detailActivity.value.leaderboard || [];
+      const by = detailActivity.value.rankBy;
+      if (by === 'pnl') return [...lb].sort((a, b) => b.pnl - a.pnl).map((u, i) => ({ ...u, rank: i + 1 }));
+      if (by === 'roi') return [...lb].sort((a, b) => b.roi - a.roi).map((u, i) => ({ ...u, rank: i + 1 }));
+      if (by === 'singleRoi') return [...lb].sort((a, b) => (b.singleRoi || 0) - (a.singleRoi || 0)).map((u, i) => ({ ...u, rank: i + 1 }));
+      if (by === 'winRate') return [...lb].sort((a, b) => b.winRate - a.winRate).map((u, i) => ({ ...u, rank: i + 1 }));
+      if (by === 'absProfit') return [...lb].sort((a, b) => (b.absProfit || 0) - (a.absProfit || 0)).map((u, i) => ({ ...u, rank: i + 1 }));
+      return lb; // default: as configured
+    });
+
+    // ========== Helpers ==========
+    function formatNumber(num) {
+      if (num === null || num === undefined) return '-';
+      return Number(num).toLocaleString();
+    }
+
+    function getCountdown(act) {
+      const diff = act.endTimeStamp - now.value;
+      if (diff <= 0) return lang.value === 'zh' ? '已结束' : 'Ended';
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const secs = Math.floor((diff % (1000 * 60)) / 1000);
+      if (days > 0) return `${days}${lang.value === 'zh' ? '天' : 'd'} ${hours}${lang.value === 'zh' ? '时' : 'h'}`;
+      return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+
+    function getGameTypeLabel(gt) {
+      const map = { 'Futures': t('futures'), 'UpDown': t('updown'), 'HighLow': t('highlow'), 'Spread': t('spread'), 'Tap Trading': t('tapTrading') };
+      return map[gt] || gt;
+    }
+
+    function getRewardTypeLabel(rt) { return t(rt) || rt; }
+
+    function getRewardDelayText(delay) {
+      const map = { '0h': t('delay0h'), '1h': t('delay1h'), '1d': t('delay1d') };
+      return map[delay] || delay;
+    }
+
+    function getRankByLabel(rankBy) {
+      const map = { 'pnl': t('pnl'), 'roi': t('roi'), 'singleRoi': t('singleRoi'), 'winRate': t('winRate'), 'absProfit': t('absProfit') };
+      return map[rankBy] || rankBy;
+    }
+
+    function getEstRewardForAct(act) {
+      if (!act.myRank) return '-';
+      const rewards = act.rewards || [];
+      for (const r of rewards) {
+        const parts = r.rank.replace('#', '').split('-');
+        if (parts.length === 2) {
+          const start = parseInt(parts[0]);
+          const end = parseInt(parts[1]);
+          if (act.myRank >= start && act.myRank <= end) {
+            const amounts = r.amount.replace(/,/g, '').split('-');
+            return amounts[0] || '-';
+          }
+        } else {
+          const rankNum = parseInt(parts[0]);
+          if (act.myRank === rankNum) return r.amount.replace(/,/g, '');
+        }
+      }
+      return '-';
+    }
+
+    function handleLoginRedirect() {
+      ElementPlus.ElMessage.info(t('loginToJoin'));
+      // In production, redirect to login page:
+      // window.location.href = '/login?redirect=/competition';
+    }
+
+    // ========== Lifecycle ==========
+    onMounted(() => {
+      timer = setInterval(() => { now.value = Date.now(); }, 1000);
+    });
+    onUnmounted(() => { if (timer) clearInterval(timer); });
+
+    return {
+      Search, Clock, TrendCharts, Medal, Trophy, Rank, DocumentDelete, Document, Connection, Coin, Check, Switch, ArrowLeft, CircleCheck,
+      lang, isLoggedIn, t, toggleLang,
+      filters, gameTypeFilters, modeFilters,
+      currentPage, detailActivity,
+      goHome, goDetail, goMyRanking,
+      activities, filteredActivities,
+      totalPrizePool, activeCompetitions,
+      myGlobalRank, myRankedOngoing, myRankedCompleted, allMyRankings,
+      myBestRank, myTotalPnl,
+      filteredLeaderboard,
+      formatNumber, getCountdown,
+      getGameTypeLabel, getRewardTypeLabel, getRewardDelayText, getRankByLabel,
+      getEstRewardForAct,
+      handleLoginRedirect
+    };
+  }
+});
+
+for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+  app.component(key, component);
+}
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+</body>
+</html>

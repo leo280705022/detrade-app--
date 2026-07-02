@@ -1,0 +1,1893 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CEX交易区交互原型</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #0B0E11;
+            color: #EAECEF;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 20px;
+        }
+
+        .prototype-container {
+            width: 100%;
+            max-width: 420px;
+            background: #1E2329;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            position: relative;
+        }
+
+        .header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #2B3139;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-tabs {
+            display: flex;
+            gap: 24px;
+        }
+
+        .header-tab {
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 8px 0;
+            position: relative;
+            color: #848E9C;
+            transition: color 0.2s;
+        }
+
+        .header-tab.active {
+            color: #F0B90B;
+        }
+
+        .header-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #F0B90B;
+            border-radius: 1px;
+        }
+
+        .beta-badge {
+            font-size: 11px;
+            background: #2B3139;
+            color: #848E9C;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 8px;
+        }
+
+        .language-switch {
+            padding: 6px 10px;
+            background: #2B3139;
+            border: none;
+            border-radius: 6px;
+            color: #EAECEF;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .language-switch:hover {
+            background: #474D57;
+        }
+
+        .trading-area {
+            padding: 16px 20px 20px;
+        }
+
+        /* Scenario Selector */
+        .scenario-section {
+            margin-bottom: 16px;
+            padding: 12px;
+            background: #2B3139;
+            border-radius: 8px;
+        }
+
+        .scenario-title {
+            font-size: 13px;
+            color: #F0B90B;
+            margin-bottom: 8px;
+        }
+
+        .scenario-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .scenario-btn {
+            font-size: 11px;
+            padding: 6px 12px;
+            background: #474D57;
+            border: none;
+            border-radius: 4px;
+            color: #EAECEF;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .scenario-btn:hover {
+            background: #5E6673;
+        }
+
+        .scenario-btn.active {
+            background: #F0B90B;
+            color: #1E2329;
+        }
+
+        /* Leverage Section */
+        .leverage-section {
+            margin-bottom: 16px;
+        }
+
+        .leverage-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .leverage-label {
+            font-size: 13px;
+            color: #848E9C;
+        }
+
+        .calculator-btn {
+            width: 24px;
+            height: 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+
+        .calculator-btn:hover {
+            opacity: 1;
+        }
+
+        .calculator-btn svg {
+            width: 16px;
+            height: 16px;
+            fill: #848E9C;
+        }
+
+        .leverage-display {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #2B3139;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+        }
+
+        .leverage-value {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .leverage-max {
+            font-size: 13px;
+            color: #F0B90B;
+            cursor: pointer;
+            padding: 4px 12px;
+            background: rgba(240, 185, 11, 0.1);
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .leverage-max:hover {
+            background: rgba(240, 185, 11, 0.2);
+        }
+
+        .leverage-slider {
+            width: 100%;
+            height: 6px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: linear-gradient(to right, #0ECB81 0%, #0ECB81 10%, #F0B90B 10%, #F0B90B 20%, #F39C12 20%, #F39C12 50%, #E74C3C 50%, #E74C3C 80%, #C0392B 80%, #C0392B 100%);
+            border-radius: 3px;
+            outline: none;
+            cursor: pointer;
+            position: relative;
+            z-index: 1;
+        }
+
+        .leverage-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            background: #fff;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+            border: 3px solid #F0B90B;
+            transition: transform 0.15s;
+        }
+
+        .leverage-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+        }
+
+        .leverage-slider::-moz-range-thumb {
+            width: 22px;
+            height: 22px;
+            background: #fff;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+            border: 3px solid #F0B90B;
+        }
+
+        .leverage-slider::-moz-range-track {
+            background: transparent;
+            border: none;
+        }
+
+        .leverage-ticks {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 4px;
+        }
+
+        .leverage-tick {
+            font-size: 11px;
+            color: #848E9C;
+        }
+
+        /* Order Type Tabs */
+        .order-type-tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 16px;
+            border-bottom: 1px solid #2B3139;
+        }
+
+        .order-type-tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px 0;
+            font-size: 14px;
+            cursor: pointer;
+            color: #848E9C;
+            position: relative;
+            transition: color 0.2s;
+        }
+
+        .order-type-tab.active {
+            color: #F0B90B;
+        }
+
+        .order-type-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #F0B90B;
+        }
+
+        .order-type-tab:hover {
+            color: #EAECEF;
+        }
+
+        /* Limit Order Section */
+        .limit-order-section {
+            display: none;
+            margin-bottom: 16px;
+        }
+
+        .limit-order-section.show {
+            display: block;
+        }
+
+        .price-input-wrapper {
+            position: relative;
+            margin-bottom: 8px;
+        }
+
+        .price-input {
+            width: 100%;
+            background: #2B3139;
+            border: 1px solid #474D57;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 14px;
+            color: #EAECEF;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .price-input:focus {
+            border-color: #F0B90B;
+        }
+
+        .price-input::placeholder {
+            color: #5E6673;
+        }
+
+        .price-suffix {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
+            color: #848E9C;
+        }
+
+        .price-percentage {
+            font-size: 12px;
+            color: #848E9C;
+            text-align: right;
+            margin-bottom: 4px;
+        }
+
+        .price-percentage .highlight {
+            color: #F0B90B;
+        }
+
+        /* TP/SL Order Section */
+        .tpsl-order-section {
+            display: none;
+            margin-bottom: 16px;
+        }
+
+        .tpsl-order-section.show {
+            display: block;
+        }
+
+        .tpsl-order-select {
+            width: 100%;
+            background: #2B3139;
+            border: 1px solid #474D57;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 14px;
+            color: #EAECEF;
+            outline: none;
+            margin-bottom: 16px;
+            cursor: pointer;
+        }
+
+        .tpsl-order-inputs {
+            display: none;
+        }
+
+        .tpsl-order-inputs.show {
+            display: block;
+        }
+
+        .tpsl-input-group {
+            margin-bottom: 12px;
+        }
+
+        .tpsl-input-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .tpsl-input-label {
+            font-size: 12px;
+            color: #848E9C;
+        }
+
+        .tpsl-gain {
+            font-size: 11px;
+            color: #0ECB81;
+        }
+
+        .tpsl-gain.loss {
+            color: #F6465D;
+        }
+
+        .tpsl-input {
+            width: 100%;
+            background: #2B3139;
+            border: 1px solid #474D57;
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-size: 14px;
+            color: #EAECEF;
+            outline: none;
+        }
+
+        .tpsl-input:focus {
+            border-color: #F0B90B;
+        }
+
+        .tpsl-input::placeholder {
+            color: #5E6673;
+        }
+
+        /* Amount Section */
+        .amount-section {
+            margin-bottom: 16px;
+        }
+
+        .amount-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .amount-input-wrapper {
+            position: relative;
+            margin-bottom: 12px;
+        }
+
+        .amount-input {
+            width: 100%;
+            background: #2B3139;
+            border: 1px solid #474D57;
+            border-radius: 8px;
+            padding: 12px 80px 12px 16px;
+            font-size: 18px;
+            color: #EAECEF;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .amount-input:focus {
+            border-color: #F0B90B;
+        }
+
+        .amount-input.error {
+            border-color: #E74C3C;
+        }
+
+        .amount-input.warning {
+            border-color: #F39C12;
+        }
+
+        .amount-actions {
+            display: flex;
+            gap: 8px;
+            position: absolute;
+            right: 80px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .amount-action-btn {
+            font-size: 11px;
+            padding: 4px 8px;
+            background: #474D57;
+            border: none;
+            border-radius: 4px;
+            color: #EAECEF;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .amount-action-btn:hover {
+            background: #5E6673;
+        }
+
+        .amount-suffix {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 13px;
+            color: #848E9C;
+        }
+
+        .percentage-slider {
+            margin-bottom: 12px;
+        }
+
+        .percentage-marks {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .percentage-mark {
+            font-size: 11px;
+            color: #848E9C;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .percentage-mark:hover, .percentage-mark.active {
+            color: #F0B90B;
+        }
+
+        .percentage-slider-track {
+            width: 100%;
+            height: 4px;
+            background: #474D57;
+            border-radius: 2px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .percentage-slider-track:hover {
+            background: #5E6673;
+        }
+
+        .percentage-slider-fill {
+            height: 100%;
+            background: #F0B90B;
+            border-radius: 2px;
+            transition: width 0.15s;
+        }
+
+        .percentage-slider-thumb {
+            position: absolute;
+            top: 50%;
+            width: 16px;
+            height: 16px;
+            background: #F0B90B;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: left 0.15s;
+            box-shadow: 0 2px 6px rgba(240, 185, 11, 0.4);
+            cursor: grab;
+        }
+
+        .percentage-slider-thumb:active {
+            cursor: grabbing;
+            transform: translate(-50%, -50%) scale(1.2);
+        }
+
+        /* Balance Section */
+        .balance-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-top: 1px solid #2B3139;
+            border-bottom: 1px solid #2B3139;
+            margin-bottom: 16px;
+        }
+
+        .balance-label {
+            font-size: 13px;
+            color: #848E9C;
+        }
+
+        .balance-value {
+            font-size: 14px;
+            color: #EAECEF;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .deposit-btn {
+            width: 20px;
+            height: 20px;
+            background: #F0B90B;
+            border: none;
+            border-radius: 50%;
+            color: #1E2329;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+        }
+
+        .deposit-btn:hover {
+            transform: scale(1.1);
+        }
+
+        /* TP/SL Toggle */
+        .tpsl-section {
+            margin-bottom: 16px;
+        }
+
+        .tpsl-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .tpsl-checkbox {
+            width: 36px;
+            height: 20px;
+            background: #474D57;
+            border-radius: 10px;
+            position: relative;
+            transition: background 0.2s;
+        }
+
+        .tpsl-checkbox.checked {
+            background: #0ECB81;
+        }
+
+        .tpsl-checkbox::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: #fff;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.2s;
+        }
+
+        .tpsl-checkbox.checked::after {
+            transform: translateX(16px);
+        }
+
+        .tpsl-label {
+            font-size: 14px;
+            color: #848E9C;
+        }
+
+        /* Action Buttons */
+        .action-section {
+            margin-bottom: 8px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .trade-btn {
+            flex: 1;
+            padding: 14px 0;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.1s, opacity 0.2s;
+        }
+
+        .trade-btn:active {
+            transform: scale(0.98);
+        }
+
+        .trade-btn.buy {
+            background: #0ECB81;
+            color: #fff;
+        }
+
+        .trade-btn.sell {
+            background: #F6465D;
+            color: #fff;
+        }
+
+        .btn-icon {
+            display: inline-block;
+            margin-left: 6px;
+            width: 18px;
+            height: 18px;
+            vertical-align: middle;
+        }
+
+        /* Liquidation Price under buttons */
+        .liquidation-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .liquidation-info {
+            flex: 1;
+        }
+
+        .liquidation-info.buy-side {
+            text-align: left;
+        }
+
+        .liquidation-info.sell-side {
+            text-align: right;
+        }
+
+        .liquidation-label {
+            font-size: 11px;
+            color: #848E9C;
+        }
+
+        .liquidation-value {
+            font-size: 13px;
+            color: #EAECEF;
+        }
+
+        /* Error Message */
+        .error-message {
+            display: none;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            background: rgba(231, 76, 60, 0.1);
+            border-radius: 6px;
+            font-size: 12px;
+            color: #E74C3C;
+            margin-top: 8px;
+        }
+
+        .error-message.show {
+            display: flex;
+        }
+
+        /* Confirmation Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: #1E2329;
+            border-radius: 16px;
+            padding: 24px;
+            max-width: 360px;
+            width: 100%;
+            animation: modalSlide 0.3s ease;
+        }
+
+        @keyframes modalSlide {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .modal-risk {
+            background: rgba(231, 76, 60, 0.1);
+            border: 1px solid rgba(231, 76, 60, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+            font-size: 13px;
+            color: #E74C3C;
+            text-align: center;
+        }
+
+        .dont-show-again {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+            cursor: pointer;
+        }
+
+        .dont-show-again input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #F0B90B;
+        }
+
+        .dont-show-again label {
+            font-size: 12px;
+            color: #848E9C;
+            cursor: pointer;
+        }
+
+        .modal-info {
+            margin-bottom: 20px;
+        }
+
+        .modal-info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 13px;
+            border-bottom: 1px solid #2B3139;
+        }
+
+        .modal-info-row:last-child {
+            border-bottom: none;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .modal-btn:hover {
+            opacity: 0.9;
+        }
+
+        .modal-btn.cancel {
+            background: #2B3139;
+            color: #848E9C;
+        }
+
+        .modal-btn.confirm {
+            background: #0ECB81;
+            color: #fff;
+        }
+
+        .modal-btn.confirm-sell {
+            background: #F6465D;
+            color: #fff;
+        }
+
+        /* Toast Notification */
+        .toast {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 200;
+            animation: toastSlide 0.3s ease;
+        }
+
+        @keyframes toastSlide {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        .toast.show {
+            display: block;
+        }
+
+        .toast.success {
+            background: #0ECB81;
+            color: #fff;
+        }
+
+        .toast.error {
+            background: #E74C3C;
+            color: #fff;
+        }
+
+        .toast.warning {
+            background: #F39C12;
+            color: #fff;
+        }
+
+        /* ROI Calculator Modal */
+        .roi-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 100;
+            justify-content: center;
+            align-items: flex-end;
+            padding: 0;
+        }
+
+        .roi-modal.show {
+            display: flex;
+        }
+
+        .roi-modal-content {
+            background: #1E2329;
+            border-radius: 16px 16px 0 0;
+            width: 100%;
+            max-width: 480px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+            }
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        .roi-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid #2B3139;
+            position: sticky;
+            top: 0;
+            background: #1E2329;
+            z-index: 10;
+        }
+
+        .roi-modal-title {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .roi-close-btn {
+            width: 32px;
+            height: 32px;
+            background: none;
+            border: none;
+            color: #848E9C;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .roi-modal-body {
+            padding: 20px;
+        }
+
+        .roi-reset-btn {
+            width: 100%;
+            padding: 12px;
+            background: #2B3139;
+            border: none;
+            border-radius: 8px;
+            color: #EAECEF;
+            font-size: 14px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .roi-fee-notice {
+            font-size: 12px;
+            color: #848E9C;
+            margin-bottom: 16px;
+        }
+
+        .roi-input-group {
+            margin-bottom: 16px;
+        }
+
+        .roi-input-label {
+            font-size: 12px;
+            color: #848E9C;
+            margin-bottom: 6px;
+        }
+
+        .roi-input {
+            width: 100%;
+            background: #2B3139;
+            border: 1px solid #474D57;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 16px;
+            color: #EAECEF;
+            outline: none;
+        }
+
+        .roi-input:focus {
+            border-color: #F0B90B;
+        }
+
+        .roi-input-with-icon {
+            position: relative;
+        }
+
+        .roi-input-with-icon .roi-input {
+            padding-right: 120px;
+        }
+
+        .roi-input-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #474D57;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .roi-dropdown {
+            background: none;
+            border: none;
+            color: #EAECEF;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .roi-direction-btns {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 16px;
+        }
+
+        .roi-direction-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .roi-direction-btn.active {
+            opacity: 1;
+        }
+
+        .roi-direction-btn.inactive {
+            opacity: 0.3;
+        }
+
+        .roi-direction-btn.long {
+            background: #0ECB81;
+            color: #fff;
+        }
+
+        .roi-direction-btn.short {
+            background: #F6465D;
+            color: #fff;
+        }
+
+        .roi-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .roi-table th {
+            padding: 10px 8px;
+            text-align: center;
+            color: #848E9C;
+            font-weight: 500;
+            border-bottom: 1px solid #2B3139;
+        }
+
+        .roi-table td {
+            padding: 10px 8px;
+            text-align: center;
+            border-bottom: 1px solid #2B3139;
+        }
+
+        .roi-table tr.loss td {
+            color: #F6465D;
+        }
+
+        .roi-table tr.profit td {
+            color: #0ECB81;
+        }
+
+        .roi-table tr.current td {
+            background: #2B3139;
+            font-weight: 600;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            body {
+                padding: 0;
+            }
+            .prototype-container {
+                border-radius: 0;
+                max-width: 100%;
+                min-height: 100vh;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="prototype-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-tabs">
+                <div class="header-tab active" data-i18n="trading">交易</div>
+                <div class="header-tab" data-i18n="tradingBot">交易机器人<span class="beta-badge">Beta</span></div>
+            </div>
+            <button class="language-switch" id="languageSwitch" onclick="toggleLanguage()">
+                <span id="currentLang">中文</span>
+                <span>▼</span>
+            </button>
+        </div>
+
+        <!-- Trading Area -->
+        <div class="trading-area">
+            <!-- Scenario Selector -->
+            <div class="scenario-section">
+                <div class="scenario-title" data-i18n="scenarioDemo">交互场景演示</div>
+                <div class="scenario-buttons">
+                    <button class="scenario-btn active" onclick="setScenario('normal')" data-i18n="normalFlow">正常流程</button>
+                    <button class="scenario-btn" onclick="setScenario('insufficient')" data-i18n="insufficientBalance">余额不足</button>
+                    <button class="scenario-btn" onclick="setScenario('highLeverage')" data-i18n="highLeverageRisk">高杠杆风险</button>
+                    <button class="scenario-btn" onclick="setScenario('fullPosition')" data-i18n="fullPosition">满仓操作</button>
+                    <button class="scenario-btn" onclick="setScenario('minAmount')" data-i18n="minAmount">最小金额不足</button>
+                </div>
+            </div>
+
+            <!-- Leverage Section -->
+            <div class="leverage-section">
+                <div class="leverage-header">
+                    <span class="leverage-label" data-i18n="leverage">杠杆</span>
+                    <button class="calculator-btn" onclick="openROICalculator()" title="ROI计算器">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 7h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2zM7 11h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2zM7 15h6v2H7zm8 0h2v2h-2z"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="leverage-display">
+                    <span class="leverage-value" id="leverageValue">20x</span>
+                    <span class="leverage-max" onclick="setLeverage(1000)" data-i18n="max">最大</span>
+                </div>
+                <input type="range" class="leverage-slider" id="leverageSlider" min="1" max="1000" value="20" oninput="updateLeverage(this.value)">
+                <div class="leverage-ticks">
+                    <span class="leverage-tick">1x</span>
+                    <span class="leverage-tick">100x</span>
+                    <span class="leverage-tick">200x</span>
+                    <span class="leverage-tick">500x</span>
+                    <span class="leverage-tick">750x</span>
+                    <span class="leverage-tick">1000x</span>
+                </div>
+            </div>
+
+            <!-- Order Type Tabs -->
+            <div class="order-type-tabs">
+                <div class="order-type-tab active" onclick="switchOrderType('market', this)" data-i18n="market">市场</div>
+                <div class="order-type-tab" onclick="switchOrderType('limit', this)" data-i18n="limit">限制</div>
+                <div class="order-type-tab" onclick="switchOrderType('tpsl', this)">TP/SL</div>
+            </div>
+
+            <!-- Limit Order Section -->
+            <div class="limit-order-section" id="limitOrderSection">
+                <div class="price-input-wrapper">
+                    <input type="number" class="price-input" placeholder="" data-i18n-placeholder="enterPrice">
+                    <span class="price-suffix">USDT</span>
+                </div>
+                <div class="price-percentage">
+                    <span class="highlight">5%</span> <span data-i18n="belowMarket">低于市场价</span>
+                </div>
+            </div>
+
+            <!-- TP/SL Order Section -->
+            <div class="tpsl-order-section" id="tpslOrderSection">
+                <select class="tpsl-order-select" id="tpslOrderSelect" onchange="updateTPSLOrderType(this.value)">
+                    <option value="market" data-i18n="market">市场</option>
+                    <option value="limit" data-i18n="limitOrder">限价</option>
+                </select>
+                <div class="tpsl-order-inputs show" id="tpslInputs">
+                    <div class="tpsl-input-group">
+                        <div class="tpsl-input-header">
+                            <span class="tpsl-input-label" data-i18n="takeProfit">止盈价(USDT)</span>
+                            <span class="tpsl-gain" data-i18n="profit">+ 收益</span>
+                        </div>
+                        <input type="number" class="tpsl-input" placeholder="" data-i18n-placeholder="price">
+                    </div>
+                    <div class="tpsl-input-group">
+                        <div class="tpsl-input-header">
+                            <span class="tpsl-input-label" data-i18n="stopLoss">止损价(USDT)</span>
+                            <span class="tpsl-gain loss" data-i18n="loss">- 收益</span>
+                        </div>
+                        <input type="number" class="tpsl-input" placeholder="" data-i18n-placeholder="price">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Amount Section -->
+            <div class="amount-section">
+                <div class="amount-header">
+                    <span class="section-label" data-i18n="amount">金额(USDT)≈US$0.19</span>
+                </div>
+                <div class="amount-input-wrapper">
+                    <input type="number" class="amount-input" id="amountInput" placeholder="" value="0.193" oninput="updateAmount(this.value)" data-i18n-placeholder="amountPlaceholder">
+                    <div class="amount-actions">
+                        <button class="amount-action-btn" onclick="setAmount(50)" data-i18n="half">1/2</button>
+                        <button class="amount-action-btn" onclick="setAmount(200)">2x</button>
+                        <button class="amount-action-btn" onclick="setAmount(100)" data-i18n="full">T</button>
+                    </div>
+                    <span class="amount-suffix">USDT</span>
+                </div>
+                <div class="percentage-slider">
+                    <div class="percentage-marks">
+                        <span class="percentage-mark" onclick="setPercentage(0)">0%</span>
+                        <span class="percentage-mark" onclick="setPercentage(25)">25%</span>
+                        <span class="percentage-mark" onclick="setPercentage(50)">50%</span>
+                        <span class="percentage-mark" onclick="setPercentage(75)">75%</span>
+                        <span class="percentage-mark" onclick="setPercentage(100)">100%</span>
+                    </div>
+                    <div class="percentage-slider-track" id="percentageTrack" onclick="handleTrackClick(event)">
+                        <div class="percentage-slider-fill" id="percentageFill" style="width: 2%"></div>
+                        <div class="percentage-slider-thumb" id="percentageThumb" style="left: 2%"></div>
+                    </div>
+                </div>
+                <div class="error-message" id="errorMessage">
+                    <span class="error-icon">⚠️</span>
+                    <span id="errorText"></span>
+                </div>
+            </div>
+
+            <!-- Balance Section -->
+            <div class="balance-section">
+                <span class="balance-label" data-i18n="availableBalance">可用资产</span>
+                <span class="balance-value">
+                    9.513 USDT
+                    <button class="deposit-btn" title="" data-i18n-title="deposit">+</button>
+                </span>
+            </div>
+
+            <!-- Action Buttons with Liquidation Price -->
+            <div class="action-section">
+                <div class="action-buttons">
+                    <button class="trade-btn buy" onclick="handleTrade('buy')">
+                        <span data-i18n="buy">购买</span>
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                            <polyline points="17 6 23 6 23 12"></polyline>
+                        </svg>
+                    </button>
+                    <button class="trade-btn sell" onclick="handleTrade('sell')">
+                        <span data-i18n="sell">出售</span>
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline>
+                            <polyline points="17 18 23 18 23 12"></polyline>
+                        </svg>
+                    </button>
+                </div>
+                <div class="liquidation-row">
+                    <div class="liquidation-info buy-side">
+                        <div class="liquidation-label" data-i18n="liquidationPrice">强平价</div>
+                        <div class="liquidation-value" id="buyLiquidation">922.21</div>
+                    </div>
+                    <div class="liquidation-info sell-side">
+                        <div class="liquidation-label" data-i18n="liquidationPrice">强平价</div>
+                        <div class="liquidation-value" id="sellLiquidation">957.07</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal">
+            <div class="modal-title" id="modalTitle" data-i18n="confirmOrder">确认订单</div>
+            <div class="modal-risk" id="modalRisk" style="display: none;">
+                ⚠️ <span data-i18n="highRiskWarning">极高风险！您正在使用超高杠杆，可能导致快速爆仓！</span>
+            </div>
+            <div class="dont-show-again">
+                <input type="checkbox" id="dontShowAgain">
+                <label for="dontShowAgain" data-i18n="dontShowAgain">不再提示</label>
+            </div>
+            <div class="modal-info">
+                <div class="modal-info-row">
+                    <span class="trade-info-label" data-i18n="tradeDirection">交易方向</span>
+                    <span class="trade-info-value" id="modalDirection" data-i18n="buy">买入</span>
+                </div>
+                <div class="modal-info-row">
+                    <span class="trade-info-label" data-i18n="orderType">订单类型</span>
+                    <span class="trade-info-value" id="modalOrderType" data-i18n="marketOrder">市价</span>
+                </div>
+                <div class="modal-info-row">
+                    <span class="trade-info-label" data-i18n="leverage">杠杆</span>
+                    <span class="trade-info-value" id="modalLeverage">20x</span>
+                </div>
+                <div class="modal-info-row">
+                    <span class="trade-info-label" data-i18n="amount">金额</span>
+                    <span class="trade-info-value" id="modalAmount">0.193 USDT</span>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn cancel" onclick="closeModal()" data-i18n="cancel">取消</button>
+                <button class="modal-btn confirm" id="modalConfirmBtn" onclick="confirmTrade()" data-i18n="confirm">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ROI Calculator Modal -->
+    <div class="roi-modal" id="roiModal">
+        <div class="roi-modal-content">
+            <div class="roi-modal-header">
+                <span class="roi-modal-title" data-i18n="roiCalculator">投资回报率计算器</span>
+                <button class="roi-close-btn" onclick="closeROICalculator()">&times;</button>
+            </div>
+            <div class="roi-modal-body">
+                <button class="roi-reset-btn" onclick="resetROI()" data-i18n="resetFields">重置字段</button>
+                <div class="roi-fee-notice" data-i18n="feeNotice">
+                    Stonks 设有 2.5% 底池优势，并对盈利仓位收取 5% 手续费。
+                </div>
+                <div class="roi-input-group">
+                    <div class="roi-input-label" data-i18n="openPrice">开仓价</div>
+                    <div class="roi-input-with-icon">
+                        <input type="number" class="roi-input" id="roiOpenPrice" value="930.13" oninput="calculateROI()">
+                        <div class="roi-input-icon">
+                            <span>STONKS/USDT</span>
+                            <span class="roi-dropdown">▼</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="roi-input-label" data-i18n="priceDirection">价格会上涨还是下跌</div>
+                <div class="roi-direction-btns">
+                    <button class="roi-direction-btn long active" id="roiLongBtn" onclick="setROIDirection('long')" title="" data-i18n-title="long">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                            <polyline points="17 6 23 6 23 12"></polyline>
+                        </svg>
+                    </button>
+                    <button class="roi-direction-btn short inactive" id="roiShortBtn" onclick="setROIDirection('short')" title="" data-i18n-title="short">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline>
+                            <polyline points="17 18 23 18 23 12"></polyline>
+                        </svg>
+                    </button>
+                </div>
+                <div class="roi-input-group">
+                    <div class="roi-input-label" data-i18n="tradingVolume">交易量(USD)</div>
+                    <input type="text" class="roi-input" id="roiVolume" value="1,000" oninput="calculateROI()">
+                </div>
+                <div class="roi-input-group">
+                    <div class="roi-input-label" data-i18n="multiplier">收益倍数</div>
+                    <input type="number" class="roi-input" id="roiMultiplier" value="1" oninput="calculateROI()">
+                </div>
+                <div class="roi-input-group">
+                    <div class="roi-input-label" data-i18n="customChange">自定义价格波动 %</div>
+                    <input type="number" class="roi-input" id="roiCustomChange" placeholder="" data-i18n-placeholder="customChangePlaceholder" oninput="calculateROI()">
+                </div>
+                <div style="overflow-x: auto;">
+                    <table class="roi-table" id="roiTable">
+                        <thead>
+                            <tr>
+                                <th data-i18n="priceChange">价格波动</th>
+                                <th>ROI</th>
+                                <th data-i18n="closePrice">平仓价</th>
+                                <th>P&L</th>
+                            </tr>
+                        </thead>
+                        <tbody id="roiTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // i18n translations
+        const translations = {
+            zh: {
+                trading: '交易',
+                tradingBot: '交易机器人',
+                scenarioDemo: '交互场景演示',
+                normalFlow: '正常流程',
+                insufficientBalance: '余额不足',
+                highLeverageRisk: '高杠杆风险',
+                fullPosition: '满仓操作',
+                minAmount: '最小金额不足',
+                leverage: '杠杆',
+                max: '最大',
+                market: '市场',
+                limit: '限制',
+                limitOrder: '限价',
+                enterPrice: '请输入价格',
+                belowMarket: '低于市场价',
+                takeProfit: '止盈价(USDT)',
+                stopLoss: '止损价(USDT)',
+                profit: '+ 收益',
+                loss: '- 收益',
+                price: '价格',
+                amount: '金额(USDT)≈US$0.19',
+                amountPlaceholder: '0.00',
+                half: '1/2',
+                full: 'T',
+                availableBalance: '可用资产',
+                deposit: '充值',
+                buy: '购买',
+                sell: '出售',
+                liquidationPrice: '强平价',
+                confirmOrder: '确认订单',
+                highRiskWarning: '极高风险！您正在使用超高杠杆，可能导致快速爆仓！',
+                mediumRiskWarning: '高风险！您正在使用高杠杆，请注意风险控制。',
+                dontShowAgain: '不再提示',
+                tradeDirection: '交易方向',
+                orderType: '订单类型',
+                marketOrder: '市价',
+                cancel: '取消',
+                confirm: '确认',
+                roiCalculator: '投资回报率计算器',
+                resetFields: '重置字段',
+                feeNotice: 'Stonks 设有 2.5% 底池优势，并对盈利仓位收取 5% 手续费。',
+                openPrice: '开仓价',
+                priceDirection: '价格会上涨还是下跌',
+                long: '看涨',
+                short: '看跌',
+                tradingVolume: '交易量(USD)',
+                multiplier: '收益倍数',
+                customChange: '自定义价格波动 %',
+                customChangePlaceholder: '输入自定义波动百分比',
+                priceChange: '价格波动',
+                closePrice: '平仓价',
+                buyLong: '买入做多',
+                sellShort: '卖出做空',
+                pleaseEnterAmount: '请输入交易金额',
+                insufficientBalanceMsg: '余额不足！可用余额：',
+                insufficientBalanceAction: '请先充值或减少金额',
+                minAmountMsg: '交易金额需大于 5 USDT',
+                fullPositionWarning: '满仓操作：建议预留手续费空间，避免下单失败',
+                minAmountWarning: '低于最小交易金额（5 USDT）',
+                orderSuccess: '订单提交成功！',
+                chinese: '中文',
+                english: 'English'
+            },
+            en: {
+                trading: 'Trading',
+                tradingBot: 'Trading Bot',
+                scenarioDemo: 'Scenario Demo',
+                normalFlow: 'Normal Flow',
+                insufficientBalance: 'Insufficient Balance',
+                highLeverageRisk: 'High Leverage Risk',
+                fullPosition: 'Full Position',
+                minAmount: 'Min Amount',
+                leverage: 'Leverage',
+                max: 'Max',
+                market: 'Market',
+                limit: 'Limit',
+                limitOrder: 'Limit',
+                enterPrice: 'Enter Price',
+                belowMarket: 'Below Market Price',
+                takeProfit: 'Take Profit(USDT)',
+                stopLoss: 'Stop Loss(USDT)',
+                profit: '+ Profit',
+                loss: '- Loss',
+                price: 'Price',
+                amount: 'Amount(USDT)≈US$0.19',
+                amountPlaceholder: '0.00',
+                half: '1/2',
+                full: 'T',
+                availableBalance: 'Available Balance',
+                deposit: 'Deposit',
+                buy: 'Buy',
+                sell: 'Sell',
+                liquidationPrice: 'Liq. Price',
+                confirmOrder: 'Confirm Order',
+                highRiskWarning: '⚠️ Extremely High Risk! You are using ultra-high leverage, which may lead to rapid liquidation!',
+                mediumRiskWarning: '⚠️ High Risk! You are using high leverage, please manage your risk.',
+                dontShowAgain: "Don't show again",
+                tradeDirection: 'Direction',
+                orderType: 'Order Type',
+                marketOrder: 'Market',
+                cancel: 'Cancel',
+                confirm: 'Confirm',
+                roiCalculator: 'ROI Calculator',
+                resetFields: 'Reset Fields',
+                feeNotice: 'Stonks charges a 2.5% funding fee and 5% fee on profitable positions.',
+                openPrice: 'Open Price',
+                priceDirection: 'Will the price go up or down',
+                long: 'Long',
+                short: 'Short',
+                tradingVolume: 'Volume(USD)',
+                multiplier: 'Multiplier',
+                customChange: 'Custom Price Change %',
+                customChangePlaceholder: 'Enter custom change percentage',
+                priceChange: 'Price Change',
+                closePrice: 'Close Price',
+                buyLong: 'Buy Long',
+                sellShort: 'Sell Short',
+                pleaseEnterAmount: 'Please enter trading amount',
+                insufficientBalanceMsg: 'Insufficient balance! Available:',
+                insufficientBalanceAction: 'Please deposit or reduce amount',
+                minAmountMsg: 'Amount must be greater than 5 USDT',
+                fullPositionWarning: 'Full position: Suggest reserving fee space to avoid order failure',
+                minAmountWarning: 'Below minimum trading amount (5 USDT)',
+                orderSuccess: 'Order submitted successfully!',
+                chinese: '中文',
+                english: 'English'
+            }
+        };
+
+        let currentLang = 'zh';
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'zh' ? 'en' : 'zh';
+            applyTranslations();
+            document.getElementById('currentLang').textContent = translations[currentLang][currentLang === 'zh' ? 'chinese' : 'english'];
+        }
+
+        function applyTranslations() {
+            const elements = document.querySelectorAll('[data-i18n]');
+            elements.forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[currentLang][key]) {
+                    el.textContent = translations[currentLang][key];
+                }
+            });
+
+            const placeholders = document.querySelectorAll('[data-i18n-placeholder]');
+            placeholders.forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (translations[currentLang][key]) {
+                    el.placeholder = translations[currentLang][key];
+                }
+            });
+
+            const titles = document.querySelectorAll('[data-i18n-title]');
+            titles.forEach(el => {
+                const key = el.getAttribute('data-i18n-title');
+                if (translations[currentLang][key]) {
+                    el.title = translations[currentLang][key];
+                }
+            });
+
+            const selectOptions = document.querySelectorAll('option[data-i18n]');
+            selectOptions.forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[currentLang][key]) {
+                    el.textContent = translations[currentLang][key];
+                }
+            });
+        }
+
+        // State
+        let state = {
+            leverage: 20,
+            amount: 0.193,
+            balance: 9.513,
+            orderType: 'market',
+            scenario: 'normal',
+            price: 930.13,
+            roiDirection: 'long',
+            dontShowHighLeverageWarning: false
+        };
+
+        const scenarios = {
+            normal: {
+                leverage: 20,
+                amount: 0.193,
+                description: '正常交易流程演示'
+            },
+            insufficient: {
+                leverage: 20,
+                amount: 15.0,
+                description: '余额不足场景'
+            },
+            highLeverage: {
+                leverage: 250,
+                amount: 1.0,
+                description: '高杠杆风险场景'
+            },
+            fullPosition: {
+                leverage: 10,
+                amount: 9.513,
+                description: '满仓操作场景'
+            },
+            minAmount: {
+                leverage: 20,
+                amount: 0.01,
+                description: '最小金额不足场景'
+            }
+        };
+
+        function setScenario(name) {
+            state.scenario = name;
+            const scenario = scenarios[name];
+            
+            document.querySelectorAll('.scenario-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            state.leverage = scenario.leverage;
+            state.amount = scenario.amount;
+            
+            document.getElementById('leverageSlider').value = state.leverage;
+            document.getElementById('amountInput').value = state.amount;
+            
+            updateLeverage(state.leverage);
+            updateAmount(state.amount);
+        }
+
+        function updateLeverage(value) {
+            state.leverage = parseInt(value);
+            document.getElementById('leverageValue').textContent = state.leverage + 'x';
+        }
+
+        function setLeverage(value) {
+            state.leverage = value;
+            document.getElementById('leverageSlider').value = value;
+            updateLeverage(value);
+        }
+
+        function updateAmount(value) {
+            state.amount = parseFloat(value) || 0;
+            
+            const input = document.getElementById('amountInput');
+            const error = document.getElementById('errorMessage');
+            const errorText = document.getElementById('errorText');
+            
+            input.className = 'amount-input';
+            error.className = 'error-message';
+            
+            const percentage = (state.amount / state.balance) * 100;
+            document.getElementById('percentageFill').style.width = Math.min(percentage, 100) + '%';
+            document.getElementById('percentageThumb').style.left = Math.min(percentage, 100) + '%';
+            
+            document.querySelectorAll('.percentage-mark').forEach(mark => {
+                mark.classList.remove('active');
+            });
+            
+            if (state.amount > state.balance) {
+                input.className = 'amount-input error';
+                error.className = 'error-message show';
+                errorText.textContent = translations[currentLang]['insufficientBalanceMsg'] + state.balance + ' USDT';
+            } else if (state.amount === state.balance) {
+                input.className = 'amount-input warning';
+                error.className = 'error-message show';
+                errorText.textContent = translations[currentLang]['fullPositionWarning'];
+            } else if (state.amount > 0 && state.amount < 5 && state.scenario === 'minAmount') {
+                input.className = 'amount-input warning';
+                error.className = 'error-message show';
+                errorText.textContent = translations[currentLang]['minAmountWarning'];
+            }
+        }
+
+        function setAmount(percentage) {
+            const newAmount = (state.balance * percentage / 100).toFixed(3);
+            state.amount = parseFloat(newAmount);
+            document.getElementById('amountInput').value = newAmount;
+            updateAmount(newAmount);
+        }
+
+        function setPercentage(value) {
+            const newAmount = (state.balance * value / 100).toFixed(3);
+            state.amount = parseFloat(newAmount);
+            document.getElementById('amountInput').value = newAmount;
+            updateAmount(newAmount);
+        }
+
+        function handleTrackClick(event) {
+            const track = event.currentTarget;
+            const rect = track.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const percentage = Math.round((x / rect.width) * 100);
+            const clampedPercentage = Math.max(0, Math.min(100, percentage));
+            setPercentage(clampedPercentage);
+        }
+
+        function switchOrderType(type, element) {
+            state.orderType = type;
+            document.querySelectorAll('.order-type-tab').forEach(tab => tab.classList.remove('active'));
+            element.classList.add('active');
+            
+            // Show/hide corresponding sections
+            document.getElementById('limitOrderSection').classList.remove('show');
+            document.getElementById('tpslOrderSection').classList.remove('show');
+            
+            if (type === 'limit') {
+                document.getElementById('limitOrderSection').classList.add('show');
+            } else if (type === 'tpsl') {
+                document.getElementById('tpslOrderSection').classList.add('show');
+            }
+        }
+
+        function updateTPSLOrderType(value) {
+            // TP/SL order type change logic
+        }
+
+        function handleTrade(direction) {
+            if (state.amount <= 0) {
+                showToast(translations[currentLang]['pleaseEnterAmount'], 'warning');
+                return;
+            }
+            
+            if (state.amount > state.balance) {
+                showToast(translations[currentLang]['insufficientBalanceMsg'] + ' ' + translations[currentLang]['insufficientBalanceAction'], 'error');
+                return;
+            }
+            
+            if (state.amount < 5) {
+                showToast(translations[currentLang]['minAmountMsg'], 'warning');
+                return;
+            }
+            
+            if (state.leverage > 200 && !state.dontShowHighLeverageWarning) {
+                showConfirmModal(direction);
+            } else {
+                showToast(translations[currentLang]['orderSuccess'], 'success');
+            }
+        }
+
+        function showConfirmModal(direction) {
+            const modal = document.getElementById('confirmModal');
+            const modalRisk = document.getElementById('modalRisk');
+            const modalConfirmBtn = document.getElementById('modalConfirmBtn');
+            
+            document.getElementById('modalDirection').textContent = direction === 'buy' ? translations[currentLang]['buyLong'] : translations[currentLang]['sellShort'];
+            document.getElementById('modalOrderType').textContent = state.orderType === 'market' ? translations[currentLang]['marketOrder'] : translations[currentLang]['limitOrder'];
+            document.getElementById('modalLeverage').textContent = state.leverage + 'x';
+            document.getElementById('modalAmount').textContent = state.amount + ' USDT';
+            
+            if (state.leverage > 500) {
+                modalRisk.style.display = 'block';
+                modalRisk.innerHTML = '⚠️ ' + translations[currentLang]['highRiskWarning'];
+            } else {
+                modalRisk.style.display = 'block';
+                modalRisk.innerHTML = '⚠️ ' + translations[currentLang]['mediumRiskWarning'];
+            }
+            
+            if (direction === 'sell') {
+                modalConfirmBtn.className = 'modal-btn confirm-sell';
+            } else {
+                modalConfirmBtn.className = 'modal-btn confirm';
+            }
+            
+            modal.classList.add('show');
+        }
+
+        function closeModal() {
+            const dontShow = document.getElementById('dontShowAgain').checked;
+            if (dontShow) {
+                state.dontShowHighLeverageWarning = true;
+            }
+            document.getElementById('confirmModal').classList.remove('show');
+        }
+
+        function confirmTrade() {
+            closeModal();
+            showToast('订单提交成功！', 'success');
+        }
+
+        function showToast(message, type) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast show ' + type;
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // ROI Calculator
+        function openROICalculator() {
+            document.getElementById('roiModal').classList.add('show');
+            calculateROI();
+        }
+
+        function closeROICalculator() {
+            document.getElementById('roiModal').classList.remove('show');
+        }
+
+        function resetROI() {
+            document.getElementById('roiOpenPrice').value = '930.13';
+            document.getElementById('roiVolume').value = '1,000';
+            document.getElementById('roiMultiplier').value = '1';
+            document.getElementById('roiCustomChange').value = '';
+            setROIDirection('long');
+            calculateROI();
+        }
+
+        function setROIDirection(direction) {
+            state.roiDirection = direction;
+            const longBtn = document.getElementById('roiLongBtn');
+            const shortBtn = document.getElementById('roiShortBtn');
+            
+            if (direction === 'long') {
+                longBtn.className = 'roi-direction-btn long active';
+                shortBtn.className = 'roi-direction-btn short inactive';
+            } else {
+                longBtn.className = 'roi-direction-btn long inactive';
+                shortBtn.className = 'roi-direction-btn short active';
+            }
+            calculateROI();
+        }
+
+        function calculateROI() {
+            const openPrice = parseFloat(document.getElementById('roiOpenPrice').value) || 930.13;
+            const volume = parseFloat(document.getElementById('roiVolume').value.replace(',', '')) || 1000;
+            const multiplier = parseFloat(document.getElementById('roiMultiplier').value) || 1;
+            
+            const changes = [-100, -50, -10, -5, -1, -0.5, -0.1, -0.05, -0.01, 0, 0.01, 0.05, 0.1, 0.5, 1, 5, 10, 50, 100];
+            const tbody = document.getElementById('roiTableBody');
+            tbody.innerHTML = '';
+            
+            changes.forEach(change => {
+                const closePrice = openPrice * (1 + change / 100);
+                let pnl = (closePrice - openPrice) * (volume / openPrice) * multiplier;
+                let roi = change * multiplier;
+                
+                // Apply fee for profit
+                if (pnl > 0) {
+                    pnl = pnl * 0.95; // 5% fee
+                    roi = roi * 0.95;
+                }
+                
+                const tr = document.createElement('tr');
+                if (change < 0) tr.className = 'loss';
+                else if (change > 0) tr.className = 'profit';
+                else tr.className = 'current';
+                
+                const pnlSign = pnl >= 0 ? '+' : '';
+                const roiSign = roi >= 0 ? '+' : '';
+                
+                tr.innerHTML = `
+                    <td>${change >= 0 ? '+' : ''}${change}%</td>
+                    <td>${roiSign}${roi.toFixed(2)}%</td>
+                    <td>${closePrice.toFixed(2)}</td>
+                    <td>${pnlSign}US$${Math.abs(pnl).toFixed(2)}</td>
+                `;
+                
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Initialize
+        updateAmount(state.amount);
+    </script>
+</body>
+</html>

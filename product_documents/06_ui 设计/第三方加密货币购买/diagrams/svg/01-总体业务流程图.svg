@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1041.175 1044.1" width="1041.175" height="1044.1" style="--bg:#FFFFFF;--fg:#27272A;background:var(--bg)">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
+  text { font-family: 'Inter', system-ui, sans-serif; }
+  svg {
+    /* Derived from --bg and --fg (overridable via --line, --accent, etc.) */
+    --_text:          var(--fg);
+    --_text-sec:      var(--muted, color-mix(in srgb, var(--fg) 60%, var(--bg)));
+    --_text-muted:    var(--muted, color-mix(in srgb, var(--fg) 40%, var(--bg)));
+    --_text-faint:    color-mix(in srgb, var(--fg) 25%, var(--bg));
+    --_line:          var(--line, color-mix(in srgb, var(--fg) 50%, var(--bg)));
+    --_arrow:         var(--accent, color-mix(in srgb, var(--fg) 85%, var(--bg)));
+    --_node-fill:     var(--surface, color-mix(in srgb, var(--fg) 3%, var(--bg)));
+    --_node-stroke:   var(--border, color-mix(in srgb, var(--fg) 20%, var(--bg)));
+    --_group-fill:    var(--bg);
+    --_group-hdr:     color-mix(in srgb, var(--fg) 5%, var(--bg));
+    --_inner-stroke:  color-mix(in srgb, var(--fg) 12%, var(--bg));
+    --_key-badge:     color-mix(in srgb, var(--fg) 10%, var(--bg));
+  }
+</style>
+<defs>
+  <marker id="arrowhead" markerWidth="8" markerHeight="5" refX="7" refY="2.5" orient="auto">
+    <polygon points="0 0, 8 2.5, 0 5" fill="var(--_arrow)" stroke="var(--_arrow)" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+  <marker id="arrowhead-start" markerWidth="8" markerHeight="5" refX="1" refY="2.5" orient="auto-start-reverse">
+    <polygon points="8 0, 0 2.5, 8 5" fill="var(--_arrow)" stroke="var(--_arrow)" stroke-width="0.75" stroke-linejoin="round" />
+  </marker>
+</defs>
+<g class="subgraph" data-id="User" data-label="用户端">
+  <rect x="196.91833333333335" y="58" width="732.105" height="266.70000000000005" rx="0" ry="0" fill="var(--_group-fill)" stroke="var(--_node-stroke)" stroke-width="1" />
+  <rect x="196.91833333333335" y="58" width="732.105" height="28" rx="0" ry="0" fill="var(--_group-hdr)" stroke="var(--_node-stroke)" stroke-width="1" />
+  <text x="208.91833333333335" y="72" font-size="12" font-weight="600" fill="var(--_text-sec)" dy="4.199999999999999">用户端</text>
+</g>
+<g class="subgraph" data-id="Platform" data-label="DeTrade 平台">
+  <rect x="62.03999999999999" y="384.70000000000005" width="645.5466666666666" height="351.6" rx="0" ry="0" fill="var(--_group-fill)" stroke="var(--_node-stroke)" stroke-width="1" />
+  <rect x="62.03999999999999" y="384.70000000000005" width="645.5466666666666" height="28" rx="0" ry="0" fill="var(--_group-hdr)" stroke="var(--_node-stroke)" stroke-width="1" />
+  <text x="74.03999999999999" y="398.70000000000005" font-size="12" font-weight="600" fill="var(--_text-sec)" dy="4.199999999999999">DeTrade 平台</text>
+</g>
+<g class="subgraph" data-id="ThirdParty" data-label="第三方支付服务商">
+  <rect x="349.9241666666666" y="796.3000000000001" width="480.61" height="181.8" rx="0" ry="0" fill="var(--_group-fill)" stroke="var(--_node-stroke)" stroke-width="1" />
+  <rect x="349.9241666666666" y="796.3000000000001" width="480.61" height="28" rx="0" ry="0" fill="var(--_group-hdr)" stroke="var(--_node-stroke)" stroke-width="1" />
+  <text x="361.9241666666666" y="810.3000000000001" font-size="12" font-weight="600" fill="var(--_text-sec)" dy="4.199999999999999">第三方支付服务商</text>
+</g>
+<polyline class="edge" data-from="U1" data-to="P1" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="293.17333333333335,308.70000000000005 293.17333333333335,366.70000000000005 353.7966666666666,366.70000000000005 353.7966666666666,428.70000000000005" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="U4" data-to="P2" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="466.86333333333334,308.70000000000005 466.86333333333334,366.70000000000005 542.3066666666666,366.70000000000005 542.3066666666666,428.70000000000005" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="P3" data-to="T1" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="542.3066666666666,550.5 542.3066666666666,778.3000000000001 749.0991666666666,778.3000000000001 749.0991666666666,840.3000000000001" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="T2" data-to="U5" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="749.0991666666666,962.1000000000001 749.0991666666666,996.1 993.175,996.1 993.175,40 825.3583333333333,40 825.3583333333333,102" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="U6" data-to="T3" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="825.3583333333333,223.8 825.3583333333333,766.3000000000001 717.5866666666666,766.3000000000001 717.5866666666666,766.3000000000001 510.79416666666657,766.3000000000001 510.79416666666657,840.3000000000001" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="T4" data-to="P4" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="431.3591666666666,962.1000000000001 431.3591666666667,996.1 40.04000000000002,996.1 40.04000000000002,366.70000000000005 165.2866666666667,366.70000000000005 165.2866666666667,428.70000000000005" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="P6" data-to="U7" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="143.475,635.4000000000001 143.475,984.1 52.03999999999999,984.1 52.03999999999999,40 644.2583333333333,40 644.2583333333333,102" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="U8" data-to="P7" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="644.2583333333333,223.8 644.2583333333332,598.5" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="U2" data-to="U3" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="466.86333333333334,138.9 466.86333333333334,186.9" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="U3" data-to="U4" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="466.86333333333334,223.8 466.86333333333334,271.8" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="U5" data-to="U6" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="825.3583333333333,138.9 825.3583333333333,186.9" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="U7" data-to="U8" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="644.2583333333333,138.9 644.2583333333333,186.9" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="P2" data-to="P3" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="542.3066666666666,465.6 542.3066666666666,513.6" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="P4" data-to="P5" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="165.28666666666666,465.6 165.28666666666666,513.6" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="P5" data-to="P6" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="165.28666666666666,550.5 165.28666666666666,574.5 143.475,574.5 143.475,598.5" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="P5" data-to="P7" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="165.28666666666666,550.5 165.28666666666666,574.5 622.4466666666667,574.5 622.4466666666667,598.5" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="P7" data-to="P8" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="622.4466666666666,635.4000000000001 622.4466666666666,683.4000000000001" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="T1" data-to="T2" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="749.0991666666666,877.2 749.0991666666666,925.2" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="T3" data-to="T4" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="510.7941666666667,877.2 510.7941666666667,901.2 431.3591666666666,901.2 431.3591666666666,925.2" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<polyline class="edge" data-from="T3" data-to="T5" data-style="solid" data-arrow-start="false" data-arrow-end="true" points="510.7941666666667,877.2 510.7941666666667,901.2 590.2291666666665,901.2 590.2291666666665,925.2" fill="none" stroke="var(--_line)" stroke-width="1" marker-end="url(#arrowhead)" />
+<g class="node" data-id="U1" data-label="用户进入购买页面" data-shape="rectangle">
+  <rect x="212.91833333333335" y="271.8" width="160.51" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="293.17333333333335" y="290.25" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">用户进入购买页面</text>
+</g>
+<g class="node" data-id="U2" data-label="选择法币&amp;支付方式" data-shape="rectangle">
+  <rect x="382.90333333333336" y="102" width="167.92" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="466.86333333333334" y="120.45" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">选择法币&amp;支付方式</text>
+</g>
+<g class="node" data-id="U3" data-label="输入购买金额" data-shape="rectangle">
+  <rect x="401.42833333333334" y="186.9" width="130.87" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="466.86333333333334" y="205.35000000000002" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">输入购买金额</text>
+</g>
+<g class="node" data-id="U4" data-label="确认订单信息" data-shape="rectangle">
+  <rect x="401.42833333333334" y="271.8" width="130.87" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="466.86333333333334" y="290.25" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">确认订单信息</text>
+</g>
+<g class="node" data-id="U5" data-label="跳转第三方支付页面" data-shape="rectangle">
+  <rect x="737.6933333333334" y="102" width="175.32999999999998" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="825.3583333333333" y="120.45" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">跳转第三方支付页面</text>
+</g>
+<g class="node" data-id="U6" data-label="完成支付" data-shape="rectangle">
+  <rect x="774.7433333333333" y="186.9" width="101.22999999999999" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="825.3583333333333" y="205.35000000000002" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">完成支付</text>
+</g>
+<g class="node" data-id="U7" data-label="等待到账通知" data-shape="rectangle">
+  <rect x="578.8233333333333" y="102" width="130.87" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="644.2583333333332" y="120.45" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">等待到账通知</text>
+</g>
+<g class="node" data-id="U8" data-label="查看购买记录" data-shape="rectangle">
+  <rect x="578.8233333333333" y="186.9" width="130.87" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="644.2583333333332" y="205.35000000000002" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">查看购买记录</text>
+</g>
+<g class="node" data-id="P1" data-label="展示第三方服务商列表" data-shape="rectangle">
+  <rect x="258.7216666666667" y="428.70000000000005" width="190.14999999999998" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="353.7966666666667" y="447.15000000000003" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">展示第三方服务商列表</text>
+</g>
+<g class="node" data-id="P2" data-label="创建购买订单" data-shape="rectangle">
+  <rect x="476.87166666666667" y="428.70000000000005" width="130.87" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="542.3066666666666" y="447.15000000000003" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">创建购买订单</text>
+</g>
+<g class="node" data-id="P3" data-label="签名&amp;跳转第三方" data-shape="rectangle">
+  <rect x="465.75666666666666" y="513.6" width="153.1" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="542.3066666666666" y="532.0500000000001" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">签名&amp;跳转第三方</text>
+</g>
+<g class="node" data-id="P4" data-label="接收支付回调" data-shape="rectangle">
+  <rect x="99.85166666666666" y="428.70000000000005" width="130.87" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="165.28666666666666" y="447.15000000000003" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">接收支付回调</text>
+</g>
+<g class="node" data-id="P5" data-label="校验订单状态" data-shape="rectangle">
+  <rect x="99.85166666666666" y="513.6" width="130.87" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="165.28666666666666" y="532.0500000000001" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">校验订单状态</text>
+</g>
+<g class="node" data-id="P6" data-label="通知用户到账" data-shape="rectangle">
+  <rect x="78.03999999999999" y="598.5" width="130.87" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="143.475" y="616.95" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">通知用户到账</text>
+</g>
+<g class="node" data-id="P7" data-label="更新订单记录" data-shape="rectangle">
+  <rect x="557.0116666666667" y="598.5" width="130.87" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="622.4466666666667" y="616.95" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">更新订单记录</text>
+</g>
+<g class="node" data-id="P8" data-label="资金结算&amp;对账" data-shape="rectangle">
+  <rect x="553.3066666666666" y="683.4000000000001" width="138.28" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="622.4466666666666" y="701.8500000000001" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">资金结算&amp;对账</text>
+</g>
+<g class="node" data-id="T1" data-label="接收购买请求" data-shape="rectangle">
+  <rect x="683.6641666666667" y="840.3000000000001" width="130.87" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="749.0991666666666" y="858.7500000000001" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">接收购买请求</text>
+</g>
+<g class="node" data-id="T2" data-label="展示支付页面" data-shape="rectangle">
+  <rect x="683.6641666666667" y="925.2" width="130.87" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="749.0991666666666" y="943.6500000000001" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">展示支付页面</text>
+</g>
+<g class="node" data-id="T3" data-label="处理支付" data-shape="rectangle">
+  <rect x="460.1791666666667" y="840.3000000000001" width="101.22999999999999" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="510.7941666666667" y="858.7500000000001" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">处理支付</text>
+</g>
+<g class="node" data-id="T4" data-label="支付结果回调" data-shape="rectangle">
+  <rect x="365.9241666666666" y="925.2" width="130.87" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="431.3591666666666" y="943.6500000000001" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">支付结果回调</text>
+</g>
+<g class="node" data-id="T5" data-label="发放加密货币" data-shape="rectangle">
+  <rect x="524.7941666666666" y="925.2" width="130.87" height="36.900000000000006" rx="0" ry="0" fill="var(--_node-fill)" stroke="var(--_node-stroke)" stroke-width="0.75" />
+  <text x="590.2291666666665" y="943.6500000000001" text-anchor="middle" font-size="13" font-weight="500" fill="var(--_text)" dy="4.55">发放加密货币</text>
+</g>
+</svg>
