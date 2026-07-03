@@ -1,0 +1,116 @@
+flowchart TB
+    Start([用户访问平台]) --> LoginPage[登录/注册页面]
+    
+    %% 登录/注册页面选择
+    LoginPage --> CheckUser{是否已有账户?}
+    
+    %% 新用户注册流程
+    CheckUser -->|否，新用户| RegisterTab[切换到注册 Tab]
+    RegisterTab --> ChooseRegMethod{选择注册方式}
+    
+    ChooseRegMethod -->|邮箱| EmailReg[输入邮箱]
+    ChooseRegMethod -->|Google| GoogleAuth[Google 授权]
+    ChooseRegMethod -->|Apple| AppleAuth[Apple 授权]
+    ChooseRegMethod -->|Telegram| TelegramAuth[Telegram 授权]
+    ChooseRegMethod -->|Web3 钱包| WalletConnect[连接钱包]
+    
+    %% 邮箱注册流程（需邮箱验证码）
+    EmailReg --> GetEmailCode[获取邮箱验证码]
+    GetEmailCode --> InputEmailCode[输入验证码 + 设置密码]
+    InputEmailCode --> CheckReferral{是否有邀请码?}
+    CheckReferral -->|是| FillReferral[填写邀请码]
+    CheckReferral -->|否| SkipReferral[跳过]
+    FillReferral --> ShowReward[显示奖励信息]
+    SkipReferral --> CompleteReg[完成注册]
+    ShowReward --> CompleteReg
+    
+    %% 第三方注册流程
+    GoogleAuth --> ThirdPartyComplete[第三方授权完成]
+    AppleAuth --> ThirdPartyComplete
+    TelegramAuth --> ThirdPartyComplete
+    WalletConnect --> ThirdPartyComplete
+    ThirdPartyComplete --> AutoLogin[自动登录]
+    
+    %% 注册完成后引导
+    CompleteReg --> AutoLogin
+    AutoLogin --> WelcomePopup[欢迎弹窗]
+    WelcomePopup --> Onboarding{新手引导}
+    Onboarding --> Step1[步骤 1: 首次充值]
+    Step1 --> Step2[步骤 2: 开始交易]
+    Step2 --> TradingPage[进入交易页面]
+    Onboarding --> OptionalKYC[可选: 完成 KYC 获得额外奖励]
+    Onboarding --> Optional2FA[可选: 绑定 2FA 提升安全]
+    OptionalKYC --> TradingPage
+    Optional2FA --> TradingPage
+    
+    %% 老用户登录流程
+    CheckUser -->|是，老用户| LoginTab[登录 Tab]
+    LoginTab --> ChooseLoginMethod{选择登录方式}
+    
+    ChooseLoginMethod -->|邮箱 + 密码| EmailPwd[输入邮箱和密码]
+    ChooseLoginMethod -->|邮箱验证码登录| CodeLogin[输入邮箱 + 验证码]
+    ChooseLoginMethod -->|第三方登录| ThirdPartyLogin[第三方授权登录]
+    ChooseLoginMethod -->|扫码登录| QRScan[App 扫码登录]
+    
+    %% 密码登录流程
+    EmailPwd --> CheckCAPTCHA{需要 CAPTCHA?}
+    CheckCAPTCHA -->|是| SlideVerify[滑块拼图验证]
+    CheckCAPTCHA -->|否| Check2FA{是否启用 2FA?}
+    SlideVerify --> Check2FA
+    
+    %% 2FA 验证
+    Check2FA -->|是| Input2FA[输入 2FA 验证码]
+    Check2FA -->|否| CheckRemember{勾选记住我?}
+    Input2FA --> CheckRemember
+    CheckRemember -->|是| RememberLogin[30 天免登录]
+    CheckRemember -->|否| NormalLogin[正常登录]
+    RememberLogin --> LoginSuccess[登录成功]
+    NormalLogin --> LoginSuccess
+    
+    %% 验证码登录流程
+    CodeLogin --> InputCode[输入验证码]
+    InputCode --> Check2FA_Code{是否启用 2FA?}
+    Check2FA_Code -->|是| Input2FA_Code[输入 2FA 验证码]
+    Check2FA_Code -->|否| LoginSuccess
+    Input2FA_Code --> LoginSuccess
+    
+    %% 第三方登录流程
+    ThirdPartyLogin --> ThirdPartyAuth[第三方授权]
+    ThirdPartyAuth --> CheckAccount{账户是否存在?}
+    CheckAccount -->|是| LoginSuccess
+    CheckAccount -->|否| AutoRegister[自动注册]
+    AutoRegister --> LoginSuccess
+    
+    %% 扫码登录流程
+    QRScan --> ScanQR[App 扫描二维码]
+    ScanQR --> ConfirmLogin[App 确认登录]
+    ConfirmLogin --> LoginSuccess
+    
+    %% 登录成功后
+    LoginSuccess --> Dashboard[进入个人中心]
+    Dashboard --> NormalUse[正常使用]
+    NormalUse --> OptionalKYC_Login[可选: 完成 KYC 获得额外奖励]
+    OptionalKYC_Login --> NormalUse
+    
+    %% 忘记密码流程
+    LoginPage --> ForgotPwd[忘记密码?]
+    ForgotPwd --> InputAccount[输入邮箱]
+    InputAccount --> GetResetCode[获取验证码]
+    GetResetCode --> InputResetCode[输入验证码]
+    InputResetCode --> SetNewPwd[设置新密码]
+    SetNewPwd --> ResetSuccess[重置成功]
+    ResetSuccess --> AutoLogin
+    
+    %% 样式定义
+    classDef startEnd fill:#4ADE80,stroke:#2D3748,stroke-width:2px,color:#0F1419,font-weight:bold
+    classDef process fill:#1A1F26,stroke:#2D3748,stroke-width:2px,color:#FFFFFF
+    classDef decision fill:#F59E0B,stroke:#2D3748,stroke-width:2px,color:#0F1419,font-weight:bold
+    classDef thirdParty fill:#3B82F6,stroke:#2D3748,stroke-width:2px,color:#FFFFFF
+    classDef security fill:#EF4444,stroke:#2D3748,stroke-width:2px,color:#FFFFFF
+    
+    class Start,TradingPage,Dashboard,NormalUse startEnd
+    class LoginPage,RegisterTab,LoginTab,EmailReg,GetEmailCode,InputEmailCode,CompleteReg,AutoLogin,WelcomePopup,Onboarding,Step1,Step2 process
+    class CheckUser,ChooseRegMethod,CheckReferral,ChooseLoginMethod,CheckCAPTCHA,Check2FA,CheckRemember,Check2FA_Code,CheckAccount decision
+    class GoogleAuth,AppleAuth,TelegramAuth,WalletConnect,ThirdPartyComplete,ThirdPartyLogin,ThirdPartyAuth,AutoRegister,QRScan,ScanQR,ConfirmLogin thirdParty
+    class SlideVerify,Input2FA,Input2FA_Code,GetResetCode,InputResetCode,SetNewPwd,ResetSuccess security
+    class ForgotPwd,EmailPwd,CodeLogin,FillReferral,SkipReferral,ShowReward,RememberLogin,NormalLogin,LoginSuccess process
