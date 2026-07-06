@@ -325,6 +325,7 @@ tr:last-child td{border-bottom:none;}
             <th>邮箱</th>
             <th>Telegram</th>
             <th>申请时间</th>
+            <th>备注</th>
             <th>操作</th>
           </tr>
         </thead>
@@ -352,12 +353,6 @@ tr:last-child td{border-bottom:none;}
         <option value="enabled">启用</option>
         <option value="disabled">禁用</option>
       </select>
-      <label>配置状态：</label>
-      <select id="configSearchConfigStatus">
-        <option value="">请选择配置状态</option>
-        <option value="pending-config">待配置</option>
-        <option value="configured">已配置</option>
-      </select>
       <button class="btn btn-primary" onclick="filterConfigs()">查 询</button>
       <button class="btn btn-default" onclick="resetConfigFilters()">重 置</button>
     </div>
@@ -368,12 +363,13 @@ tr:last-child td{border-bottom:none;}
             <th>ID</th>
             <th>平台名称</th>
             <th>平台类型</th>
-            <th>配置状态</th>
             <th>状态</th>
             <th>Domain URL</th>
             <th>平台网址</th>
             <th>IP白名单</th>
-            <th>补充说明</th>
+            <th>申请时间</th>
+            <th>审核通过时间</th>
+            <th>备注</th>
             <th>API Key</th>
             <th>Public Key</th>
             <th>Private Key</th>
@@ -549,19 +545,19 @@ tr:last-child td{border-bottom:none;}
 <script>
 // ==================== DATA ====================
 let applications = [
-  {id:2,name:'xx',type:'exchange',country:'-',market:['EU'],users:'100-500',status:'pending',legal:'已有',contact:'-',email:'-',telegram:'-',time:'2026-05-19 14:22:00',platformUrl:'-',domainUrl:'-',ipWhitelist:'',note:''},
-  {id:4,name:'xyes',type:'exchange',country:'-',market:['EU'],users:'100-500',status:'pending',legal:'已有',contact:'-',email:'-',telegram:'@xyes_admin',time:'2026-05-20 11:45:00',platformUrl:'https://wallet.xyesdev.com',domainUrl:'https://wallet.xyesdev.com/api/v1/detrade',ipWhitelist:'',note:''},
-  {id:5,name:'playsta',type:'exchange',country:'-',market:['EU'],users:'100-500',status:'pending',legal:'已有',contact:'-',email:'-',telegram:'-',time:'2026-05-21 16:00:00',platformUrl:'https://uatdetrade.vkingplays.com',domainUrl:'https://uatdetrade.vkingplays.com',ipWhitelist:'',note:''},
-  {id:7,name:'willbet',type:'exchange',country:'-',market:['EU'],users:'100-500',status:'rejected',legal:'已有',contact:'-',email:'-',telegram:'-',time:'2026-05-15 13:20:00',platformUrl:'-',domainUrl:'https://bridge.willbet.in',ipWhitelist:'',note:'资质不符',rejectReason:'平台资质审核未通过'},
-  {id:9,name:'newbet',type:'betting',country:'-',market:['NA','EU'],users:'1000-10000',status:'pending',legal:'无',contact:'alice',email:'alice@newbet.com',telegram:'@newbet_alice',time:'2026-05-22 10:30:00',platformUrl:'https://newbet.io',domainUrl:'https://newbet.io/api/detrade',ipWhitelist:'52.14.88.90',note:'首次申请'},
-  {id:10,name:'casinopro',type:'betting',country:'-',market:['AF'],users:'100-500',status:'rejected',legal:'无',contact:'bob',email:'bob@casinopro.com',telegram:'@casinopro_bob',time:'2026-05-20 17:00:00',platformUrl:'https://casinopro.net',domainUrl:'-',ipWhitelist:'',note:'',rejectReason:'用户量未达最低要求'}
+  {id:2,name:'xx',type:'exchange',country:'-',market:['EU'],users:'100-500',status:'pending',legal:'已有',contact:'-',email:'-',telegram:'-',time:'2026-05-19 14:22:00',platformUrl:'-',domainUrl:'-',ipWhitelist:'',note:'',remark:''},
+  {id:4,name:'xyes',type:'exchange',country:'-',market:['EU'],users:'100-500',status:'pending',legal:'已有',contact:'-',email:'-',telegram:'@xyes_admin',time:'2026-05-20 11:45:00',platformUrl:'https://wallet.xyesdev.com',domainUrl:'https://wallet.xyesdev.com/api/v1/detrade',ipWhitelist:'',note:'',remark:'已初步沟通，等待补充资料'},
+  {id:5,name:'playsta',type:'exchange',country:'-',market:['EU'],users:'100-500',status:'pending',legal:'已有',contact:'-',email:'-',telegram:'-',time:'2026-05-21 16:00:00',platformUrl:'https://uatdetrade.vkingplays.com',domainUrl:'https://uatdetrade.vkingplays.com',ipWhitelist:'',note:'',remark:''},
+  {id:7,name:'willbet',type:'exchange',country:'-',market:['EU'],users:'100-500',status:'rejected',legal:'已有',contact:'-',email:'-',telegram:'-',time:'2026-05-15 13:20:00',platformUrl:'-',domainUrl:'https://bridge.willbet.in',ipWhitelist:'',note:'资质不符',remark:'平台资质审核未通过，建议补充相关牌照信息后重新申请',rejectReason:'平台资质审核未通过'},
+  {id:9,name:'newbet',type:'betting',country:'-',market:['NA','EU'],users:'1000-10000',status:'pending',legal:'无',contact:'alice',email:'alice@newbet.com',telegram:'@newbet_alice',time:'2026-05-22 10:30:00',platformUrl:'https://newbet.io',domainUrl:'https://newbet.io/api/detrade',ipWhitelist:'52.14.88.90',note:'首次申请',remark:'重点客户，优先处理'},
+  {id:10,name:'casinopro',type:'betting',country:'-',market:['AF'],users:'100-500',status:'rejected',legal:'无',contact:'bob',email:'bob@casinopro.com',telegram:'@casinopro_bob',time:'2026-05-20 17:00:00',platformUrl:'https://casinopro.net',domainUrl:'-',ipWhitelist:'',note:'',remark:'用户量未达最低要求，暂不接入',rejectReason:'用户量未达最低要求'}
 ];
 
 let configs = [
-  {id:1,name:'bc',type:'exchange',country:'-',market:['EU'],users:'100-500',legal:'已有',contact:'-',email:'bc@gmail.com',telegram:'@bc_official',platformUrl:'https://bc.game',domainUrl:'https://platform-trrda3dde.dogcrash.game/platform-trading',ipWhitelist:'3.108.153.137',note:'',apiKey:'e967****145a',publicKey:'MIII****AQAB',privateKey:'MIII****kw==',status:'enabled',configStatus:'configured',fullApiKey:'e9678a2b145a',fullPublicKey:'MIII3x9kAQAB',fullPrivateKey:'MIII7z8ckw==',time:'2026-05-18 10:30:00'},
-  {id:3,name:'k8',type:'exchange',country:'-',market:['EU'],users:'100-500',legal:'已有',contact:'-',email:'-',telegram:'@k8_support',platformUrl:'-',domainUrl:'-',ipWhitelist:'10.0.0.1,10.0.0.2',note:'测试备注',apiKey:'8faf****db90',publicKey:'MIII****AQAB',privateKey:'MIII****4u==',status:'disabled',configStatus:'configured',fullApiKey:'8faf2e3db90',fullPublicKey:'MIII3x9kAQAB',fullPrivateKey:'MIII8k7m4u==',time:'2026-05-17 09:15:00'},
-  {id:6,name:'hoy',type:'exchange',country:'china',market:['EU'],users:'1000-10000',legal:'已有',contact:'jerry',email:'je@hah.co',telegram:'@hoy_jerry',platformUrl:'http://detrade.co',domainUrl:'https://dev.mars.bingo/channel/detrade-stag',ipWhitelist:'',note:'',apiKey:'e25a****28c1',publicKey:'MIII****AQAB',privateKey:'MIII****2Tu=',status:'enabled',configStatus:'configured',fullApiKey:'e25a9b328c1',fullPublicKey:'MIII3x9kAQAB',fullPrivateKey:'MIII6m42Tu=',time:'2026-05-16 08:30:00'},
-  {id:8,name:'test666',type:'exchange',country:'test',market:['AS'],users:'100-500',legal:'已有',contact:'test',email:'test@gmail.com',telegram:'@test666',platformUrl:'test',domainUrl:'-',ipWhitelist:'',note:'',apiKey:'--',publicKey:'--',privateKey:'--',status:'disabled',configStatus:'pending-config',fullApiKey:'',fullPublicKey:'',fullPrivateKey:'',time:'2026-05-22 09:00:00'}
+  {id:1,name:'bc',type:'exchange',country:'-',market:['EU'],users:'100-500',legal:'已有',contact:'-',email:'bc@gmail.com',telegram:'@bc_official',platformUrl:'https://bc.game',domainUrl:'https://platform-trrda3dde.dogcrash.game/platform-trading',ipWhitelist:'3.108.153.137',note:'',remark:'核心合作平台',apiKey:'e967****145a',publicKey:'MIII****AQAB',privateKey:'MIII****kw==',status:'enabled',configStatus:'configured',fullApiKey:'e9678a2b145a',fullPublicKey:'MIII3x9kAQAB',fullPrivateKey:'MIII7z8ckw==',time:'2026-05-18 10:30:00',approveTime:'2026-05-18 11:00:00'},
+  {id:3,name:'k8',type:'exchange',country:'-',market:['EU'],users:'100-500',legal:'已有',contact:'-',email:'-',telegram:'@k8_support',platformUrl:'-',domainUrl:'-',ipWhitelist:'10.0.0.1,10.0.0.2',note:'测试备注',remark:'测试环境，暂不对外',apiKey:'8faf****db90',publicKey:'MIII****AQAB',privateKey:'MIII****4u==',status:'disabled',configStatus:'configured',fullApiKey:'8faf2e3db90',fullPublicKey:'MIII3x9kAQAB',fullPrivateKey:'MIII8k7m4u==',time:'2026-05-17 09:15:00',approveTime:'2026-05-17 10:30:00'},
+  {id:6,name:'hoy',type:'exchange',country:'china',market:['EU'],users:'1000-10000',legal:'已有',contact:'jerry',email:'je@hah.co',telegram:'@hoy_jerry',platformUrl:'http://detrade.co',domainUrl:'https://dev.mars.bingo/channel/detrade-stag',ipWhitelist:'',note:'',remark:'',apiKey:'e25a****28c1',publicKey:'MIII****AQAB',privateKey:'MIII****2Tu=',status:'enabled',configStatus:'configured',fullApiKey:'e25a9b328c1',fullPublicKey:'MIII3x9kAQAB',fullPrivateKey:'MIII6m42Tu=',time:'2026-05-16 08:30:00',approveTime:'2026-05-16 09:45:00'},
+  {id:8,name:'test666',type:'exchange',country:'test',market:['AS'],users:'100-500',legal:'已有',contact:'test',email:'test@gmail.com',telegram:'@test666',platformUrl:'test',domainUrl:'-',ipWhitelist:'',note:'',remark:'',apiKey:'--',publicKey:'--',privateKey:'--',status:'disabled',configStatus:'pending-config',fullApiKey:'',fullPublicKey:'',fullPrivateKey:'',time:'2026-05-22 09:00:00',approveTime:'2026-05-22 09:30:00'}
 ];
 
 let currentApproveId = null;
@@ -573,7 +569,7 @@ let currentResetConfig = null;
 function renderApplications(data) {
   const tbody = document.getElementById('appTableBody');
   if (!data || data.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="13"><div class="empty-state"><p>暂无数据</p></div></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="14"><div class="empty-state"><p>暂无数据</p></div></td></tr>';
     document.getElementById('appTotal').textContent = '0';
     return;
   }
@@ -586,6 +582,7 @@ function renderApplications(data) {
     const legalTag = app.legal === '已有' ? '<span class="tag tag-green">已有</span>' : '<span class="tag tag-gray">无</span>';
     const canApprove = app.status === 'pending';
     const canReject = app.status === 'pending';
+    const remarkDisplay = app.remark ? (app.remark.length > 20 ? `<span title="${app.remark}">${app.remark.substring(0,20)}...</span>` : app.remark) : '<span style="color:#ccc;">待填写</span>';
     return `<tr>
       <td>${app.id}</td>
       <td>${app.name}</td>
@@ -599,9 +596,12 @@ function renderApplications(data) {
       <td>${app.email}</td>
       <td>${app.telegram || '-'}</td>
       <td style="white-space:nowrap;font-size:12px;color:var(--text-light);">${app.time}</td>
+      <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${app.remark || ''}">${remarkDisplay}</td>
       <td>
         <div class="actions">
           <button class="btn-link" onclick="viewAppDetail(${app.id})">详情</button>
+          <span class="divider">|</span>
+          <button class="btn-link info" onclick="editAppRemark(${app.id})">备注编辑</button>
           <span class="divider">|</span>
           ${canApprove ? `<button class="btn-link success" onclick="approveApp(${app.id})">通过</button>` : `<button class="btn-link disabled">通过</button>`}
           <span class="divider">|</span>
@@ -616,7 +616,7 @@ function renderApplications(data) {
 function renderConfigs(data) {
   const tbody = document.getElementById('configTableBody');
   if (!data || data.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="14"><div class="empty-state"><p>暂无数据</p></div></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="16"><div class="empty-state"><p>暂无数据</p></div></td></tr>';
     document.getElementById('configTotal').textContent = '0';
     return;
   }
@@ -627,18 +627,19 @@ function renderConfigs(data) {
     const toggleText = cfg.status === 'enabled' ? '禁用' : '启用';
     const toggleClass = cfg.status === 'enabled' ? 'danger' : 'success';
     const canToggle = !isPendingConfig;
-    const configStatusTag = cfg.configStatus === 'configured' ? '<span class="config-status-tag configured">已配置</span>' : '<span class="config-status-tag pending-config">待配置</span>';
     const typeTag = cfg.type === 'exchange' ? '<span class="tag tag-green">exchange</span>' : '<span class="tag tag-purple">betting</span>';
+    const remarkDisplay = cfg.remark ? (cfg.remark.length > 20 ? `<span title="${cfg.remark}">${cfg.remark.substring(0,20)}...</span>` : cfg.remark) : '-';
     return `<tr>
       <td>${cfg.id}</td>
       <td>${cfg.name}</td>
       <td>${typeTag}</td>
-      <td>${configStatusTag}</td>
       <td>${statusDot}</td>
       <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${cfg.domainUrl}">${cfg.domainUrl}</td>
       <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${cfg.platformUrl}">${cfg.platformUrl}</td>
       <td><button class="btn-link" onclick="viewInfo('IP白名单','${cfg.ipWhitelist || '未设置'}')">${cfg.ipWhitelist ? '查看' : '-'}</button></td>
-      <td><button class="btn-link" onclick="viewInfo('补充说明','${cfg.note || '无'}')">${cfg.note ? '查看' : '-'}</button></td>
+      <td style="white-space:nowrap;font-size:12px;color:var(--text-light);">${cfg.time || '-'}</td>
+      <td style="white-space:nowrap;font-size:12px;color:var(--text-light);">${cfg.approveTime || '-'}</td>
+      <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${cfg.remark || ''}">${remarkDisplay}</td>
       <td><div class="key-cell"><span class="key-text">${cfg.apiKey}</span>${cfg.fullApiKey ? `<span class="key-copy" onclick="copyKey('${cfg.fullApiKey}')">📋</span>` : ''}</div></td>
       <td><div class="key-cell"><span class="key-text">${cfg.publicKey}</span>${cfg.fullPublicKey ? `<span class="key-copy" onclick="copyKey('${cfg.fullPublicKey}')">📋</span>` : ''}</div></td>
       <td><div class="key-cell"><span class="key-text">${cfg.privateKey}</span>${cfg.fullPrivateKey ? `<span class="key-copy" onclick="copyKey('${cfg.fullPrivateKey}')">📋</span>` : ''}</div></td>
@@ -646,6 +647,8 @@ function renderConfigs(data) {
       <td>
         <div class="actions">
           <button class="btn-link" onclick="editConfig(${idx})">编辑</button>
+          <span class="divider">|</span>
+          <button class="btn-link info" onclick="editConfigRemark(${idx})">备注编辑</button>
           <span class="divider">|</span>
           ${canToggle ? `<button class="btn-link ${toggleClass}" onclick="toggleConfigStatus(${idx})">${toggleText}</button>` : `<button class="btn-link disabled" title="需先完成配置">启用</button>`}
           <span class="divider">|</span>
@@ -750,6 +753,7 @@ function viewAppDetail(id) {
       <div class="detail-item full"><span class="detail-label">Domain URL</span><span class="detail-value">${app.domainUrl}</span></div>
       <div class="detail-item"><span class="detail-label">IP白名单</span><span class="detail-value">${app.ipWhitelist || '未设置'}</span></div>
       ${app.note ? `<div class="detail-item full"><span class="detail-label">补充说明</span><span class="detail-value">${app.note}</span></div>` : ''}
+      ${app.remark ? `<div class="detail-item full"><span class="detail-label">备注</span><span class="detail-value">${app.remark}</span></div>` : ''}
       ${app.rejectReason ? `<div class="detail-item full"><span class="detail-label">拒绝原因</span><span class="detail-value" style="color:var(--danger);">${app.rejectReason}</span></div>` : ''}
     </div>
   `;
@@ -767,6 +771,8 @@ function confirmApprove() {
   const appIdx = applications.findIndex(a => a.id === currentApproveId);
   if (appIdx === -1) return;
   const app = applications[appIdx];
+  const now = new Date();
+  const approveTime = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0') + ' ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0') + ':' + String(now.getSeconds()).padStart(2,'0');
   configs.push({
     id: app.id,
     name: app.name,
@@ -782,6 +788,7 @@ function confirmApprove() {
     domainUrl: app.domainUrl,
     ipWhitelist: app.ipWhitelist,
     note: app.note,
+    remark: app.remark || '',
     apiKey: '--',
     publicKey: '--',
     privateKey: '--',
@@ -790,7 +797,8 @@ function confirmApprove() {
     fullApiKey: '',
     fullPublicKey: '',
     fullPrivateKey: '',
-    time: app.time
+    time: app.time,
+    approveTime: approveTime
   });
   applications.splice(appIdx, 1);
   closeModal('modalApprove');
@@ -848,6 +856,98 @@ function updateBadgeCount() {
   }
 }
 
+function editAppRemark(id) {
+  const app = applications.find(a => a.id === id);
+  if (!app) return;
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.id = 'modalEditAppRemark';
+  modal.innerHTML = `
+    <div class="modal" style="width:520px;">
+      <div class="modal-header">
+        <h3>编辑备注 - ${app.name}</h3>
+        <div class="modal-close" onclick="closeModal('modalEditAppRemark')">&times;</div>
+      </div>
+      <div class="modal-body">
+        <div style="margin-bottom:16px;">
+          <label style="font-size:13px;color:var(--text-light);display:block;margin-bottom:6px;">备注信息（限制300字）：</label>
+          <textarea id="appRemarkInput" style="width:100%;height:100px;border:1px solid #d9d9d9;border-radius:4px;padding:8px 12px;font-size:13px;font-family:inherit;resize:vertical;outline:none;" maxlength="300" placeholder="请输入备注信息">${app.remark || ''}</textarea>
+          <div style="text-align:right;font-size:12px;color:var(--text-light);margin-top:4px;"><span id="appRemarkCount">${(app.remark || '').length}</span>/300</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default" onclick="closeModal('modalEditAppRemark')">取 消</button>
+        <button class="btn btn-primary" onclick="saveAppRemark(${id})">保 存</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  setTimeout(() => modal.classList.add('show'), 10);
+  document.getElementById('appRemarkInput').addEventListener('input', function() {
+    document.getElementById('appRemarkCount').textContent = this.value.length;
+  });
+}
+
+function saveAppRemark(id) {
+  const app = applications.find(a => a.id === id);
+  if (!app) return;
+  const remark = document.getElementById('appRemarkInput').value.trim();
+  app.remark = remark;
+  closeModal('modalEditAppRemark');
+  setTimeout(() => {
+    const modal = document.getElementById('modalEditAppRemark');
+    if (modal) modal.remove();
+  }, 300);
+  renderApplications(getFilteredApps());
+  showToast('备注保存成功');
+}
+
+function editConfigRemark(idx) {
+  const cfg = configs[idx];
+  if (!cfg) return;
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.id = 'modalEditConfigRemark';
+  modal.innerHTML = `
+    <div class="modal" style="width:520px;">
+      <div class="modal-header">
+        <h3>编辑备注 - ${cfg.name}</h3>
+        <div class="modal-close" onclick="closeModal('modalEditConfigRemark')">&times;</div>
+      </div>
+      <div class="modal-body">
+        <div style="margin-bottom:16px;">
+          <label style="font-size:13px;color:var(--text-light);display:block;margin-bottom:6px;">备注信息（限制300字）：</label>
+          <textarea id="configRemarkInput" style="width:100%;height:100px;border:1px solid #d9d9d9;border-radius:4px;padding:8px 12px;font-size:13px;font-family:inherit;resize:vertical;outline:none;" maxlength="300" placeholder="请输入备注信息">${cfg.remark || ''}</textarea>
+          <div style="text-align:right;font-size:12px;color:var(--text-light);margin-top:4px;"><span id="configRemarkCount">${(cfg.remark || '').length}</span>/300</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default" onclick="closeModal('modalEditConfigRemark')">取 消</button>
+        <button class="btn btn-primary" onclick="saveConfigRemark(${idx})">保 存</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  setTimeout(() => modal.classList.add('show'), 10);
+  document.getElementById('configRemarkInput').addEventListener('input', function() {
+    document.getElementById('configRemarkCount').textContent = this.value.length;
+  });
+}
+
+function saveConfigRemark(idx) {
+  const cfg = configs[idx];
+  if (!cfg) return;
+  const remark = document.getElementById('configRemarkInput').value.trim();
+  cfg.remark = remark;
+  closeModal('modalEditConfigRemark');
+  setTimeout(() => {
+    const modal = document.getElementById('modalEditConfigRemark');
+    if (modal) modal.remove();
+  }, 300);
+  renderConfigs(getFilteredConfigs());
+  showToast('备注保存成功');
+}
+
 // ==================== CONFIG FUNCTIONS ====================
 function viewConfigAppDetail(idx) {
   const cfg = configs[idx];
@@ -865,11 +965,13 @@ function viewConfigAppDetail(idx) {
       <div class="detail-item"><span class="detail-label">邮箱</span><span class="detail-value">${cfg.email}</span></div>
       <div class="detail-item"><span class="detail-label">Telegram</span><span class="detail-value">${cfg.telegram || '-'}</span></div>
       <div class="detail-item"><span class="detail-label">申请时间</span><span class="detail-value">${cfg.time}</span></div>
+      <div class="detail-item"><span class="detail-label">审核通过时间</span><span class="detail-value">${cfg.approveTime || '-'}</span></div>
       <div class="detail-item"><span class="detail-label">配置状态</span><span class="detail-value">${cfg.configStatus === 'configured' ? '<span class="config-status-tag configured">已配置</span>' : '<span class="config-status-tag pending-config">待配置</span>'}</span></div>
       <div class="detail-item full"><span class="detail-label">平台网址</span><span class="detail-value">${cfg.platformUrl}</span></div>
       <div class="detail-item full"><span class="detail-label">Domain URL</span><span class="detail-value">${cfg.domainUrl}</span></div>
       <div class="detail-item"><span class="detail-label">IP白名单</span><span class="detail-value">${cfg.ipWhitelist || '未设置'}</span></div>
       ${cfg.note ? `<div class="detail-item full"><span class="detail-label">补充说明</span><span class="detail-value">${cfg.note}</span></div>` : ''}
+      ${cfg.remark ? `<div class="detail-item full"><span class="detail-label">备注</span><span class="detail-value">${cfg.remark}</span></div>` : ''}
     </div>
   `;
   openModal('modalAppDetail');
@@ -948,7 +1050,13 @@ function editConfig(idx) {
     <div class="form-row">
       <div class="form-group full"><label>补充说明</label><textarea id="editNote" placeholder="请输入补充说明">${cfg.note||''}</textarea></div>
     </div>
+    <div class="form-row">
+      <div class="form-group full"><label>备注 <span style="color:var(--text-light);font-weight:400;">(限制300字)</span></label><textarea id="editRemark" placeholder="请输入备注信息，限制300字" maxlength="300" style="height:100px;">${cfg.remark||''}</textarea><div style="text-align:right;font-size:12px;color:var(--text-light);margin-top:4px;"><span id="remarkCount">${(cfg.remark||'').length}</span>/300</div></div>
+    </div>
   `;
+  document.getElementById('editRemark').addEventListener('input', function() {
+    document.getElementById('remarkCount').textContent = this.value.length;
+  });
   openModal('modalConfigEdit');
 }
 
@@ -981,6 +1089,7 @@ function saveConfig() {
   cfg.domainUrl = document.getElementById('editDomainUrl').value;
   cfg.ipWhitelist = document.getElementById('editIP').value;
   cfg.note = document.getElementById('editNote').value;
+  cfg.remark = document.getElementById('editRemark').value;
   cfg.configStatus = 'configured';
   closeModal('modalConfigEdit');
   renderConfigs(getFilteredConfigs());
