@@ -1,0 +1,1548 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeTrade Demo 转化提升原型</title>
+    <style>
+:root {
+  /* Primitive Colors */
+  --color-white: #FFFFFF;
+  --color-black: #000000;
+  --color-gray-50: #F7F9FC;
+  --color-gray-100: #F1F4F9;
+  --color-gray-200: #E4E9F2;
+  --color-gray-300: #D3DAE6;
+  --color-gray-400: #A1AAB8;
+  --color-gray-500: #6B7385;
+  --color-gray-600: #4A5262;
+  --color-gray-700: #2F3746;
+  --color-gray-800: #1A2233;
+  --color-gray-900: #0B1F3A;
+  --color-green-50: #E8FBEA;
+  --color-green-100: #C6F5CB;
+  --color-green-300: #5EE066;
+  --color-green-500: #00C805;
+  --color-green-600: #00A804;
+  --color-green-700: #008503;
+  --color-gold-50: #FFF7E0;
+  --color-gold-100: #FFECB3;
+  --color-gold-500: #FFB400;
+  --color-gold-600: #E09E00;
+  --color-gold-700: #B87F00;
+  --color-red-50: #FDECEE;
+  --color-red-100: #FBD5DA;
+  --color-red-500: #F6465D;
+  --color-red-600: #D93548;
+  --color-red-700: #B0243A;
+
+  /* Semantic Colors */
+  --background: #FFFFFF;
+  --surface: #F7F9FC;
+  --surface-2: #F1F4F9;
+  --foreground: #0B1F3A;
+  --muted-foreground: #6B7385;
+  --ink: #0B1F3A;
+  --ink-2: #2F3746;
+  --primary: #00C805;
+  --primary-soft: #E8FBEA;
+  --primary-foreground: #FFFFFF;
+  --gold: #FFB400;
+  --gold-soft: #FFF7E0;
+  --gold-foreground: #0B1F3A;
+  --loss: #F6465D;
+  --loss-soft: #FDECEE;
+  --loss-foreground: #FFFFFF;
+  --destructive: #F6465D;
+  --muted: #F1F4F9;
+  --border: #E4E9F2;
+  --border-strong: #D3DAE6;
+  --ring: #00C805;
+
+  /* Typography */
+  --font-display: Sora, ui-sans-serif, system-ui, sans-serif;
+  --font-sans: Manrope, ui-sans-serif, system-ui, sans-serif;
+  --font-mono: JetBrains Mono Variable, ui-monospace, monospace;
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-size-3xl: 30px;
+  --font-size-4xl: 36px;
+  --font-size-5xl: 48px;
+  --font-size-6xl: 60px;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* Spacing */
+  --space-0: 0px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+
+  /* Border Radius */
+  --radius-none: 0px;
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-3xl: 24px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-card: 0 1px 2px 0 #0B1F3A0A, 0 4px 16px -4px #0B1F3A0F;
+  --shadow-elevated: 0 4px 12px -2px #0B1F3A14, 0 24px 48px -12px #0B1F3A24;
+  --shadow-green: 0 8px 24px -8px #00C80559;
+  --shadow-gold: 0 8px 24px -8px #FFB40066;
+  --shadow-focus: 0 0 0 3px #00C80540;
+}
+
+/* Base Styles */
+body {
+  font-family: var(--font-sans);
+  font-size: var(--font-size-base);
+  line-height: 1.6;
+  color: var(--foreground);
+  background: var(--background);
+  margin: 0;
+  padding: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-bold);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin: 0 0 16px 0;
+}
+
+h1 { font-size: var(--font-size-4xl); }
+h2 { font-size: var(--font-size-3xl); }
+h3 { font-size: var(--font-size-2xl); }
+h4 { font-size: var(--font-size-xl); }
+
+p {
+  margin: 0 0 16px 0;
+  line-height: 1.6;
+}
+
+.numeric {
+  font-family: var(--font-mono);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* Button Components */
+.btn-primary {
+  background: #00C805;
+  color: #FFFFFF;
+  border-radius: 12px;
+  padding: 12px 24px;
+  box-shadow: [{'color': '#00C80559', 'offsetX': '0', 'offsetY': '8px', 'blur': '24px', 'spread': '-8px'}];
+  font-weight: 600;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.24s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+.btn-primary:hover {
+  background: #00A804;
+}
+.btn-secondary {
+  background: #F7F9FC;
+  color: #0B1F3A;
+  border: 1px solid #E4E9F2;
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.24s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+.btn-secondary:hover {
+  background: #F1F4F9;
+}
+.btn-gold {
+  background: #FFB400;
+  color: #0B1F3A;
+  border-radius: 12px;
+  box-shadow: [{'color': '#FFB40066', 'offsetX': '0', 'offsetY': '8px', 'blur': '24px', 'spread': '-8px'}];
+  padding: 12px 24px;
+  font-weight: 600;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.24s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+.btn-gold:hover {
+  background: #E09E00;
+}
+.btn-destructive {
+  background: #F6465D;
+  color: #FFFFFF;
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-weight: 600;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.24s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+.btn-destructive:hover {
+  background: #D93548;
+}
+
+/* Card Components */
+.card {
+  background: #FFFFFF;
+  color: #0B1F3A;
+  border: 1px solid #E4E9F2;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: [{'color': '#0B1F3A0A', 'offsetX': '0', 'offsetY': '1px', 'blur': '2px', 'spread': '0'}, {'color': '#0B1F3A0F', 'offsetX': '0', 'offsetY': '4px', 'blur': '16px', 'spread': '-4px'}];
+  transition: box-shadow 0.24s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+.card:hover {
+  box-shadow: [{'color': '#0B1F3A14', 'offsetX': '0', 'offsetY': '4px', 'blur': '12px', 'spread': '-2px'}, {'color': '#0B1F3A24', 'offsetX': '0', 'offsetY': '24px', 'blur': '48px', 'spread': '-12px'}];
+}
+
+/* Input Components */
+.input {
+  background: #FFFFFF;
+  color: #0B1F3A;
+  border: 1px solid #E4E9F2;
+  border-radius: 10px;
+  padding: 12px 16px;
+  height: 44px;
+  font-size: 16px;
+  transition: all 0.24s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+.input:focus {
+  border-color: #00C805;
+  box-shadow: [{'color': '#00C80540', 'offsetX': '0', 'offsetY': '0', 'blur': '0', 'spread': '3px'}];
+  outline: none;
+}
+.input::placeholder {
+  color: #6B7385;
+}
+
+/* Badge Components */
+.badge-profit {
+  background: #E8FBEA;
+  color: #00C805;
+  border-radius: 9999px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
+}
+.badge-loss {
+  background: #FDECEE;
+  color: #F6465D;
+  border-radius: ;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
+}
+.badge-gold {
+  background: #FFF7E0;
+  color: #0B1F3A;
+  border-radius: ;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
+}
+
+/* Modal Components */
+.modal {
+  background: #FFFFFF;
+  border: 1px solid #E4E9F2;
+  border-radius: 24px;
+  padding: 32px;
+  box-shadow: [{'color': '#0B1F3A14', 'offsetX': '0', 'offsetY': '4px', 'blur': '12px', 'spread': '-2px'}, {'color': '#0B1F3A24', 'offsetX': '0', 'offsetY': '24px', 'blur': '48px', 'spread': '-12px'}];
+  max-width: 480px;
+  width: 90%;
+  position: relative;
+}
+.modal-overlay {
+  background: #0B1F3A99;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal-overlay.active {
+  display: flex;
+}
+
+/* Header Components */
+.header {
+  background: #FFFFFF;
+  border-bottom: 1px solid #E4E9F2;
+  height: 64px;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+/* Layout Styles */
+.trading-container {
+  display: grid;
+  grid-template-columns: 1fr 350px;
+  gap: 24px;
+  padding: 24px;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.trading-main {
+  background: var(--background);
+  border-radius: var(--radius-2xl);
+  padding: 24px;
+  border: 1px solid var(--border);
+}
+
+.info-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Trading Specific Styles */
+.trading-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.asset-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.asset-name {
+  font-size: 24px;
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-display);
+}
+
+.asset-price {
+  font-size: 30px;
+  font-family: var(--font-mono);
+  font-weight: var(--font-weight-semibold);
+  color: var(--primary);
+}
+
+.price-change {
+  font-size: 16px;
+  padding: 8px 16px;
+  border-radius: var(--radius-lg);
+  font-family: var(--font-mono);
+  font-weight: var(--font-weight-semibold);
+}
+
+.price-change.positive {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.price-change.negative {
+  background: var(--loss-soft);
+  color: var(--loss);
+}
+
+.chart-container {
+  background: var(--surface);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  height: 400px;
+  margin-bottom: 24px;
+  border: 1px solid var(--border);
+}
+
+.trade-panel {
+  background: var(--surface);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+}
+
+.trade-tabs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.trade-tab {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: var(--font-weight-semibold);
+  transition: all 0.24s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.trade-tab.active {
+  background: var(--gold);
+  color: var(--gold-foreground);
+}
+
+.trade-tab:not(.active) {
+  background: var(--surface-2);
+  color: var(--foreground);
+}
+
+.trade-tab:hover:not(.active) {
+  background: var(--muted);
+}
+
+.trade-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-label {
+  font-size: 14px;
+  color: var(--muted-foreground);
+  font-weight: var(--font-weight-medium);
+}
+
+.trade-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.trade-btn {
+  padding: 16px;
+  border: none;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: var(--font-weight-bold);
+  transition: all 0.24s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.trade-btn.buy {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  box-shadow: var(--shadow-green);
+}
+
+.trade-btn.sell {
+  background: var(--loss);
+  color: var(--loss-foreground);
+}
+
+.trade-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-elevated);
+}
+
+/* Demo Balance Card */
+.demo-balance-card {
+  background: linear-gradient(135deg, var(--gold-soft) 0%, var(--primary-soft) 100%);
+  border-radius: var(--radius-2xl);
+  padding: 24px;
+  border: 1px solid var(--gold);
+}
+
+.balance-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.balance-title {
+  font-size: 14px;
+  color: var(--gold);
+  font-weight: var(--font-weight-semibold);
+}
+
+.balance-amount {
+  font-size: 30px;
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-mono);
+  color: var(--gold);
+}
+
+.balance-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.balance-btn {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: var(--font-weight-semibold);
+  transition: all 0.24s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.balance-btn.deposit {
+  background: var(--gold);
+  color: var(--gold-foreground);
+}
+
+.balance-btn.withdraw {
+  background: var(--surface-2);
+  color: var(--foreground);
+}
+
+/* Task Card */
+.task-card {
+  background: var(--background);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  border: 1px solid var(--border);
+}
+
+.task-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.task-title {
+  font-size: 18px;
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-display);
+}
+
+.task-progress {
+  font-size: 14px;
+  color: var(--gold);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-mono);
+}
+
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.task-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  transition: all 0.24s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.task-item:hover {
+  background: var(--surface-2);
+}
+
+.task-item.completed {
+  opacity: 0.6;
+}
+
+.task-name {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.task-check {
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--border-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  transition: all 0.24s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.task-item.completed .task-check {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.task-reward {
+  color: var(--gold);
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-mono);
+}
+
+/* Advanced Features */
+.advanced-features {
+  background: var(--background);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  border: 1px solid var(--border);
+}
+
+.feature-btn {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 12px;
+  border: 1px solid var(--gold);
+  border-radius: var(--radius-lg);
+  background: var(--gold-soft);
+  color: var(--gold-foreground);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: var(--font-weight-semibold);
+  transition: all 0.24s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.feature-btn:hover {
+  background: var(--gold);
+  color: var(--gold-foreground);
+}
+
+.feature-btn:last-child {
+  margin-bottom: 0;
+}
+
+/* Deposit Tiers */
+.deposit-tiers {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.tier-card {
+  padding: 24px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-2xl);
+  cursor: pointer;
+  transition: all 0.24s cubic-bezier(0.2, 0.9, 0.3, 1);
+  position: relative;
+}
+
+.tier-card:hover {
+  border-color: var(--gold);
+  transform: translateY(-2px);
+}
+
+.tier-card.recommended {
+  border-color: var(--gold);
+  background: var(--gold-soft);
+}
+
+.tier-badge {
+  position: absolute;
+  top: -10px;
+  right: 24px;
+  background: var(--gold);
+  color: var(--gold-foreground);
+  padding: 4px 12px;
+  border-radius: var(--radius-lg);
+  font-size: 12px;
+  font-weight: var(--font-weight-bold);
+}
+
+.tier-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.tier-name {
+  font-size: 18px;
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-display);
+}
+
+.tier-bonus {
+  font-size: 24px;
+  color: var(--primary);
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-mono);
+}
+
+.tier-details {
+  font-size: 14px;
+  color: var(--muted-foreground);
+}
+
+/* Countdown */
+.countdown {
+  text-align: center;
+  padding: 16px;
+  background: var(--loss-soft);
+  border-radius: var(--radius-md);
+  margin-bottom: 24px;
+}
+
+.countdown-title {
+  font-size: 14px;
+  color: var(--loss);
+  margin-bottom: 8px;
+  font-weight: var(--font-weight-semibold);
+}
+
+.countdown-time {
+  font-size: 24px;
+  font-weight: var(--font-weight-bold);
+  color: var(--loss);
+  font-family: var(--font-mono);
+}
+
+/* Notification */
+.notification {
+  position: fixed;
+  top: 80px;
+  right: 24px;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 24px;
+  max-width: 350px;
+  box-shadow: var(--shadow-elevated);
+  z-index: 999;
+  display: none;
+  animation: slideInRight 0.24s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.notification.active {
+  display: block;
+}
+
+@keyframes slideInRight {
+  from { 
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to { 
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.notification-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.notification-title {
+  font-size: 16px;
+  font-weight: var(--font-weight-bold);
+  color: var(--gold);
+  font-family: var(--font-display);
+}
+
+.notification-close {
+  background: none;
+  border: none;
+  color: var(--muted-foreground);
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.notification-content {
+  font-size: 14px;
+  color: var(--foreground);
+}
+
+/* Control Panel */
+.control-panel {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 16px;
+  z-index: 999;
+  box-shadow: var(--shadow-card);
+}
+
+.control-title {
+  font-size: 14px;
+  color: var(--gold);
+  margin-bottom: 12px;
+  font-weight: var(--font-weight-semibold);
+}
+
+.control-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.control-btn {
+  padding: 8px 16px;
+  border: 1px solid var(--gold);
+  border-radius: var(--radius-md);
+  background: var(--gold-soft);
+  color: var(--gold-foreground);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: var(--font-weight-medium);
+  transition: all 0.24s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.control-btn:hover {
+  background: var(--gold);
+  color: var(--gold-foreground);
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .trading-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Social Login */
+.social-login {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin: 24px 0;
+}
+
+.social-btn {
+  width: 50px;
+  height: 50px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  transition: all 0.24s cubic-bezier(0.2, 0.9, 0.3, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.social-btn:hover {
+  background: var(--gold-soft);
+  border-color: var(--gold);
+  transform: translateY(-2px);
+}
+
+/* Benefit List */
+.benefit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.benefit-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--surface);
+  border-radius: var(--radius-md);
+}
+
+/* Modal Buttons */
+.modal-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal-btn {
+  padding: 16px;
+  border: none;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: var(--font-weight-bold);
+  transition: all 0.24s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+.modal-btn.primary {
+  background: var(--gold);
+  color: var(--gold-foreground);
+}
+
+.modal-btn.secondary {
+  background: transparent;
+  color: var(--muted-foreground);
+  border: 1px solid var(--border);
+}
+
+.modal-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-elevated);
+}
+
+.modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  color: var(--muted-foreground);
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.modal-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.modal-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.modal-title {
+  font-size: 24px;
+  font-weight: var(--font-weight-bold);
+  margin-bottom: 12px;
+  color: var(--gold);
+  font-family: var(--font-display);
+}
+
+.modal-subtitle {
+  font-size: 16px;
+  color: var(--muted-foreground);
+  margin-bottom: 24px;
+}
+
+.modal-content {
+  margin-bottom: 24px;
+}
+
+/* Register Form */
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+}
+</style>
+</head>
+<body>
+    <!-- 顶部导航 -->
+    <header class="header">
+        <div class="logo">DeTrade</div>
+        <div class="nav-buttons">
+            <button class="nav-btn secondary" onclick="showNotification('提示', 'Demo 模式，无需注册即可体验')">Demo 模式</button>
+            <button class="nav-btn primary" onclick="showRegisterModal('nav')">立即注册</button>
+        </div>
+    </header>
+
+    <!-- 主交易界面 -->
+    <div class="trading-container">
+        <!-- 左侧交易区域 -->
+        <div class="trading-main">
+            <div class="trading-header">
+                <div class="asset-info">
+                    <div class="asset-name">BTC/USD</div>
+                    <div class="asset-price" id="currentPrice">$43,250.00</div>
+                    <div class="price-change positive" id="priceChange">+2.35%</div>
+                </div>
+            </div>
+
+            <!-- 图表区域 -->
+            <div class="chart-container">
+                <div class="chart-placeholder">
+                    <div>📈 实时价格走势图</div>
+                </div>
+            </div>
+
+            <!-- 交易面板 -->
+            <div class="trade-panel">
+                <div class="trade-tabs">
+                    <button class="trade-tab active">涨/跌</button>
+                    <button class="trade-tab">高/低</button>
+                    <button class="trade-tab">点差</button>
+                </div>
+
+                <div class="trade-form">
+                    <div class="form-group">
+                        <label class="form-label">投资金额</label>
+                        <input type="number" class="form-input" id="tradeAmount" value="10" min="1">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">预期时间</label>
+                        <select class="form-input">
+                            <option>1 分钟</option>
+                            <option>5 分钟</option>
+                            <option>15 分钟</option>
+                            <option>1 小时</option>
+                        </select>
+                    </div>
+
+                    <div class="trade-buttons">
+                        <button class="trade-btn buy" onclick="executeTrade('buy')">📈 买涨</button>
+                        <button class="trade-btn sell" onclick="executeTrade('sell')">📉 买跌</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧信息面板 -->
+        <div class="info-panel">
+            <!-- Demo 余额卡片 -->
+            <div class="demo-balance-card">
+                <div class="balance-header">
+                    <div class="balance-title">💰 Demo 余额</div>
+                </div>
+                <div class="balance-amount" id="demoBalance">$500.00</div>
+                <div class="balance-actions">
+                    <button class="balance-btn deposit" onclick="showDepositModal()">入金</button>
+                    <button class="balance-btn withdraw" onclick="showNotification('提示', '注册后可提现')">提现</button>
+                </div>
+            </div>
+
+            <!-- 新手任务卡片 -->
+            <div class="task-card">
+                <div class="task-header">
+                    <div class="task-title">🎯 新手任务</div>
+                    <div class="task-progress" id="taskProgress">0/7</div>
+                </div>
+                <div class="task-list" id="taskList">
+                    <div class="task-item" data-task="register">
+                        <div class="task-name">
+                            <div class="task-check"></div>
+                            <span>完成注册</span>
+                        </div>
+                        <div class="task-reward">+$5</div>
+                    </div>
+                    <div class="task-item" data-task="first_trade">
+                        <div class="task-name">
+                            <div class="task-check"></div>
+                            <span>完成首笔交易</span>
+                        </div>
+                        <div class="task-reward">+$3</div>
+                    </div>
+                    <div class="task-item" data-task="set_password">
+                        <div class="task-name">
+                            <div class="task-check"></div>
+                            <span>设置交易密码</span>
+                        </div>
+                        <div class="task-reward">+$2</div>
+                    </div>
+                    <div class="task-item" data-task="deposit">
+                        <div class="task-name">
+                            <div class="task-check"></div>
+                            <span>首次入金$50</span>
+                        </div>
+                        <div class="task-reward">+$10</div>
+                    </div>
+                    <div class="task-item" data-task="three_trades">
+                        <div class="task-name">
+                            <div class="task-check"></div>
+                            <span>完成 3 笔交易</span>
+                        </div>
+                        <div class="task-reward">+$5</div>
+                    </div>
+                    <div class="task-item" data-task="invite">
+                        <div class="task-name">
+                            <div class="task-check"></div>
+                            <span>邀请 1 位好友</span>
+                        </div>
+                        <div class="task-reward">+$15</div>
+                    </div>
+                    <div class="task-item" data-task="volume">
+                        <div class="task-name">
+                            <div class="task-check"></div>
+                            <span>累计交易$500</span>
+                        </div>
+                        <div class="task-reward">+$20</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 高级功能 -->
+            <div class="advanced-features">
+                <div class="task-title" style="margin-bottom: 15px;">🚀 高级功能</div>
+                <button class="feature-btn" onclick="tryAdvancedFeature('跟单交易')">👥 跟单交易（跟随 Top 交易者）</button>
+                <button class="feature-btn" onclick="tryAdvancedFeature('限价单')">📊 限价单（精准入场）</button>
+                <button class="feature-btn" onclick="tryAdvancedFeature('交易信号')">🤖 交易信号（AI 智能提示）</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 控制按钮（用于演示） -->
+    <div class="control-panel">
+        <div class="control-title">🎮 演示控制</div>
+        <div class="control-buttons">
+            <button class="control-btn" onclick="triggerModal(1)">触发点 1：首笔交易</button>
+            <button class="control-btn" onclick="triggerModal(2)">触发点 2：盈利$30</button>
+            <button class="control-btn" onclick="triggerModal(3)">触发点 3：交易 5 笔</button>
+            <button class="control-btn" onclick="triggerModal(4)">触发点 4：余额不足</button>
+            <button class="control-btn" onclick="triggerModal(5)">触发点 5：高级功能</button>
+            <button class="control-btn" onclick="resetDemo()">重置 Demo</button>
+        </div>
+    </div>
+
+    <!-- 注册弹窗 -->
+    <div class="modal-overlay" id="registerModal">
+        <div class="modal">
+            <button class="modal-close" onclick="closeModal('registerModal')">×</button>
+            <div class="modal-header">
+                <div class="modal-icon">🎉</div>
+                <div class="modal-title" id="registerTitle">恭喜完成首笔交易！</div>
+                <div class="modal-subtitle" id="registerSubtitle">您刚刚盈利 $12.50</div>
+            </div>
+            <div class="modal-content">
+                <div class="benefit-list" id="benefitList">
+                    <div class="benefit-item">✅ 保存交易历史</div>
+                    <div class="benefit-item">✅ 解锁跟单交易</div>
+                    <div class="benefit-item">✅ 获得$5 新手奖金</div>
+                    <div class="benefit-item">✅ 参与真实交易</div>
+                </div>
+                <div class="register-form">
+                    <div class="form-group">
+                        <label class="form-label">邮箱</label>
+                        <input type="email" class="form-input" placeholder="请输入邮箱">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">密码</label>
+                        <input type="password" class="form-input" placeholder="请输入密码">
+                    </div>
+                    <div class="social-login">
+                        <button class="social-btn" title="微信登录">💬</button>
+                        <button class="social-btn" title="Google">🔍</button>
+                        <button class="social-btn" title="Telegram">✈️</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn primary" onclick="completeRegister()">立即注册领$5</button>
+                <button class="modal-btn secondary" onclick="closeModal('registerModal')">继续体验</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 入金弹窗 -->
+    <div class="modal-overlay" id="depositModal">
+        <div class="modal">
+            <button class="modal-close" onclick="closeModal('depositModal')">×</button>
+            <div class="modal-header">
+                <div class="modal-icon">💰</div>
+                <div class="modal-title">首充奖励（限时 48 小时）</div>
+                <div class="modal-subtitle">新用户专属福利</div>
+            </div>
+            <div class="countdown">
+                <div class="countdown-title">⏰ 剩余时间</div>
+                <div class="countdown-time" id="countdownTime">47:59:59</div>
+            </div>
+            <div class="modal-content">
+                <div class="deposit-tiers">
+                    <div class="tier-card" onclick="selectTier(20)">
+                        <div class="tier-header">
+                            <div class="tier-name">🌱 入门档</div>
+                            <div class="tier-bonus">+$5</div>
+                        </div>
+                        <div class="tier-details">入金$20 · 25% 奖励 · 适合新手体验</div>
+                    </div>
+                    <div class="tier-card recommended" onclick="selectTier(50)">
+                        <div class="tier-badge">推荐</div>
+                        <div class="tier-header">
+                            <div class="tier-name">⭐ 主力档</div>
+                            <div class="tier-bonus">+$15</div>
+                        </div>
+                        <div class="tier-details">入金$50 · 30% 奖励 · 最受欢迎</div>
+                    </div>
+                    <div class="tier-card" onclick="selectTier(100)">
+                        <div class="tier-header">
+                            <div class="tier-name">🚀 进阶档</div>
+                            <div class="tier-bonus">+$40</div>
+                        </div>
+                        <div class="tier-details">入金$100 · 40% 奖励 · 稳健选择</div>
+                    </div>
+                    <div class="tier-card" onclick="selectTier(500)">
+                        <div class="tier-header">
+                            <div class="tier-name">💎 专业档</div>
+                            <div class="tier-bonus">+$250</div>
+                        </div>
+                        <div class="tier-details">入金$500 · 50% 奖励 · 高额回报</div>
+                    </div>
+                    <div class="tier-card" onclick="selectTier(1000)">
+                        <div class="tier-header">
+                            <div class="tier-name">👑 VIP 档</div>
+                            <div class="tier-bonus">+$600</div>
+                        </div>
+                        <div class="tier-details">入金$1000 · 60% 奖励 · 最大优惠</div>
+                    </div>
+                </div>
+                <div style="text-align: center; padding: 15px; background: rgba(255, 215, 0, 0.1); border-radius: 5px;">
+                    🎁 新用户专属：48 小时内首充额外 +20%
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn primary" onclick="completeDeposit()">立即入金领奖金</button>
+                <button class="modal-btn secondary" onclick="closeModal('depositModal')">稍后再说</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 通知提示 -->
+    <div class="notification" id="notification">
+        <div class="notification-header">
+            <div class="notification-title" id="notificationTitle">任务完成！</div>
+            <button class="notification-close" onclick="closeNotification()">×</button>
+        </div>
+        <div class="notification-content" id="notificationContent">恭喜完成"完成注册"，获得$5 奖金</div>
+    </div>
+
+    <script>
+        // Demo 状态管理
+        const demoState = {
+            isLoggedIn: false,
+            tradeCount: 0,
+            totalProfit: 0,
+            balance: 500,
+            tasksCompleted: [],
+            modalsShown: [],
+            lastModalTime: 0
+        };
+
+        // 执行交易
+        function executeTrade(direction) {
+            const amount = parseFloat(document.getElementById('tradeAmount').value);
+            
+            // 模拟交易结果
+            const isWin = Math.random() > 0.5;
+            const profit = isWin ? amount * 0.8 : -amount;
+            
+            // 更新状态
+            demoState.tradeCount++;
+            demoState.totalProfit += profit;
+            demoState.balance += profit;
+            
+            // 更新 UI
+            updateUI();
+            
+            // 显示交易结果
+            showNotification(
+                isWin ? '交易盈利' : '交易亏损',
+                `${direction === 'buy' ? '买涨' : '买跌'} $${amount}，${isWin ? '盈利' : '亏损'} $${Math.abs(profit).toFixed(2)}`
+            );
+            
+            // 检查触发点
+            checkTriggers();
+        }
+
+        // 检查触发点
+        function checkTriggers() {
+            const now = Date.now();
+            const timeSinceLastModal = now - demoState.lastModalTime;
+            
+            // 频率控制：至少间隔 10 秒
+            if (timeSinceLastModal < 10000) return;
+            
+            // 触发点 1：首笔交易
+            if (demoState.tradeCount === 1 && !demoState.modalsShown.includes(1)) {
+                setTimeout(() => {
+                    showRegisterModal(1);
+                    demoState.modalsShown.push(1);
+                    demoState.lastModalTime = Date.now();
+                }, 3000);
+            }
+            
+            // 触发点 2：盈利达到$30
+            if (demoState.totalProfit >= 30 && !demoState.modalsShown.includes(2)) {
+                showRegisterModal(2);
+                demoState.modalsShown.push(2);
+                demoState.lastModalTime = Date.now();
+            }
+            
+            // 触发点 3：交易满 5 笔
+            if (demoState.tradeCount === 5 && !demoState.modalsShown.includes(3)) {
+                showRegisterModal(3);
+                demoState.modalsShown.push(3);
+                demoState.lastModalTime = Date.now();
+            }
+            
+            // 触发点 4：余额消耗至 50%
+            if (demoState.balance <= 250 && demoState.balance > 0 && !demoState.modalsShown.includes(4)) {
+                showRegisterModal(4);
+                demoState.modalsShown.push(4);
+                demoState.lastModalTime = Date.now();
+            }
+        }
+
+        // 显示注册弹窗
+        function showRegisterModal(triggerType) {
+            const modal = document.getElementById('registerModal');
+            const title = document.getElementById('registerTitle');
+            const subtitle = document.getElementById('registerSubtitle');
+            const benefitList = document.getElementById('benefitList');
+            
+            switch(triggerType) {
+                case 1: // 首笔交易
+                    title.textContent = '🎉 恭喜完成首笔交易！';
+                    subtitle.textContent = `您刚刚${demoState.totalProfit > 0 ? '盈利' : '体验了'} $${Math.abs(demoState.totalProfit).toFixed(2)}`;
+                    benefitList.innerHTML = `
+                        <div class="benefit-item">✅ 保存交易历史</div>
+                        <div class="benefit-item">✅ 解锁跟单交易</div>
+                        <div class="benefit-item">✅ 获得$5 新手奖金</div>
+                        <div class="benefit-item">✅ 参与真实交易</div>
+                    `;
+                    break;
+                    
+                case 2: // 盈利$30
+                    title.textContent = '💰 您已赚取 $30！';
+                    subtitle.textContent = '在 Demo 中表现出色！';
+                    benefitList.innerHTML = `
+                        <div class="benefit-item">💎 首充 100% 匹配</div>
+                        <div class="benefit-item">💎 将 Demo 策略应用到真实交易</div>
+                        <div class="benefit-item">💎 解锁提现功能</div>
+                        <div class="benefit-item">💎 参与真实排行榜</div>
+                    `;
+                    break;
+                    
+                case 3: // 交易 5 笔
+                    title.textContent = '🏆 交易达人！';
+                    subtitle.textContent = `您已完成 ${demoState.tradeCount} 笔交易`;
+                    benefitList.innerHTML = `
+                        <div class="benefit-item">🚀 跟单交易（跟随 Top 交易者）</div>
+                        <div class="benefit-item">🚀 限价单（精准入场）</div>
+                        <div class="benefit-item">🚀 交易信号（AI 智能提示）</div>
+                        <div class="benefit-item">🚀 参与交易锦标赛</div>
+                    `;
+                    break;
+                    
+                case 4: // 余额不足
+                    title.textContent = '⚠️ 余额不足';
+                    subtitle.textContent = `您的 Demo 余额仅剩 $${demoState.balance.toFixed(2)}`;
+                    benefitList.innerHTML = `
+                        <div class="benefit-item">💰 首充$50 送$50</div>
+                        <div class="benefit-item">💰 无限次交易</div>
+                        <div class="benefit-item">💰 真实盈利可提现</div>
+                        <div class="benefit-item">💰 专属客服支持</div>
+                    `;
+                    break;
+                    
+                case 5: // 高级功能
+                    title.textContent = '🔒 此功能需要注册';
+                    subtitle.textContent = '跟单交易是高级功能，需要注册账号';
+                    benefitList.innerHTML = `
+                        <div class="benefit-item">✅ 跟单交易</div>
+                        <div class="benefit-item">✅ 限价单</div>
+                        <div class="benefit-item">✅ 交易信号</div>
+                        <div class="benefit-item">✅ 历史数据分析</div>
+                    `;
+                    break;
+                    
+                default: // 导航栏注册
+                    title.textContent = '🎁 立即注册';
+                    subtitle.textContent = '开启您的交易之旅';
+                    benefitList.innerHTML = `
+                        <div class="benefit-item">✅ 获得$5 新手奖金</div>
+                        <div class="benefit-item">✅ 解锁所有功能</div>
+                        <div class="benefit-item">✅ 参与真实交易</div>
+                        <div class="benefit-item">✅ 专属客服支持</div>
+                    `;
+            }
+            
+            modal.classList.add('active');
+        }
+
+        // 显示入金弹窗
+        function showDepositModal() {
+            document.getElementById('depositModal').classList.add('active');
+            startCountdown();
+        }
+
+        // 尝试高级功能
+        function tryAdvancedFeature(feature) {
+            if (!demoState.isLoggedIn) {
+                showRegisterModal(5);
+            } else {
+                showNotification('提示', `${feature}功能已解锁`);
+            }
+        }
+
+        // 完成注册
+        function completeRegister() {
+            demoState.isLoggedIn = true;
+            closeModal('registerModal');
+            showNotification('注册成功', '恭喜！您已获得$5 新手奖金');
+            completeTask('register');
+            
+            // 5 秒后显示入金弹窗
+            setTimeout(() => {
+                showDepositModal();
+            }, 5000);
+        }
+
+        // 完成入金
+        function completeDeposit() {
+            closeModal('depositModal');
+            showNotification('入金成功', '恭喜！您已获得相应奖金');
+            completeTask('deposit');
+        }
+
+        // 选择入金档位
+        function selectTier(amount) {
+            const cards = document.querySelectorAll('.tier-card');
+            cards.forEach(card => card.classList.remove('recommended'));
+            event.currentTarget.classList.add('recommended');
+        }
+
+        // 完成任务
+        function completeTask(taskId) {
+            if (!demoState.tasksCompleted.includes(taskId)) {
+                demoState.tasksCompleted.push(taskId);
+                const taskItem = document.querySelector(`[data-task="${taskId}"]`);
+                if (taskItem) {
+                    taskItem.classList.add('completed');
+                    taskItem.querySelector('.task-check').innerHTML = '✓';
+                }
+                updateTaskProgress();
+            }
+        }
+
+        // 更新任务进度
+        function updateTaskProgress() {
+            const completed = demoState.tasksCompleted.length;
+            document.getElementById('taskProgress').textContent = `${completed}/7`;
+        }
+
+        // 更新 UI
+        function updateUI() {
+            document.getElementById('demoBalance').textContent = `$${demoState.balance.toFixed(2)}`;
+            
+            // 更新价格（模拟）
+            const priceChange = (Math.random() - 0.5) * 100;
+            const newPrice = 43250 + priceChange;
+            document.getElementById('currentPrice').textContent = `$${newPrice.toFixed(2)}`;
+            
+            const changePercent = (priceChange / 43250 * 100).toFixed(2);
+            const priceChangeEl = document.getElementById('priceChange');
+            priceChangeEl.textContent = `${changePercent > 0 ? '+' : ''}${changePercent}%`;
+            priceChangeEl.className = `price-change ${changePercent > 0 ? 'positive' : 'negative'}`;
+        }
+
+        // 显示通知
+        function showNotification(title, content) {
+            const notification = document.getElementById('notification');
+            document.getElementById('notificationTitle').textContent = title;
+            document.getElementById('notificationContent').textContent = content;
+            notification.classList.add('active');
+            
+            setTimeout(() => {
+                closeNotification();
+            }, 5000);
+        }
+
+        // 关闭通知
+        function closeNotification() {
+            document.getElementById('notification').classList.remove('active');
+        }
+
+        // 关闭弹窗
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // 触发指定弹窗（用于演示）
+        function triggerModal(type) {
+            if (type === 5) {
+                tryAdvancedFeature('跟单交易');
+            } else {
+                showRegisterModal(type);
+            }
+        }
+
+        // 重置 Demo
+        function resetDemo() {
+            demoState.isLoggedIn = false;
+            demoState.tradeCount = 0;
+            demoState.totalProfit = 0;
+            demoState.balance = 500;
+            demoState.tasksCompleted = [];
+            demoState.modalsShown = [];
+            
+            // 重置 UI
+            document.querySelectorAll('.task-item').forEach(item => {
+                item.classList.remove('completed');
+                item.querySelector('.task-check').innerHTML = '';
+            });
+            updateTaskProgress();
+            updateUI();
+            
+            showNotification('Demo 已重置', '所有状态已恢复初始');
+        }
+
+        // 倒计时
+        function startCountdown() {
+            let hours = 47;
+            let minutes = 59;
+            let seconds = 59;
+            
+            const timer = setInterval(() => {
+                seconds--;
+                if (seconds < 0) {
+                    seconds = 59;
+                    minutes--;
+                    if (minutes < 0) {
+                        minutes = 59;
+                        hours--;
+                        if (hours < 0) {
+                            clearInterval(timer);
+                            return;
+                        }
+                    }
+                }
+                
+                document.getElementById('countdownTime').textContent = 
+                    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        // 初始化
+        updateUI();
+    </script>
+</body>
+</html>

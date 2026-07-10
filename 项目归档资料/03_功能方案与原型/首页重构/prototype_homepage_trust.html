@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeTrade - 安全加密交易平台 | Demo 交易</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        .hero-bg {
+            background: linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.75)), url('https://picsum.photos/id/1015/1920/1080') center/cover no-repeat;
+        }
+        .ticker {
+            animation: ticker-slide 40s linear infinite;
+        }
+        @keyframes ticker-slide {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+    </style>
+</head>
+<body class="bg-gray-950 text-white font-sans">
+    <!-- Navbar -->
+    <nav class="bg-black/90 backdrop-blur-md fixed w-full z-50 border-b border-gray-800">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-8">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-emerald-500 rounded-xl flex items-center justify-center text-xl font-bold">D</div>
+                    <span class="text-2xl font-bold tracking-tight">DeTrade</span>
+                </div>
+                <div class="hidden md:flex items-center gap-6 text-sm font-medium">
+                    <a href="#" class="hover:text-emerald-400 transition">市场</a>
+                    <a href="#" class="hover:text-emerald-400 transition">交易</a>
+                    <a href="#" class="text-emerald-400 font-semibold">Demo</a>
+                    <a href="#" class="hover:text-emerald-400 transition">推广</a>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <button onclick="startDemo()" 
+                        class="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 rounded-2xl text-sm font-semibold transition flex items-center gap-2">
+                    <i class="fas fa-play-circle"></i>
+                    <span>立即 Demo</span>
+                </button>
+                <button class="px-6 py-2.5 border border-white/60 hover:bg-white/10 rounded-2xl text-sm font-medium transition">登录</button>
+                <button class="px-6 py-2.5 bg-white text-gray-900 hover:bg-gray-100 rounded-2xl text-sm font-semibold transition">注册领奖金</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero-bg min-h-screen flex items-center pt-16">
+        <div class="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-16 items-center">
+            <div class="space-y-10">
+                <div class="flex items-center gap-3 bg-white/10 w-fit px-5 py-2 rounded-3xl backdrop-blur-md">
+                    <div class="w-3 h-3 bg-emerald-400 rounded-full animate-pulse"></div>
+                    <span class="text-sm uppercase tracking-widest">30,536,760+ 全球投资者</span>
+                </div>
+                
+                <h1 class="text-6xl lg:text-7xl font-bold leading-none tracking-tighter">
+                    值得信赖的<br>加密交易平台
+                </h1>
+                
+                <p class="text-2xl text-gray-300 max-w-md">
+                    安全透明 · 实时执行<br>
+                    <span class="text-emerald-400">立即免费 Demo，无风险上手</span>
+                </p>
+
+                <div class="flex flex-wrap gap-4">
+                    <button onclick="startDemo()" 
+                            class="group px-10 py-5 bg-emerald-500 hover:bg-emerald-600 text-xl font-semibold rounded-3xl flex items-center gap-4 transition-all hover:scale-105 shadow-xl shadow-emerald-500/30">
+                        <span>进入 Demo 交易</span>
+                        <i class="fas fa-arrow-right group-active:rotate-45 transition"></i>
+                    </button>
+                    
+                    <button onclick="alert('注册流程演示：奖金最高 $100')"
+                            class="px-8 py-5 border-2 border-white/70 hover:bg-white/5 text-xl font-medium rounded-3xl transition">
+                        注册领奖金
+                    </button>
+                </div>
+
+                <!-- Stats -->
+                <div class="grid grid-cols-3 gap-8 pt-8 border-t border-white/10">
+                    <div>
+                        <div class="text-4xl font-mono text-emerald-400">311M+</div>
+                        <div class="text-sm text-gray-400 mt-1">24h 交易量 (USD)</div>
+                    </div>
+                    <div>
+                        <div class="text-4xl font-mono text-emerald-400">5</div>
+                        <div class="text-sm text-gray-400 mt-1">年专业经验</div>
+                    </div>
+                    <div>
+                        <div class="text-4xl font-mono text-emerald-400">70+</div>
+                        <div class="text-sm text-gray-400 mt-1">交易品种</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Preview Card -->
+            <div class="hidden lg:block bg-gray-900/80 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
+                <div class="flex justify-between items-center mb-6">
+                    <div class="flex items-center gap-3">
+                        <span class="text-emerald-400 font-semibold">BTC/USDT</span>
+                        <span class="text-green-400 text-sm font-medium">+1.24%</span>
+                    </div>
+                    <span class="text-xs bg-white/10 px-3 py-1 rounded-full">永续合约</span>
+                </div>
+                
+                <div class="text-6xl font-mono mb-8">$62,204.89</div>
+                
+                <div class="h-64 bg-gradient-to-b from-emerald-400/10 to-transparent rounded-2xl relative overflow-hidden mb-8">
+                    <!-- Fake sparkline -->
+                    <div class="absolute bottom-0 left-0 w-full h-3/4 bg-emerald-400/30" style="clip-path: polygon(0 80%, 10% 60%, 25% 75%, 40% 45%, 55% 70%, 70% 30%, 85% 55%, 100% 40%, 100% 100%, 0 100%);"></div>
+                </div>
+                
+                <button onclick="startDemo()" 
+                        class="w-full py-4 bg-white text-gray-900 rounded-2xl font-semibold hover:bg-emerald-400 hover:text-white transition flex items-center justify-center gap-2">
+                    <i class="fas fa-chart-line"></i>
+                    在 Demo 中交易此品种
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Trust Signals -->
+    <div class="py-8 bg-gray-900 border-b border-gray-800">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex flex-wrap justify-center items-center gap-x-12 gap-y-8 opacity-75">
+                <div class="flex items-center gap-4">
+                    <i class="fas fa-shield-alt text-4xl text-emerald-500"></i>
+                    <div>
+                        <div class="text-sm font-medium">Proof of Reserves</div>
+                        <div class="text-xs text-gray-400">实时储备证明</div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <i class="fas fa-lock text-4xl text-emerald-500"></i>
+                    <div>
+                        <div class="text-sm font-medium">95%+ 冷存储</div>
+                        <div class="text-xs text-gray-400">多重加密安全</div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <i class="fas fa-award text-4xl text-emerald-500"></i>
+                    <div>
+                        <div class="text-sm font-medium">安全审计</div>
+                        <div class="text-xs text-gray-400">第三方认证</div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <i class="fas fa-users text-4xl text-emerald-500"></i>
+                    <div>
+                        <div class="text-sm font-medium">全球信赖</div>
+                        <div class="text-xs text-gray-400">30M+ 用户</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Popular Markets -->
+    <section class="py-20 bg-black">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex justify-between items-end mb-10">
+                <h2 class="text-4xl font-bold">热门交易品种</h2>
+                <a href="#" class="text-emerald-400 flex items-center gap-2 hover:gap-3 transition">查看全部 <i class="fas fa-arrow-right"></i></a>
+            </div>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-gray-900 rounded-3xl p-6 hover:ring-1 hover:ring-emerald-400/30 transition group">
+                    <div class="flex justify-between mb-4">
+                        <span class="font-semibold">BTC/USDT</span>
+                        <span class="text-green-400">+0.85%</span>
+                    </div>
+                    <div class="text-4xl font-mono mb-6">$62,204</div>
+                    <button onclick="startDemo()" class="text-sm w-full py-3 bg-gray-800 group-hover:bg-emerald-500 group-hover:text-white rounded-2xl transition">Demo 交易 →</button>
+                </div>
+                
+                <div class="bg-gray-900 rounded-3xl p-6 hover:ring-1 hover:ring-emerald-400/30 transition group">
+                    <div class="flex justify-between mb-4">
+                        <span class="font-semibold">ETH/USDT</span>
+                        <span class="text-green-400">+1.45%</span>
+                    </div>
+                    <div class="text-4xl font-mono mb-6">$1,738</div>
+                    <button onclick="startDemo()" class="text-sm w-full py-3 bg-gray-800 group-hover:bg-emerald-500 group-hover:text-white rounded-2xl transition">Demo 交易 →</button>
+                </div>
+                
+                <div class="bg-gray-900 rounded-3xl p-6 hover:ring-1 hover:ring-emerald-400/30 transition group">
+                    <div class="flex justify-between mb-4">
+                        <span class="font-semibold">High-Low</span>
+                        <span class="text-amber-400">二元期权</span>
+                    </div>
+                    <div class="text-4xl font-mono mb-6">快速结算</div>
+                    <button onclick="startDemo()" class="text-sm w-full py-3 bg-gray-800 group-hover:bg-emerald-500 group-hover:text-white rounded-2xl transition">Demo 体验 →</button>
+                </div>
+                
+                <div class="bg-gray-900 rounded-3xl p-6 hover:ring-1 hover:ring-emerald-400/30 transition group">
+                    <div class="flex justify-between mb-4">
+                        <span class="font-semibold">SOL/USDT</span>
+                        <span class="text-red-400">-1.8%</span>
+                    </div>
+                    <div class="text-4xl font-mono mb-6">$77.35</div>
+                    <button onclick="startDemo()" class="text-sm w-full py-3 bg-gray-800 group-hover:bg-emerald-500 group-hover:text-white rounded-2xl transition">Demo 交易 →</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        function startDemo() {
+            const msg = "🎉 Demo 交易已启动！\n\n这是一个演示首页。\n实际项目中此处将跳转至无风险 Demo 交易界面或引导注册。";
+            alert(msg);
+            console.log("%cDeTrade Demo 启动", "color: #10b981; font-size: 16px; font-weight: bold");
+        }
+        
+        // Tailwind ready
+    </script>
+</body>
+</html>
