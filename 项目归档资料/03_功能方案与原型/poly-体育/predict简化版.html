@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeTrade 预测交易 - 简化版</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: #0a0a0f; color: #ffffff; line-height: 1.5; }
+
+        :root {
+            --primary-green: #22c55e;
+            --primary-red: #ef4444;
+            --bg-card: #13131a;
+            --bg-card-hover: #1a1a25;
+            --border-color: #2a2a35;
+            --text-secondary: #888899;
+            --text-muted: #555566;
+        }
+
+        .top-bar { background: #0f0f16; border-bottom: 1px solid var(--border-color); padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+        .logo { font-size: 20px; font-weight: 700; background: linear-gradient(90deg, #22c55e, #10b981); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .nav-tabs { display: flex; gap: 4px; background: #1a1a25; padding: 4px; border-radius: 8px; }
+        .nav-tab { padding: 6px 16px; border-radius: 6px; font-size: 13px; cursor: pointer; transition: all 0.2s; color: var(--text-secondary); }
+        .nav-tab:hover { color: #fff; }
+        .nav-tab.active { background: var(--primary-green); color: white; }
+        .search-box { background: #1a1a25; border: 1px solid var(--border-color); border-radius: 8px; padding: 8px 14px; color: #fff; font-size: 13px; width: 200px; outline: none; }
+        .search-box::placeholder { color: var(--text-muted); }
+        .user-area { display: flex; align-items: center; gap: 16px; }
+        .balance-badge { background: #1a1a25; border: 1px solid var(--border-color); padding: 6px 14px; border-radius: 20px; font-size: 13px; }
+        .balance-badge span { color: var(--text-secondary); margin-right: 4px; }
+        .btn-login { background: var(--primary-green); color: white; padding: 8px 20px; border-radius: 8px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; }
+
+        .main-container { display: flex; max-width: 1400px; margin: 0 auto; min-height: calc(100vh - 60px); }
+
+        .left-sidebar { width: 200px; background: #0f0f16; border-right: 1px solid var(--border-color); padding: 16px 0; flex-shrink: 0; }
+        .sidebar-section { margin-bottom: 20px; }
+        .sidebar-title { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; padding: 0 16px 8px; }
+        .sidebar-item { display: flex; align-items: center; gap: 10px; padding: 10px 16px; font-size: 14px; cursor: pointer; transition: background 0.2s; color: var(--text-secondary); }
+        .sidebar-item:hover { background: #1a1a25; color: #fff; }
+        .sidebar-item.active { background: rgba(34, 197, 94, 0.1); color: var(--primary-green); border-left: 2px solid var(--primary-green); }
+        .sidebar-icon { width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+        .sidebar-count { margin-left: auto; font-size: 12px; color: var(--text-muted); background: #1a1a25; padding: 2px 6px; border-radius: 10px; }
+
+        .content-area { flex: 1; padding: 20px; overflow-y: auto; }
+
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .page-title { font-size: 24px; font-weight: 700; }
+        .filter-tabs { display: flex; gap: 8px; }
+        .filter-tab { padding: 6px 14px; border-radius: 6px; font-size: 13px; cursor: pointer; transition: all 0.2s; border: 1px solid var(--border-color); color: var(--text-secondary); }
+        .filter-tab:hover { border-color: var(--text-secondary); }
+        .filter-tab.active { background: var(--primary-green); border-color: var(--primary-green); color: white; }
+
+        .event-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+
+        .event-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; transition: all 0.2s; cursor: pointer; }
+        .event-card:hover { border-color: var(--primary-green); transform: translateY(-2px); }
+        .event-card.selected { border-color: var(--primary-green); box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2); }
+
+        .event-header { padding: 14px 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: flex-start; }
+        .event-category { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; background: #1a1a25; padding: 2px 6px; border-radius: 4px; }
+        .event-time { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+        .event-trending { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--primary-green); }
+
+        .event-content { padding: 16px; }
+        .event-question { font-size: 15px; font-weight: 600; margin-bottom: 14px; line-height: 1.4; color: #fff; }
+
+        .odds-row { display: flex; gap: 8px; }
+        .odds-option { flex: 1; padding: 12px; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.2s; border: 2px solid transparent; }
+        .odds-option.yes { background: rgba(34, 197, 94, 0.1); border-color: transparent; }
+        .odds-option.yes:hover, .odds-option.yes.selected { background: rgba(34, 197, 94, 0.15); border-color: var(--primary-green); }
+        .odds-option.no { background: rgba(239, 68, 68, 0.1); border-color: transparent; }
+        .odds-option.no:hover, .odds-option.no.selected { background: rgba(239, 68, 68, 0.15); border-color: var(--primary-red); }
+        .odds-label { font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 4px; }
+        .odds-option.yes .odds-label { color: var(--primary-green); }
+        .odds-option.no .odds-label { color: var(--primary-red); }
+        .odds-value { font-size: 22px; font-weight: 700; color: #fff; }
+        .odds-prob { font-size: 10px; color: var(--text-muted); margin-top: 4px; }
+
+        .event-footer { padding: 12px 16px; background: #0f0f16; display: flex; justify-content: space-between; align-items: center; }
+        .volume-info { font-size: 11px; color: var(--text-muted); }
+        .volume-info span { color: var(--text-secondary); font-weight: 500; }
+        .expand-icon { font-size: 14px; color: var(--text-muted); }
+
+        .sports-event-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; }
+        .sports-header { padding: 12px 16px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        .league-badge { display: flex; align-items: center; gap: 8px; }
+        .league-flag { width: 20px; height: 20px; border-radius: 4px; background: #333; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; }
+        .league-name { font-size: 12px; color: var(--text-secondary); font-weight: 500; }
+        .sports-time { font-size: 12px; color: var(--text-muted); }
+
+        .sports-teams { padding: 16px; display: flex; align-items: center; justify-content: space-between; }
+        .team { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .team-flag { width: 48px; height: 48px; border-radius: 50%; background: #1a1a25; display: flex; align-items: center; justify-content: center; font-size: 20px; border: 2px solid var(--border-color); }
+        .team-name { font-size: 14px; font-weight: 600; text-align: center; }
+
+        .vs-badge { font-size: 10px; font-weight: 700; color: var(--text-muted); background: #1a1a25; padding: 4px 10px; border-radius: 10px; text-transform: uppercase; letter-spacing: 1px; }
+
+        .sports-markets { padding: 0 16px 16px; }
+        .market-section { margin-bottom: 12px; }
+        .market-title { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+        .market-options { display: flex; gap: 8px; }
+        .market-option { flex: 1; padding: 10px 8px; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.2s; border: 2px solid transparent; background: #1a1a25; }
+        .market-option:hover { border-color: var(--primary-green); background: rgba(34, 197, 94, 0.05); }
+        .market-option.selected { border-color: var(--primary-green); background: rgba(34, 197, 94, 0.1); }
+        .market-option .option-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }
+        .market-option .option-odds { font-size: 18px; font-weight: 700; color: #fff; }
+
+        .right-panel { width: 340px; background: #0f0f16; border-left: 1px solid var(--border-color); padding: 16px; flex-shrink: 0; }
+        .panel-title { font-size: 14px; font-weight: 600; margin-bottom: 16px; }
+
+        .bet-panel { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; }
+        .bet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .bet-event-name { font-size: 13px; font-weight: 600; color: #fff; }
+        .bet-close { font-size: 16px; color: var(--text-muted); cursor: pointer; }
+
+        .bet-option-display { padding: 12px; border-radius: 8px; margin-bottom: 16px; text-align: center; }
+        .bet-option-display.yes { background: rgba(34, 197, 94, 0.1); }
+        .bet-option-display.no { background: rgba(239, 68, 68, 0.1); }
+        .bet-option-label { font-size: 11px; font-weight: 600; text-transform: uppercase; margin-bottom: 4px; }
+        .bet-option-display.yes .bet-option-label { color: var(--primary-green); }
+        .bet-option-display.no .bet-option-label { color: var(--primary-red); }
+        .bet-odds { font-size: 28px; font-weight: 700; color: #fff; }
+
+        .amount-input-area { margin-bottom: 16px; }
+        .amount-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; display: block; }
+        .amount-input-wrapper { position: relative; }
+        .amount-input { width: 100%; background: #1a1a25; border: 1px solid var(--border-color); border-radius: 8px; padding: 14px 12px; font-size: 18px; font-weight: 600; color: #fff; outline: none; text-align: center; }
+        .amount-input:focus { border-color: var(--primary-green); }
+        .amount-input::placeholder { color: var(--text-muted); }
+        .amount-currency { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 14px; color: var(--text-muted); }
+
+        .quick-amounts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 16px; }
+        .quick-btn { padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); background: #1a1a25; color: var(--text-secondary); font-size: 12px; cursor: pointer; transition: all 0.2s; }
+        .quick-btn:hover { border-color: var(--primary-green); color: var(--primary-green); }
+
+        .bet-calculations { background: #1a1a25; border-radius: 8px; padding: 12px; margin-bottom: 16px; }
+        .calc-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; }
+        .calc-label { color: var(--text-secondary); }
+        .calc-value { color: #fff; font-weight: 600; }
+        .calc-value.profit { color: var(--primary-green); }
+        .calc-value.loss { color: var(--primary-red); }
+
+        .bet-button { width: 100%; padding: 14px; border-radius: 8px; border: none; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+        .bet-button.buy { background: var(--primary-green); color: white; }
+        .bet-button.buy:hover { background: #16a34a; }
+        .bet-button.sell { background: var(--primary-red); color: white; }
+        .bet-button.sell:hover { background: #dc2626; }
+        .bet-button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .my-bets-section { margin-top: 24px; }
+        .my-bets-tabs { display: flex; gap: 4px; margin-bottom: 16px; }
+        .my-bets-tab { padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; transition: all 0.2s; color: var(--text-secondary); }
+        .my-bets-tab:hover { color: #fff; }
+        .my-bets-tab.active { background: var(--primary-green); color: white; }
+
+        .bet-list { display: flex; flex-direction: column; gap: 8px; }
+        .bet-item { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; }
+        .bet-item-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .bet-status { font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 4px; }
+        .bet-status.open { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+        .bet-status.won { background: rgba(34, 197, 94, 0.1); color: var(--primary-green); }
+        .bet-status.lost { background: rgba(239, 68, 68, 0.1); color: var(--primary-red); }
+        .bet-event { font-size: 12px; color: #fff; font-weight: 500; margin-bottom: 6px; }
+        .bet-details { font-size: 11px; color: var(--text-secondary); }
+        .bet-details span { color: var(--text-muted); margin-right: 8px; }
+        .bet-payout { font-size: 14px; font-weight: 600; color: var(--primary-green); margin-top: 8px; }
+
+        .toast { position: fixed; bottom: 24px; right: 24px; background: var(--primary-green); color: white; padding: 12px 24px; border-radius: 8px; font-size: 13px; font-weight: 600; opacity: 0; transform: translateY(20px); transition: all 0.3s; z-index: 1000; }
+        .toast.show { opacity: 1; transform: translateY(0); }
+        .toast.error { background: var(--primary-red); }
+
+        @media (max-width: 1024px) {
+            .main-container { flex-direction: column; }
+            .left-sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border-color); }
+            .right-panel { width: 100%; border-left: none; border-top: 1px solid var(--border-color); }
+            .event-grid { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <div class="logo">DeTrade</div>
+        <div class="nav-tabs">
+            <div class="nav-tab active" data-tab="crypto">加密</div>
+            <div class="nav-tab" data-tab="sports">体育</div>
+            <div class="nav-tab" data-tab="politics">政治</div>
+            <div class="nav-tab" data-tab="esports">电竞</div>
+        </div>
+        <div class="user-area">
+            <input type="text" class="search-box" placeholder="搜索事件...">
+            <div class="balance-badge"><span>USDT</span> 12,580.00</div>
+            <button class="btn-login">登录</button>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="left-sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-title">加密预测</div>
+                <div class="sidebar-item active"><span class="sidebar-icon">💰</span> 全部市场 <span class="sidebar-count">24</span></div>
+                <div class="sidebar-item"><span class="sidebar-icon">🔥</span> 热门市场 <span class="sidebar-count">8</span></div>
+                <div class="sidebar-item"><span class="sidebar-icon">📈</span> BTC <span class="sidebar-count">6</span></div>
+                <div class="sidebar-item"><span class="sidebar-icon">💎</span> ETH <span class="sidebar-count">5</span></div>
+                <div class="sidebar-item"><span class="sidebar-icon">🟣</span> SOL <span class="sidebar-count">3</span></div>
+                <div class="sidebar-item"><span class="sidebar-icon">🔵</span> XRP <span class="sidebar-count">2</span></div>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">体育预测</div>
+                <div class="sidebar-item"><span class="sidebar-icon">⚽</span> 足球 <span class="sidebar-count">16</span></div>
+                <div class="sidebar-item"><span class="sidebar-icon">🏀</span> NBA <span class="sidebar-count">8</span></div>
+                <div class="sidebar-item"><span class="sidebar-icon">🎾</span> 网球 <span class="sidebar-count">4</span></div>
+                <div class="sidebar-item"><span class="sidebar-icon">🏆</span> 世界杯 <span class="sidebar-count">12</span></div>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">时间筛选</div>
+                <div class="sidebar-item"><span class="sidebar-icon">⏰</span> 今日截止</div>
+                <div class="sidebar-item"><span class="sidebar-icon">📅</span> 本周截止</div>
+                <div class="sidebar-item"><span class="sidebar-icon">📆</span> 本月截止</div>
+                <div class="sidebar-item"><span class="sidebar-icon">🔮</span> 远期市场</div>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <div class="page-header">
+                <div class="page-title">预测市场</div>
+                <div class="filter-tabs">
+                    <div class="filter-tab active" data-filter="all">全部</div>
+                    <div class="filter-tab" data-filter="hot">热门</div>
+                    <div class="filter-tab" data-filter="new">最新</div>
+                    <div class="filter-tab" data-filter="upcoming">即将截止</div>
+                </div>
+            </div>
+
+            <div class="event-grid" id="eventGrid">
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="panel-title">交易面板</div>
+            <div class="bet-panel" id="betPanel">
+                <div class="bet-header">
+                    <div class="bet-event-name">请选择一个市场</div>
+                    <div class="bet-close" onclick="clearBet()">✕</div>
+                </div>
+                <div class="bet-option-display" id="betOptionDisplay">
+                    <div class="bet-option-label">选择选项</div>
+                    <div class="bet-odds">-</div>
+                </div>
+                <div class="amount-input-area">
+                    <div class="amount-label">投注金额 (USDT)</div>
+                    <div class="amount-input-wrapper">
+                        <input type="number" class="amount-input" id="betAmount" placeholder="0.00" min="0.1" step="0.1">
+                        <div class="amount-currency">USDT</div>
+                    </div>
+                </div>
+                <div class="quick-amounts">
+                    <button class="quick-btn" onclick="setAmount(10)">10</button>
+                    <button class="quick-btn" onclick="setAmount(50)">50</button>
+                    <button class="quick-btn" onclick="setAmount(100)">100</button>
+                    <button class="quick-btn" onclick="setAmount(500)">500</button>
+                </div>
+                <div class="bet-calculations" id="betCalculations">
+                    <div class="calc-row"><div class="calc-label">投注金额</div><div class="calc-value" id="calcAmount">$0.00</div></div>
+                    <div class="calc-row"><div class="calc-label">赔付倍率</div><div class="calc-value" id="calcOdds">-</div></div>
+                    <div class="calc-row"><div class="calc-label">预计返还</div><div class="calc-value" id="calcPayout">$0.00</div></div>
+                    <div class="calc-row"><div class="calc-label">预计收益</div><div class="calc-value profit" id="calcProfit">$0.00</div></div>
+                </div>
+                <button class="bet-button buy" id="betButton" disabled>确认投注</button>
+            </div>
+
+            <div class="my-bets-section">
+                <div class="panel-title">我的投注</div>
+                <div class="my-bets-tabs">
+                    <div class="my-bets-tab active">进行中</div>
+                    <div class="my-bets-tab">已完成</div>
+                    <div class="my-bets-tab">已取消</div>
+                </div>
+                <div class="bet-list">
+                    <div class="bet-item">
+                        <div class="bet-item-header">
+                            <div class="bet-status open">进行中</div>
+                            <div class="bet-event">BTC 将突破 $65,000 吗？</div>
+                        </div>
+                        <div class="bet-details">
+                            <span>选项:</span> Yes <span>赔率:</span> 1.45 <span>投注:</span> $100.00
+                        </div>
+                        <div class="bet-payout">预计返还: $145.00</div>
+                    </div>
+                    <div class="bet-item">
+                        <div class="bet-item-header">
+                            <div class="bet-status won">已获胜</div>
+                            <div class="bet-event">ETH 将突破 $3,500 吗？</div>
+                        </div>
+                        <div class="bet-details">
+                            <span>选项:</span> Yes <span>赔率:</span> 1.32 <span>投注:</span> $50.00
+                        </div>
+                        <div class="bet-payout">赢取: $66.00</div>
+                    </div>
+                    <div class="bet-item">
+                        <div class="bet-item-header">
+                            <div class="bet-status lost">已失败</div>
+                            <div class="bet-event">SOL 将突破 $200 吗？</div>
+                        </div>
+                        <div class="bet-details">
+                            <span>选项:</span> No <span>赔率:</span> 2.15 <span>投注:</span> $80.00
+                        </div>
+                        <div class="bet-payout">亏损: $80.00</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        function convertCentsToOdds(cents) {
+            if (cents <= 0 || cents >= 100) return 0;
+            const odds = 100 / cents;
+            return Math.round(odds * 100) / 100;
+        }
+
+        function calculatePayout(betAmount, odds) {
+            return Math.round(betAmount * odds * 100) / 100;
+        }
+
+        function calculateProfit(betAmount, odds) {
+            return Math.round(betAmount * (odds - 1) * 100) / 100;
+        }
+
+        const cryptoEvents = [
+            {
+                id: 1,
+                category: 'BTC',
+                question: 'BTC 将在 7月15日前突破 $65,000 吗？',
+                time: '2天后 12:00',
+                yesPrice: 70,
+                noPrice: 31,
+                volume: '2.4M',
+                trending: true
+            },
+            {
+                id: 2,
+                category: 'BTC',
+                question: 'BTC 将在 7月20日前突破 $70,000 吗？',
+                time: '7天后 12:00',
+                yesPrice: 45,
+                noPrice: 56,
+                volume: '1.8M',
+                trending: false
+            },
+            {
+                id: 3,
+                category: 'ETH',
+                question: 'ETH 将在 7月15日前突破 $3,500 吗？',
+                time: '2天后 12:00',
+                yesPrice: 62,
+                noPrice: 39,
+                volume: '980K',
+                trending: true
+            },
+            {
+                id: 4,
+                category: 'ETH',
+                question: 'ETH 将在 7月25日前突破 $4,000 吗？',
+                time: '12天后 12:00',
+                yesPrice: 38,
+                noPrice: 63,
+                volume: '650K',
+                trending: false
+            },
+            {
+                id: 5,
+                category: 'SOL',
+                question: 'SOL 将在 7月18日前突破 $200 吗？',
+                time: '5天后 12:00',
+                yesPrice: 55,
+                noPrice: 46,
+                volume: '420K',
+                trending: false
+            },
+            {
+                id: 6,
+                category: 'XRP',
+                question: 'XRP 将在 7月20日前突破 $0.65 吗？',
+                time: '7天后 12:00',
+                yesPrice: 48,
+                noPrice: 53,
+                volume: '310K',
+                trending: false
+            },
+            {
+                id: 7,
+                category: 'DOGE',
+                question: 'DOGE 将在 7月15日前突破 $0.12 吗？',
+                time: '2天后 12:00',
+                yesPrice: 35,
+                noPrice: 66,
+                volume: '280K',
+                trending: false
+            },
+            {
+                id: 8,
+                category: 'BNB',
+                question: 'BNB 将在 7月22日前突破 $650 吗？',
+                time: '9天后 12:00',
+                yesPrice: 52,
+                noPrice: 49,
+                volume: '520K',
+                trending: false
+            }
+        ];
+
+        const sportsEvents = [
+            {
+                id: 101,
+                league: '世界杯',
+                leagueFlag: '🏆',
+                homeTeam: '法国',
+                homeFlag: '🇫🇷',
+                awayTeam: '西班牙',
+                awayFlag: '🇪🇸',
+                time: '后天 03:00',
+                markets: {
+                    '全场 1X2': [
+                        { label: '法国', odds: 2.32, cents: 43 },
+                        { label: '平局', odds: 3.20, cents: 31 },
+                        { label: '西班牙', odds: 3.20, cents: 31 }
+                    ],
+                    '大小球': [
+                        { label: '大 2.5', odds: 1.85, cents: 54 },
+                        { label: '小 2.5', odds: 1.87, cents: 53 }
+                    ],
+                    '让分': [
+                        { label: '(-0.25) 法国', odds: 1.98, cents: 51 },
+                        { label: '(+0.25) 西班牙', odds: 1.82, cents: 55 }
+                    ]
+                }
+            },
+            {
+                id: 102,
+                league: '英超',
+                leagueFlag: '🏴',
+                homeTeam: '曼联',
+                homeFlag: '🔴',
+                awayTeam: '利物浦',
+                awayFlag: '🔴⚪',
+                time: '明天 22:00',
+                markets: {
+                    '全场 1X2': [
+                        { label: '曼联', odds: 2.15, cents: 46 },
+                        { label: '平局', odds: 3.40, cents: 29 },
+                        { label: '利物浦', odds: 3.30, cents: 30 }
+                    ],
+                    '大小球': [
+                        { label: '大 2.5', odds: 1.78, cents: 56 },
+                        { label: '小 2.5', odds: 1.95, cents: 51 }
+                    ]
+                }
+            },
+            {
+                id: 103,
+                league: '西甲',
+                leagueFlag: '🇪🇸',
+                homeTeam: '皇马',
+                homeFlag: '⚪',
+                awayTeam: '巴萨',
+                awayFlag: '🔵🔴',
+                time: '本周六 03:00',
+                markets: {
+                    '全场 1X2': [
+                        { label: '皇马', odds: 2.25, cents: 44 },
+                        { label: '平局', odds: 3.10, cents: 32 },
+                        { label: '巴萨', odds: 3.45, cents: 29 }
+                    ],
+                    '大小球': [
+                        { label: '大 2.5', odds: 1.82, cents: 55 },
+                        { label: '小 2.5', odds: 1.90, cents: 53 }
+                    ]
+                }
+            }
+        ];
+
+        let selectedEvent = null;
+        let selectedOption = null;
+        let selectedMarketType = null;
+
+        function renderCryptoEvents() {
+            const grid = document.getElementById('eventGrid');
+            grid.innerHTML = cryptoEvents.map(event => {
+                const yesOdds = convertCentsToOdds(event.yesPrice);
+                const noOdds = convertCentsToOdds(event.noPrice);
+                return `
+                    <div class="event-card" onclick="selectEvent(${event.id}, 'crypto')">
+                        <div class="event-header">
+                            <div>
+                                <div class="event-category">${event.category}</div>
+                                <div class="event-time">${event.time}</div>
+                            </div>
+                            ${event.trending ? '<div class="event-trending">🔥 热门</div>' : ''}
+                        </div>
+                        <div class="event-content">
+                            <div class="event-question">${event.question}</div>
+                            <div class="odds-row">
+                                <div class="odds-option yes" onclick="event.stopPropagation(); selectOption(${event.id}, 'yes', ${event.yesPrice}, ${yesOdds}, '${event.question}')">
+                                    <div class="odds-label">Yes</div>
+                                    <div class="odds-value">${yesOdds}</div>
+                                    <div class="odds-prob">${event.yesPrice}%</div>
+                                </div>
+                                <div class="odds-option no" onclick="event.stopPropagation(); selectOption(${event.id}, 'no', ${event.noPrice}, ${noOdds}, '${event.question}')">
+                                    <div class="odds-label">No</div>
+                                    <div class="odds-value">${noOdds}</div>
+                                    <div class="odds-prob">${event.noPrice}%</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="event-footer">
+                            <div class="volume-info">交易量 <span>$${event.volume}</span></div>
+                            <div class="expand-icon">↗</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderSportsEvents() {
+            const grid = document.getElementById('eventGrid');
+            grid.innerHTML = sportsEvents.map(event => {
+                return `
+                    <div class="sports-event-card">
+                        <div class="sports-header">
+                            <div class="league-badge">
+                                <div class="league-flag">${event.leagueFlag}</div>
+                                <div class="league-name">${event.league}</div>
+                            </div>
+                            <div class="sports-time">${event.time}</div>
+                        </div>
+                        <div class="sports-teams">
+                            <div class="team">
+                                <div class="team-flag">${event.homeFlag}</div>
+                                <div class="team-name">${event.homeTeam}</div>
+                            </div>
+                            <div class="vs-badge">VS</div>
+                            <div class="team">
+                                <div class="team-flag">${event.awayFlag}</div>
+                                <div class="team-name">${event.awayTeam}</div>
+                            </div>
+                        </div>
+                        <div class="sports-markets">
+                            ${Object.entries(event.markets).map(([marketName, options]) => `
+                                <div class="market-section">
+                                    <div class="market-title">${marketName}</div>
+                                    <div class="market-options">
+                                        ${options.map(opt => `
+                                            <div class="market-option" onclick="selectSportsOption(${event.id}, '${marketName}', '${opt.label}', ${opt.odds}, '${event.homeTeam} vs ${event.awayTeam}')">
+                                                <div class="option-label">${opt.label}</div>
+                                                <div class="option-odds">${opt.odds}</div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function selectEvent(eventId, type) {
+            document.querySelectorAll('.event-card').forEach(card => card.classList.remove('selected'));
+            const cards = document.querySelectorAll('.event-card');
+            const index = type === 'crypto' ? cryptoEvents.findIndex(e => e.id === eventId) : sportsEvents.findIndex(e => e.id === eventId);
+            if (cards[index]) cards[index].classList.add('selected');
+            selectedEvent = eventId;
+        }
+
+        function selectOption(eventId, option, priceCents, odds, question) {
+            selectEvent(eventId, 'crypto');
+            selectedOption = { option, priceCents, odds };
+            updateBetPanel(question, option, odds);
+        }
+
+        function selectSportsOption(eventId, marketType, label, odds, eventName) {
+            selectedOption = { option: label, odds };
+            selectedMarketType = marketType;
+            updateBetPanel(eventName, label, odds);
+        }
+
+        function updateBetPanel(eventName, option, odds) {
+            const panel = document.getElementById('betPanel');
+            const display = document.getElementById('betOptionDisplay');
+            const eventNameEl = document.querySelector('.bet-event-name');
+            
+            eventNameEl.textContent = eventName;
+            display.className = `bet-option-display ${option.toLowerCase() === 'yes' || option.toLowerCase() === 'no' ? option.toLowerCase() : 'yes'}`;
+            display.innerHTML = `
+                <div class="bet-option-label">${option}</div>
+                <div class="bet-odds">${odds}</div>
+            `;
+            
+            document.getElementById('calcOdds').textContent = odds;
+            
+            const amount = parseFloat(document.getElementById('betAmount').value) || 0;
+            if (amount > 0) {
+                updateCalculations(amount, odds);
+            }
+            
+            document.getElementById('betButton').disabled = false;
+        }
+
+        function setAmount(amount) {
+            document.getElementById('betAmount').value = amount;
+            const odds = parseFloat(document.getElementById('calcOdds').textContent);
+            if (odds > 0) {
+                updateCalculations(amount, odds);
+            }
+        }
+
+        function updateCalculations(amount, odds) {
+            if (!amount || !odds) return;
+            
+            const payout = calculatePayout(amount, odds);
+            const profit = calculateProfit(amount, odds);
+            
+            document.getElementById('calcAmount').textContent = `$${amount.toFixed(2)}`;
+            document.getElementById('calcPayout').textContent = `$${payout.toFixed(2)}`;
+            document.getElementById('calcProfit').textContent = `$${profit.toFixed(2)}`;
+            
+            const profitEl = document.getElementById('calcProfit');
+            if (profit >= 0) {
+                profitEl.className = 'calc-value profit';
+            } else {
+                profitEl.className = 'calc-value loss';
+            }
+        }
+
+        document.getElementById('betAmount').addEventListener('input', function(e) {
+            const amount = parseFloat(e.target.value) || 0;
+            const odds = parseFloat(document.getElementById('calcOdds').textContent);
+            if (odds > 0) {
+                updateCalculations(amount, odds);
+            }
+        });
+
+        function clearBet() {
+            selectedEvent = null;
+            selectedOption = null;
+            document.getElementById('betPanel').innerHTML = `
+                <div class="bet-header">
+                    <div class="bet-event-name">请选择一个市场</div>
+                    <div class="bet-close" onclick="clearBet()">✕</div>
+                </div>
+                <div class="bet-option-display" id="betOptionDisplay">
+                    <div class="bet-option-label">选择选项</div>
+                    <div class="bet-odds">-</div>
+                </div>
+                <div class="amount-input-area">
+                    <div class="amount-label">投注金额 (USDT)</div>
+                    <div class="amount-input-wrapper">
+                        <input type="number" class="amount-input" id="betAmount" placeholder="0.00" min="0.1" step="0.1">
+                        <div class="amount-currency">USDT</div>
+                    </div>
+                </div>
+                <div class="quick-amounts">
+                    <button class="quick-btn" onclick="setAmount(10)">10</button>
+                    <button class="quick-btn" onclick="setAmount(50)">50</button>
+                    <button class="quick-btn" onclick="setAmount(100)">100</button>
+                    <button class="quick-btn" onclick="setAmount(500)">500</button>
+                </div>
+                <div class="bet-calculations" id="betCalculations">
+                    <div class="calc-row"><div class="calc-label">投注金额</div><div class="calc-value" id="calcAmount">$0.00</div></div>
+                    <div class="calc-row"><div class="calc-label">赔付倍率</div><div class="calc-value" id="calcOdds">-</div></div>
+                    <div class="calc-row"><div class="calc-label">预计返还</div><div class="calc-value" id="calcPayout">$0.00</div></div>
+                    <div class="calc-row"><div class="calc-label">预计收益</div><div class="calc-value profit" id="calcProfit">$0.00</div></div>
+                </div>
+                <button class="bet-button buy" id="betButton" disabled>确认投注</button>
+            `;
+            
+            document.querySelectorAll('.event-card').forEach(card => card.classList.remove('selected'));
+            document.querySelectorAll('.market-option').forEach(opt => opt.classList.remove('selected'));
+        }
+
+        document.getElementById('betButton').addEventListener('click', function() {
+            const amount = parseFloat(document.getElementById('betAmount').value);
+            if (!amount || amount <= 0) {
+                showToast('请输入有效的投注金额', 'error');
+                return;
+            }
+            if (!selectedOption) {
+                showToast('请先选择一个市场选项', 'error');
+                return;
+            }
+            
+            showToast(`投注成功！已投注 $${amount.toFixed(2)}`);
+            clearBet();
+        });
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type}`;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                const tabType = this.dataset.tab;
+                if (tabType === 'crypto') {
+                    renderCryptoEvents();
+                } else if (tabType === 'sports') {
+                    renderSportsEvents();
+                } else {
+                    renderCryptoEvents();
+                }
+            });
+        });
+
+        document.querySelectorAll('.filter-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        document.querySelectorAll('.my-bets-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.my-bets-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        renderCryptoEvents();
+    </script>
+</body>
+</html>
