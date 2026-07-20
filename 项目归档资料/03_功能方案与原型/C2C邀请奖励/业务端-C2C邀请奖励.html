@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>DeTrade - Invite Friends Rewards</title>
+  <script src="https://cdn.jsdelivr.net/npm/vue@3.5.13/dist/vue.global.prod.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-plus@2.9.1/dist/index.css">
+  <script src="https://cdn.jsdelivr.net/npm/element-plus@2.9.1/dist/index.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@element-plus/icons-vue@2.3.1/dist/index.iife.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bg: { base: '#0a0e14', card: '#111820', hover: '#1a222c', border: '#1e2a38' },
+            gold: { light: '#FFD700', DEFAULT: '#f59e0b', dark: '#d97706', dim: '#92610a' }
+          },
+          fontFamily: {
+            code: ['Fira Code', 'monospace'],
+            sans: ['Fira Sans', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg-base: #0a0e14;
+      --bg-card: #111820;
+      --bg-hover: #1a222c;
+      --border: #1e2a38;
+      --text-primary: #e8eaed;
+      --text-secondary: #8b949e;
+      --text-muted: #5a6570;
+      --gold: #f59e0b;
+      --gold-light: #FFD700;
+      --gold-dark: #d97706;
+      --green: #00c076;
+      --red: #ef4444;
+    }
+    [data-theme="light"] {
+      --bg-base: #f5f5f5;
+      --bg-card: #ffffff;
+      --bg-hover: #f0f0f0;
+      --border: #e0e0e0;
+      --text-primary: #1a1a1a;
+      --text-secondary: #666666;
+      --text-muted: #999999;
+    }
+    body {
+      background: var(--bg-base);
+      color: var(--text-primary);
+      font-family: 'Fira Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    .font-data { font-family: 'Fira Code', monospace; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* Gold Effects */
+    .gold-text { background: linear-gradient(135deg, #FFD700 0%, #f59e0b 50%, #d97706 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .gold-bg { background: linear-gradient(135deg, #FFD700 0%, #f59e0b 50%, #d97706 100%); }
+    .gold-border { border: 1px solid rgba(245,158,11,0.3); }
+    .gold-glow { box-shadow: 0 0 20px rgba(245,158,11,0.15); }
+
+    /* Card Styles */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      transition: all 0.3s ease;
+    }
+    .card:hover { border-color: rgba(245,158,11,0.2); }
+
+    /* Progress Bar */
+    .progress-track {
+      background: var(--bg-hover);
+      border-radius: 8px;
+      overflow: hidden;
+      height: 12px;
+      position: relative;
+    }
+    .progress-fill {
+      height: 100%;
+      border-radius: 8px;
+      background: linear-gradient(90deg, #d97706, #f59e0b, #FFD700);
+      transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+    }
+    .progress-fill::after {
+      content: '';
+      position: absolute;
+      top: 0; right: 0; bottom: 0; left: 0;
+      background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%);
+      animation: shimmer 2s infinite;
+    }
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    /* Tier Cards */
+    .tier-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 12px;
+      text-align: center;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      min-width: 120px;
+      flex-shrink: 0;
+    }
+    .tier-card.unlocked {
+      border-color: rgba(245,158,11,0.5);
+      background: linear-gradient(180deg, rgba(245,158,11,0.08) 0%, var(--bg-card) 100%);
+    }
+    .tier-card.claimable {
+      border-color: rgba(245,158,11,0.8);
+      background: linear-gradient(180deg, rgba(245,158,11,0.15) 0%, var(--bg-card) 100%);
+      animation: tierPulse 2s infinite;
+    }
+    .tier-card.claimed {
+      border-color: rgba(0,192,118,0.4);
+      background: linear-gradient(180deg, rgba(0,192,118,0.08) 0%, var(--bg-card) 100%);
+    }
+    @keyframes tierPulse {
+      0%, 100% { box-shadow: 0 0 8px rgba(245,158,11,0.2); }
+      50% { box-shadow: 0 0 24px rgba(245,158,11,0.4); }
+    }
+
+    /* Claim Button */
+    .claim-btn {
+      background: linear-gradient(135deg, #FFD700, #f59e0b);
+      color: #000;
+      font-weight: 700;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 20px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-family: 'Fira Sans', sans-serif;
+    }
+    .claim-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(245,158,11,0.4); }
+    .claim-btn:disabled { background: var(--bg-hover); color: var(--text-muted); cursor: not-allowed; transform: none; box-shadow: none; }
+
+    /* Invite Link Box */
+    .invite-link-box {
+      background: var(--bg-hover);
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-family: 'Fira Code', monospace;
+      font-size: 13px;
+      color: var(--text-secondary);
+      word-break: break-all;
+    }
+
+    /* Status Tags */
+    .tag-pending { background: rgba(245,158,11,0.12); color: #fbbf24; border: 1px solid rgba(245,158,11,0.25); }
+    .tag-valid { background: rgba(0,192,118,0.12); color: #00c076; border: 1px solid rgba(0,192,118,0.25); }
+    .tag-reviewing { background: rgba(59,130,246,0.12); color: #60a5fa; border: 1px solid rgba(59,130,246,0.25); }
+    .tag-invalid { background: rgba(239,68,68,0.12); color: #f87171; border: 1px solid rgba(239,68,68,0.25); }
+
+    /* Share Buttons */
+    .share-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      padding: 12px; border-radius: 12px;
+      background: var(--bg-hover); border: 1px solid var(--border);
+      transition: all 0.2s; cursor: pointer; min-width: 72px;
+    }
+    .share-btn:hover { border-color: var(--gold); transform: translateY(-2px); }
+
+    /* Banner */
+    .activity-banner {
+      background: linear-gradient(135deg, #1a0e00 0%, #2d1800 30%, #1a1000 60%, #0a0e14 100%);
+      position: relative; overflow: hidden;
+      border-radius: 16px;
+      border: 1px solid rgba(245,158,11,0.2);
+    }
+    .activity-banner::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse at 30% 40%, rgba(255,215,0,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse at 70% 60%, rgba(245,158,11,0.08) 0%, transparent 50%);
+      pointer-events: none;
+    }
+    .activity-banner::after {
+      content: '';
+      position: absolute; bottom: 0; left: 0; right: 0; height: 40px;
+      background: linear-gradient(0deg, var(--bg-base) 0%, transparent 100%);
+      pointer-events: none;
+    }
+
+    /* Decorative Elements */
+    .deco-circle {
+      position: absolute; border-radius: 50%; pointer-events: none;
+      border: 1px solid rgba(245,158,11,0.1);
+    }
+
+    /* Success Animation */
+    .success-overlay {
+      position: fixed; inset: 0; z-index: 100;
+      background: rgba(0,0,0,0.8);
+      display: flex; align-items: center; justify-content: center;
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .success-card {
+      background: var(--bg-card); border: 1px solid rgba(245,158,11,0.4);
+      border-radius: 20px; padding: 40px; text-align: center;
+      animation: scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      max-width: 340px; width: 90%;
+    }
+    @keyframes scaleIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .success-icon {
+      width: 80px; height: 80px; border-radius: 50%;
+      background: linear-gradient(135deg, rgba(245,158,11,0.2), rgba(245,158,11,0.05));
+      border: 2px solid rgba(245,158,11,0.4);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 20px;
+      animation: iconPulse 1s ease-out;
+    }
+    @keyframes iconPulse { 0% { transform: scale(0); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+
+    /* Particle effects */
+    .particle {
+      position: absolute; width: 6px; height: 6px; border-radius: 50%;
+      pointer-events: none;
+    }
+    @keyframes particleFly {
+      0% { transform: translate(0,0) scale(1); opacity: 1; }
+      100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+    }
+
+    /* Record List */
+    .record-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      transition: all 0.2s;
+    }
+    .record-item:hover { border-color: rgba(245,158,11,0.2); }
+
+    /* Step Indicator */
+    .step-dot {
+      width: 24px; height: 24px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 600;
+      transition: all 0.3s;
+    }
+    .step-dot.completed { background: var(--green); color: #fff; }
+    .step-dot.active { background: var(--gold); color: #000; animation: stepPulse 1.5s infinite; }
+    .step-dot.pending { background: var(--bg-hover); color: var(--text-muted); border: 1px solid var(--border); }
+    @keyframes stepPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(245,158,11,0.4); } 50% { box-shadow: 0 0 0 6px rgba(245,158,11,0); } }
+    .step-line { flex: 1; height: 2px; background: var(--border); margin: 0 4px; }
+    .step-line.completed { background: var(--green); }
+
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+      .tier-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+      .tier-scroll::-webkit-scrollbar { display: none; }
+    }
+
+    /* Element Plus overrides */
+    .el-dialog { border-radius: 16px !important; background: var(--bg-card) !important; border: 1px solid var(--border) !important; }
+    .el-dialog__header { border-bottom: 1px solid var(--border) !important; }
+    .el-tabs__item { color: var(--text-secondary) !important; }
+    .el-tabs__item.is-active { color: var(--gold) !important; }
+    .el-tabs__active-bar { background-color: var(--gold) !important; }
+
+    /* Transition */
+    .fade-enter-active, .fade-leave-active { transition: opacity 0.3s; }
+    .fade-enter-from, .fade-leave-to { opacity: 0; }
+
+    /* Copy tooltip */
+    .copy-toast {
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.85); color: #fff; padding: 12px 24px;
+      border-radius: 8px; z-index: 200; font-size: 14px;
+      animation: toastIn 0.3s ease;
+    }
+    @keyframes toastIn { from { opacity: 0; transform: translate(-50%, -50%) scale(0.9); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+  </style>
+</head>
+<body>
+<div id="app" :data-theme="isDark ? 'dark' : 'light'">
+  <!-- Toast -->
+  <transition name="fade">
+    <div v-if="showToast" class="copy-toast">{{ toastMsg }}</div>
+  </transition>
+
+  <!-- Success Overlay -->
+  <transition name="fade">
+    <div v-if="showSuccess" class="success-overlay" @click.self="showSuccess = false">
+      <div class="success-card">
+        <div class="success-icon">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
+        <h3 class="text-xl font-bold gold-text mb-2">{{ t('claimSuccess') }}</h3>
+        <p class="text-3xl font-bold font-data gold-text mb-3">{{ claimAmount }} USDT</p>
+        <p class="text-sm mb-6" style="color: var(--text-secondary)">{{ t('addedToBalance') }}</p>
+        <button class="claim-btn w-full py-3" @click="showSuccess = false">{{ t('confirm') }}</button>
+      </div>
+    </div>
+  </transition>
+
+  <!-- Share Modal -->
+  <transition name="fade">
+    <div v-if="showShare" class="fixed inset-0 z-50 flex items-end justify-center" style="background: rgba(0,0,0,0.6)" @click.self="showShare = false">
+      <div class="w-full max-w-lg rounded-t-2xl p-6 pb-8" style="background: var(--bg-card); border-top: 1px solid var(--border); animation: slideUp 0.3s ease">
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="text-lg font-bold">{{ t('shareTitle') }}</h3>
+          <button @click="showShare = false" class="w-8 h-8 rounded-full flex items-center justify-center" style="background: var(--bg-hover)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+        <div class="flex justify-center gap-4 mb-6">
+          <div class="share-btn" @click="shareAction('whatsapp')">
+            <div class="w-12 h-12 rounded-full flex items-center justify-center" style="background: #25D366">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            </div>
+            <span class="text-xs" style="color: var(--text-secondary)">WhatsApp</span>
+          </div>
+          <div class="share-btn" @click="shareAction('telegram')">
+            <div class="w-12 h-12 rounded-full flex items-center justify-center" style="background: #0088cc">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.298.02.465-.025.254-.083.607-.147.918-.184.883-.48 2.05-.816 3.2-.16.544-.326 1.083-.5 1.613-.086.262-.178.52-.28.763-.148.36-.36.718-.68.858-.164.07-.345.1-.516.063-.256-.054-.456-.207-.6-.37-.176-.19-.29-.42-.39-.65-.09-.21-.17-.42-.24-.64-.15-.48-.27-.97-.37-1.47-.04-.2-.07-.4-.1-.6-.03-.19-.04-.31-.06-.43-.02-.12-.05-.24-.1-.34-.06-.12-.18-.2-.3-.16-.08.03-.14.1-.18.17-.06.1-.08.22-.1.34-.02.12-.03.24-.04.36 0 .14-.01.28-.01.42 0 .28.01.56.03.84.02.28.06.56.1.84.04.24.08.48.14.72.04.16.08.32.13.48.06.16.13.32.22.46.08.14.18.28.3.38.12.1.26.18.42.2.1.01.2 0 .3-.04.12-.04.22-.12.3-.22.08-.1.14-.22.18-.36.04-.14.06-.28.08-.42.02-.14.02-.28.02-.42 0-.28-.02-.56-.04-.84-.02-.28-.06-.56-.1-.84z"/></svg>
+            </div>
+            <span class="text-xs" style="color: var(--text-secondary)">Telegram</span>
+          </div>
+          <div class="share-btn" @click="shareAction('twitter')">
+            <div class="w-12 h-12 rounded-full flex items-center justify-center" style="background: #1DA1F2">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg>
+            </div>
+            <span class="text-xs" style="color: var(--text-secondary)">Twitter</span>
+          </div>
+          <div class="share-btn" @click="copyLink">
+            <div class="w-12 h-12 rounded-full flex items-center justify-center" style="background: var(--bg-hover); border: 1px solid var(--border)">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            </div>
+            <span class="text-xs" style="color: var(--text-secondary)">{{ t('copy') }}</span>
+          </div>
+        </div>
+        <div class="invite-link-box mb-4">
+          <div class="flex items-center justify-between gap-2">
+            <span class="flex-1">{{ inviteLink }}</span>
+            <button @click="copyLink" class="flex-shrink-0 px-3 py-1.5 rounded-md text-xs font-semibold gold-bg text-black">{{ t('copyLink') }}</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </transition>
+
+  <!-- Main Content -->
+  <div class="max-w-lg mx-auto px-4 pb-8">
+    <!-- Header -->
+    <header class="sticky top-0 z-40 py-3 flex items-center justify-between" style="background: var(--bg-base)">
+      <button class="w-9 h-9 rounded-lg flex items-center justify-center" style="background: var(--bg-card); border: 1px solid var(--border)" @click="goBack">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      </button>
+      <h1 class="text-base font-bold">{{ t('inviteReward') }}</h1>
+      <div class="flex items-center gap-2">
+        <button @click="toggleLang" class="px-2.5 py-1.5 rounded-lg text-xs font-medium" style="background: var(--bg-card); border: 1px solid var(--border); color: var(--text-secondary)">
+          {{ lang === 'en' ? '中' : 'EN' }}
+        </button>
+        <button @click="toggleTheme" class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: var(--bg-card); border: 1px solid var(--border)">
+          <svg v-if="isDark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+          <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Banner -->
+    <div class="activity-banner p-5 mb-5 mt-2">
+      <div class="relative z-10">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="px-2 py-0.5 rounded text-xs font-semibold gold-bg text-black">{{ t('permanent') }}</span>
+          <span class="text-xs" style="color: var(--text-muted)">ID: INV202607</span>
+        </div>
+        <h2 class="text-2xl font-bold gold-text mb-2 leading-tight">{{ t('bannerTitle') }}</h2>
+        <p class="text-sm mb-4" style="color: var(--text-secondary)">{{ t('bannerDesc') }}</p>
+        <div class="flex items-center gap-3">
+          <div class="flex items-center gap-1.5 text-xs" style="color: var(--text-muted)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            <span>{{ stats.totalInvited }} {{ t('totalInvited') }}</span>
+          </div>
+          <div class="flex items-center gap-1.5 text-xs" style="color: var(--gold)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M16 8l-8 8"></path><path d="M8 8l8 8"></path></svg>
+            <span class="font-data font-bold">{{ stats.totalClaimed }} USDT</span>
+          </div>
+        </div>
+      </div>
+      <!-- Decorative -->
+      <div class="deco-circle" style="width: 120px; height: 120px; top: -30px; right: -20px;"></div>
+      <div class="deco-circle" style="width: 80px; height: 80px; bottom: 10px; right: 40px;"></div>
+    </div>
+
+    <!-- Invite Conditions -->
+    <div class="card p-4 mb-5">
+      <h3 class="text-sm font-bold mb-3 flex items-center gap-2" style="color: var(--text-primary)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        {{ t('inviteConditions') }}
+      </h3>
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-1">
+          <div class="step-dot" :class="{'completed': true}">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          </div>
+          <span class="text-xs" style="color: var(--text-secondary)">{{ t('step1') }}</span>
+        </div>
+        <div class="step-line completed"></div>
+        <div class="flex items-center gap-1">
+          <div class="step-dot" :class="{'completed': true}">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          </div>
+          <span class="text-xs" style="color: var(--text-secondary)">{{ t('step2') }}</span>
+        </div>
+        <div class="step-line completed"></div>
+        <div class="flex items-center gap-1">
+          <div class="step-dot active">3</div>
+          <span class="text-xs" style="color: var(--text-secondary)">{{ t('step3') }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-3 gap-3 mb-5">
+      <div class="card p-3 text-center">
+        <p class="text-xs mb-1" style="color: var(--text-muted)">{{ t('validInvites') }}</p>
+        <p class="text-2xl font-bold font-data" style="color: var(--text-primary)">{{ stats.currentValid }}</p>
+      </div>
+      <div class="card p-3 text-center gold-border">
+        <p class="text-xs mb-1" style="color: var(--text-muted)">{{ t('pendingReward') }}</p>
+        <p class="text-2xl font-bold font-data gold-text">{{ stats.pendingReward }}</p>
+      </div>
+      <div class="card p-3 text-center">
+        <p class="text-xs mb-1" style="color: var(--text-muted)">{{ t('totalClaimed') }}</p>
+        <p class="text-2xl font-bold font-data" style="color: var(--green)">{{ stats.totalClaimed }}</p>
+      </div>
+    </div>
+
+    <!-- Progress Section -->
+    <div class="card p-4 mb-5">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-sm font-bold">{{ t('progressTitle') }}</h3>
+        <span class="text-xs px-2 py-0.5 rounded-full" style="background: rgba(245,158,11,0.12); color: var(--gold)">
+          {{ t('round') }} #{{ stats.currentRound }}
+        </span>
+      </div>
+      <!-- Progress Bar -->
+      <div class="progress-track mb-3">
+        <div class="progress-fill" :style="{ width: progressPercent + '%' }"></div>
+      </div>
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-sm font-data font-bold" style="color: var(--text-primary)">{{ stats.currentValid }} <span style="color: var(--text-muted)">/ {{ nextTier.inviteCount }}</span></span>
+        <span class="text-xs" style="color: var(--text-muted)">{{ progressPercent }}%</span>
+      </div>
+      <div class="flex items-center gap-2 p-3 rounded-lg" style="background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.15)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2z"></path></svg>
+        <p class="text-sm flex-1">
+          <span style="color: var(--text-secondary)">{{ t('onlyMore') }}</span>
+          <span class="font-bold font-data" style="color: var(--gold)"> {{ nextTier.remaining }} </span>
+          <span style="color: var(--text-secondary)">{{ t('moreFriends') }}</span>
+          <span class="font-bold font-data gold-text"> {{ nextTier.reward }} USDT </span>
+          <span style="color: var(--text-secondary)">{{ t('bonus') }}</span>
+        </p>
+      </div>
+    </div>
+
+    <!-- Tier Rewards -->
+    <div class="mb-5">
+      <h3 class="text-sm font-bold mb-3 px-1">{{ t('tierRewards') }}</h3>
+      <div class="tier-scroll flex gap-3 pb-2">
+        <div v-for="tier in tiers" :key="tier.tier"
+             class="tier-card"
+             :class="{
+               'claimed': tier.status === 'claimed',
+               'claimable': tier.status === 'claimable',
+               'unlocked': tier.status === 'unlocked'
+             }">
+          <!-- Status Icon -->
+          <div class="mb-2">
+            <div v-if="tier.status === 'claimed'" class="w-8 h-8 rounded-full mx-auto flex items-center justify-center" style="background: rgba(0,192,118,0.15)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00c076" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+            <div v-else-if="tier.status === 'claimable'" class="w-8 h-8 rounded-full mx-auto flex items-center justify-center gold-bg">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+            <div v-else class="w-8 h-8 rounded-full mx-auto flex items-center justify-center" style="background: var(--bg-hover); border: 1px solid var(--border)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            </div>
+          </div>
+          <!-- Invite Count -->
+          <p class="text-xs mb-1" style="color: var(--text-muted)">{{ tier.inviteCount }} {{ t('people') }}</p>
+          <!-- Reward Amount -->
+          <p class="text-lg font-bold font-data mb-2" :class="tier.status === 'claimed' ? '' : 'gold-text'" :style="tier.status === 'claimed' ? 'color: var(--green)' : ''">
+            {{ tier.reward }}U
+          </p>
+          <!-- Button -->
+          <button v-if="tier.status === 'claimable'" class="claim-btn text-xs py-1.5 px-4 w-full" @click="claimReward(tier)">
+            {{ t('claim') }}
+          </button>
+          <span v-else-if="tier.status === 'claimed'" class="text-xs font-semibold" style="color: var(--green)">{{ t('claimed') }}</span>
+          <span v-else class="text-xs" style="color: var(--text-muted)">{{ t('locked') }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Invite & Share -->
+    <div class="card p-4 mb-5">
+      <h3 class="text-sm font-bold mb-3">{{ t('inviteFriends') }}</h3>
+      <!-- Invite Code -->
+      <div class="flex items-center gap-3 mb-4 p-3 rounded-lg" style="background: var(--bg-hover)">
+        <div class="flex-1">
+          <p class="text-xs mb-1" style="color: var(--text-muted)">{{ t('inviteCode') }}</p>
+          <p class="text-lg font-bold font-data tracking-widest" style="color: var(--gold)">DETX8K</p>
+        </div>
+        <button class="claim-btn text-xs py-2 px-4" @click="copyCode">{{ t('copyCode') }}</button>
+      </div>
+      <!-- Share Button -->
+      <button class="w-full py-3 rounded-xl font-bold text-sm gold-bg text-black flex items-center justify-center gap-2" @click="showShare = true" style="border: none; cursor: pointer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+        {{ t('shareNow') }}
+      </button>
+    </div>
+
+    <!-- Invite Records -->
+    <div class="mb-5">
+      <div class="flex items-center justify-between mb-3 px-1">
+        <h3 class="text-sm font-bold">{{ t('inviteRecords') }}</h3>
+        <div class="flex gap-1">
+          <button v-for="f in recordFilters" :key="f.value"
+                  class="px-2.5 py-1 rounded-md text-xs transition-all"
+                  :style="activeFilter === f.value ? 'background: rgba(245,158,11,0.15); color: var(--gold); border: 1px solid rgba(245,158,11,0.3)' : 'background: var(--bg-card); color: var(--text-muted); border: 1px solid var(--border)'"
+                  @click="activeFilter = f.value">
+            {{ f.label }}
+          </button>
+        </div>
+      </div>
+      <!-- Records List -->
+      <div class="flex flex-col gap-3">
+        <div v-for="record in filteredRecords" :key="record.uid" class="record-item">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold" style="background: var(--bg-hover); color: var(--text-secondary)">
+                {{ record.name.charAt(0).toUpperCase() }}
+              </div>
+              <div>
+                <p class="text-sm font-medium">{{ record.name }}</p>
+                <p class="text-xs" style="color: var(--text-muted)">{{ record.time }}</p>
+              </div>
+            </div>
+            <span class="px-2 py-0.5 rounded text-xs font-medium" :class="statusClass(record.status)">{{ statusText(record.status) }}</span>
+          </div>
+          <!-- Progress Steps -->
+          <div class="flex items-center gap-1 mt-3">
+            <div class="flex items-center gap-1 flex-1">
+              <div class="step-dot text-xs" :class="record.deposit >= 20 ? 'completed' : (record.deposit > 0 ? 'active' : 'pending')" style="width: 20px; height: 20px; font-size: 10px">
+                <svg v-if="record.deposit >= 20" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span v-else>1</span>
+              </div>
+              <span class="text-xs" style="color: var(--text-muted)">{{ record.deposit }}U</span>
+            </div>
+            <div class="step-line" :class="record.deposit >= 20 ? 'completed' : ''" style="max-width: 30px"></div>
+            <div class="flex items-center gap-1 flex-1">
+              <div class="step-dot text-xs" :class="record.trade >= 200 ? 'completed' : (record.trade > 0 ? 'active' : 'pending')" style="width: 20px; height: 20px; font-size: 10px">
+                <svg v-if="record.trade >= 200" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span v-else>2</span>
+              </div>
+              <span class="text-xs" style="color: var(--text-muted)">{{ record.trade }}U</span>
+            </div>
+            <div class="step-line" :class="record.trade >= 200 ? 'completed' : ''" style="max-width: 30px"></div>
+            <div class="flex items-center gap-1">
+              <div class="step-dot text-xs" :class="record.status === 'valid' ? 'completed' : 'pending'" style="width: 20px; height: 20px; font-size: 10px">
+                <svg v-if="record.status === 'valid'" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span v-else>✓</span>
+              </div>
+              <span class="text-xs font-medium" :style="record.status === 'valid' ? 'color: var(--green)' : 'color: var(--text-muted)'">{{ t('done') }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Empty State -->
+      <div v-if="filteredRecords.length === 0" class="card p-8 text-center">
+        <svg class="mx-auto mb-3" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        <p class="text-sm" style="color: var(--text-muted)">{{ t('noRecords') }}</p>
+      </div>
+    </div>
+
+    <!-- Rules Section -->
+    <div class="card p-4 mb-5">
+      <h3 class="text-sm font-bold mb-3 flex items-center gap-2" style="color: var(--text-primary)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+        {{ t('rules') }}
+      </h3>
+      <div class="space-y-3">
+        <div v-for="(rule, idx) in rulesList" :key="idx" class="flex gap-3">
+          <span class="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold gold-bg text-black">{{ idx + 1 }}</span>
+          <p class="text-xs leading-relaxed" style="color: var(--text-secondary)">{{ rule }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Risk Control Notice -->
+    <div class="card p-4 mb-5" style="border-color: rgba(239,68,68,0.2)">
+      <h3 class="text-sm font-bold mb-2 flex items-center gap-2" style="color: var(--red)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+        {{ t('riskNotice') }}
+      </h3>
+      <p class="text-xs leading-relaxed" style="color: var(--text-secondary)">{{ t('riskDesc') }}</p>
+    </div>
+
+    <!-- Footer -->
+    <div class="text-center py-4">
+      <p class="text-xs" style="color: var(--text-muted)">DeTrade &copy; 2026. {{ t('allRights') }}</p>
+    </div>
+  </div>
+</div>
+
+<style>
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+</style>
+
+<script>
+const { createApp, ref, computed, reactive } = Vue;
+
+const i18n = {
+  en: {
+    inviteReward: 'Invite Rewards',
+    permanent: 'Permanent',
+    bannerTitle: 'Invite Friends, Unlock Bigger Rewards',
+    bannerDesc: 'Invite friends to join DeTrade. Earn USDT rewards as they complete milestones.',
+    totalInvited: 'friends invited',
+    totalClaimed: 'Total Claimed',
+    inviteConditions: 'Invite Conditions',
+    step1: 'Register',
+    step2: 'Deposit ≥20U',
+    step3: 'Trade ≥200U',
+    validInvites: 'Valid Invites',
+    pendingReward: 'Pending Reward',
+    progressTitle: 'Progress to Next Tier',
+    round: 'Round',
+    onlyMore: 'Only',
+    moreFriends: 'more friends to unlock',
+    bonus: 'Bonus',
+    tierRewards: 'Tier Rewards',
+    people: 'friends',
+    claim: 'Claim',
+    claimed: 'Claimed',
+    locked: 'Locked',
+    inviteFriends: 'Invite & Share',
+    inviteCode: 'Your Invite Code',
+    copyCode: 'Copy Code',
+    shareNow: 'Share & Invite Now',
+    inviteRecords: 'Invite Records',
+    all: 'All',
+    pending: 'Pending',
+    valid: 'Valid',
+    done: 'Done',
+    noRecords: 'No invite records yet',
+    rules: 'Activity Rules',
+    riskNotice: 'Risk Control Notice',
+    riskDesc: 'The platform employs multi-dimensional risk control including IP verification, wallet address checks, device fingerprinting, and behavioral analysis. Accounts identified as self-inviting, multi-accounting, or wash trading will be flagged and rewards withheld.',
+    allRights: 'All Rights Reserved',
+    claimSuccess: 'Congratulations!',
+    addedToBalance: 'has been added to your balance',
+    confirm: 'Confirm',
+    shareTitle: 'Share with Friends',
+    copy: 'Copy',
+    copyLink: 'Copy Link',
+    copied: 'Copied!',
+    codeCopied: 'Invite code copied!',
+    linkCopied: 'Invite link copied!',
+  },
+  zh: {
+    inviteReward: '邀请奖励',
+    permanent: '永久有效',
+    bannerTitle: '邀请好友，解锁更多奖励',
+    bannerDesc: '邀请好友加入 DeTrade，完成里程碑即可赚取 USDT 奖励。',
+    totalInvited: '位好友已邀请',
+    totalClaimed: '累计已领取',
+    inviteConditions: '邀请条件',
+    step1: '注册',
+    step2: '充值≥20U',
+    step3: '交易≥200U',
+    validInvites: '有效邀请',
+    pendingReward: '待领取',
+    progressTitle: '下一阶梯进度',
+    round: '轮次',
+    onlyMore: '还需邀请',
+    moreFriends: '位好友即可解锁',
+    bonus: '奖励',
+    tierRewards: '阶梯奖励',
+    people: '人',
+    claim: '领取',
+    claimed: '已领取',
+    locked: '未解锁',
+    inviteFriends: '邀请与分享',
+    inviteCode: '您的邀请码',
+    copyCode: '复制邀请码',
+    shareNow: '立即分享邀请',
+    inviteRecords: '邀请记录',
+    all: '全部',
+    pending: '待完成',
+    valid: '有效',
+    done: '完成',
+    noRecords: '暂无邀请记录',
+    rules: '活动规则',
+    riskNotice: '风控提示',
+    riskDesc: '平台采用多维度风控机制，包括 IP 校验、钱包地址核查、设备指纹识别及行为分析。对于自邀、多账号、刷单等行为将进行标记并暂停奖励发放。',
+    allRights: '版权所有',
+    claimSuccess: '恭喜您！',
+    addedToBalance: '已发放至您的账户余额',
+    confirm: '确认',
+    shareTitle: '分享给好友',
+    copy: '复制',
+    copyLink: '复制链接',
+    copied: '已复制！',
+    codeCopied: '邀请码已复制！',
+    linkCopied: '邀请链接已复制！',
+  }
+};
+
+const app = createApp({
+  setup() {
+    const lang = ref('en');
+    const isDark = ref(true);
+    const showShare = ref(false);
+    const showSuccess = ref(false);
+    const showToast = ref(false);
+    const toastMsg = ref('');
+    const claimAmount = ref(0);
+    const activeFilter = ref('all');
+
+    const t = (key) => i18n[lang.value][key] || key;
+
+    const inviteLink = ref('https://detreade.com/register?ref=DETX8K');
+
+    const stats = reactive({
+      currentValid: 5,
+      pendingReward: 30,
+      totalClaimed: 20,
+      totalInvited: 8,
+      currentRound: 1
+    });
+
+    const tiers = reactive([
+      { tier: 1, inviteCount: 1, reward: 5, status: 'claimed' },
+      { tier: 2, inviteCount: 3, reward: 15, status: 'claimed' },
+      { tier: 3, inviteCount: 5, reward: 30, status: 'claimable' },
+      { tier: 4, inviteCount: 10, reward: 70, status: 'locked' },
+      { tier: 5, inviteCount: 20, reward: 150, status: 'locked' },
+      { tier: 6, inviteCount: 50, reward: 500, status: 'locked' }
+    ]);
+
+    const nextTier = computed(() => {
+      const claimable = tiers.find(t => t.status === 'claimable');
+      if (claimable) return { ...claimable, remaining: claimable.inviteCount - stats.currentValid };
+      const next = tiers.find(t => t.status === 'locked');
+      if (next) return { ...next, remaining: next.inviteCount - stats.currentValid };
+      return { tier: 0, inviteCount: 50, reward: 500, remaining: 0 };
+    });
+
+    const progressPercent = computed(() => {
+      if (!nextTier.value.inviteCount) return 100;
+      return Math.min(100, Math.round((stats.currentValid / nextTier.value.inviteCount) * 100));
+    });
+
+    const records = reactive([
+      { uid: 10001, name: 'Alex***23', time: '2026-07-18 14:30', deposit: 50, trade: 320, status: 'valid' },
+      { uid: 10002, name: 'Mike***87', time: '2026-07-17 09:15', deposit: 100, trade: 450, status: 'valid' },
+      { uid: 10003, name: 'Sara***45', time: '2026-07-16 18:22', deposit: 30, trade: 280, status: 'valid' },
+      { uid: 10004, name: 'John***91', time: '2026-07-15 11:08', deposit: 200, trade: 1200, status: 'valid' },
+      { uid: 10005, name: 'Lisa***66', time: '2026-07-14 16:45', deposit: 25, trade: 150, status: 'valid' },
+      { uid: 10006, name: 'Tom***33', time: '2026-07-13 20:10', deposit: 80, trade: 0, status: 'pending' },
+      { uid: 10007, name: 'Emma***78', time: '2026-07-12 08:33', deposit: 10, trade: 0, status: 'pending' },
+      { uid: 10008, name: 'Jack***52', time: '2026-07-11 13:55', deposit: 0, trade: 0, status: 'pending' }
+    ]);
+
+    const recordFilters = computed(() => [
+      { label: t('all'), value: 'all' },
+      { label: t('pending'), value: 'pending' },
+      { label: t('valid'), value: 'valid' }
+    ]);
+
+    const filteredRecords = computed(() => {
+      if (activeFilter.value === 'all') return records;
+      return records.filter(r => r.status === activeFilter.value);
+    });
+
+    const rulesList = computed(() => {
+      if (lang.value === 'zh') {
+        return [
+          '好友需通过您的邀请链接注册，完成首次充值 ≥ 20 USDT，并累计真实交易额 ≥ 200 USDT，方计为有效邀请。',
+          '每达到一个阶梯即可领取对应奖励，领取后计数器归零，可继续邀请解锁下一轮奖励。',
+          '仅计算真实交易，使用体验金/赠金的交易不计入有效交易额。',
+          '充值和交易需在好友注册后 30 天内完成。',
+          '同一 IP、同一钱包地址、同一设备视为同一用户，不重复计算。',
+          '奖励发放至账户余额，可直接用于交易或提现。'
+        ];
+      }
+      return [
+        'A friend must register via your invite link, complete a first deposit of ≥ 20 USDT, and accumulate real trading volume of ≥ 200 USDT to count as a valid invite.',
+        'Each tier reward can be claimed once the threshold is met. After claiming, the counter resets to zero and you can continue inviting to unlock the next round.',
+        'Only real trades count. Trades using bonus/demo funds do not count toward the trading volume requirement.',
+        'Deposit and trading must be completed within 30 days of the friend\'s registration.',
+        'Same IP, same wallet address, or same device are treated as the same user and will not be counted multiple times.',
+        'Rewards are credited to your account balance and can be used for trading or withdrawal immediately.'
+      ];
+    });
+
+    const statusClass = (status) => {
+      const map = { valid: 'tag-valid', pending: 'tag-pending', reviewing: 'tag-reviewing', invalid: 'tag-invalid' };
+      return map[status] || 'tag-pending';
+    };
+
+    const statusText = (status) => {
+      const map = {
+        valid: { en: 'Valid', zh: '有效' },
+        pending: { en: 'Pending', zh: '待完成' },
+        reviewing: { en: 'Reviewing', zh: '审核中' },
+        invalid: { en: 'Invalid', zh: '无效' }
+      };
+      return (map[status] || map.pending)[lang.value];
+    };
+
+    const toggleLang = () => { lang.value = lang.value === 'en' ? 'zh' : 'en'; };
+    const toggleTheme = () => { isDark.value = !isDark.value; };
+    const goBack = () => { showToastMsg('Navigate back'); };
+
+    const showToastMsg = (msg) => {
+      toastMsg.value = msg;
+      showToast.value = true;
+      setTimeout(() => { showToast.value = false; }, 1500);
+    };
+
+    const copyLink = () => {
+      navigator.clipboard?.writeText(inviteLink.value);
+      showToastMsg(t('linkCopied'));
+    };
+
+    const copyCode = () => {
+      navigator.clipboard?.writeText('DETX8K');
+      showToastMsg(t('codeCopied'));
+    };
+
+    const claimReward = (tier) => {
+      claimAmount.value = tier.reward;
+      tier.status = 'claimed';
+      stats.totalClaimed += tier.reward;
+      stats.pendingReward = 0;
+      stats.currentValid = 0;
+      stats.currentRound += 1;
+      // Reset tiers for next round
+      tiers.forEach(t => {
+        if (t.status !== 'claimed') {
+          t.status = 'locked';
+        }
+      });
+      // Find next claimable
+      const nextClaimable = tiers.find(t => t.status === 'locked');
+      if (nextClaimable) {
+        // Will become claimable when enough invites
+      }
+      showSuccess.value = true;
+    };
+
+    const shareAction = (platform) => {
+      const text = `Join me on DeTrade! Use my link to get started: ${inviteLink.value}`;
+      const urls = {
+        whatsapp: `https://wa.me/?text=${encodeURIComponent(text)}`,
+        telegram: `https://t.me/share/url?url=${encodeURIComponent(inviteLink.value)}&text=${encodeURIComponent(text)}`,
+        twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`
+      };
+      if (urls[platform]) window.open(urls[platform], '_blank');
+    };
+
+    return {
+      lang, isDark, t,
+      showShare, showSuccess, showToast, toastMsg, claimAmount,
+      inviteLink, stats, tiers, nextTier, progressPercent,
+      records, activeFilter, recordFilters, filteredRecords,
+      rulesList, statusClass, statusText,
+      toggleLang, toggleTheme, goBack,
+      copyLink, copyCode, claimReward, shareAction
+    };
+  }
+});
+
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+</body>
+</html>
