@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Copy Trading 运营指南</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:#f5f6fa;color:#1d1d1f;line-height:1.75;font-size:14px}
+.doc{max-width:960px;margin:0 auto;padding:32px 24px}
+.doc-header{background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);color:#fff;padding:48px 44px;border-radius:14px;margin-bottom:36px;position:relative;overflow:hidden}
+.doc-header::after{content:'';position:absolute;top:-40%;right:-10%;width:300px;height:300px;border-radius:50%;background:rgba(59,130,246,0.08)}
+.doc-header h1{font-size:26px;font-weight:700;margin-bottom:6px;position:relative;z-index:1}
+.doc-header .subtitle{font-size:15px;color:rgba(255,255,255,.6);position:relative;z-index:1}
+.doc-meta{display:flex;gap:28px;margin-top:18px;font-size:12px;color:rgba(255,255,255,.45);position:relative;z-index:1}
+.sec{background:#fff;border-radius:10px;padding:32px 36px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.sec h2{font-size:18px;font-weight:700;color:#0f172a;margin-bottom:18px;padding-bottom:10px;border-bottom:2px solid #e2e8f0;display:flex;align-items:center;gap:8px}
+.sec h2 .num{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:6px;background:#3b82f6;color:#fff;font-size:13px;font-weight:700}
+.sec h3{font-size:15px;font-weight:600;color:#334155;margin:22px 0 10px}
+.sec h4{font-size:14px;font-weight:600;color:#475569;margin:16px 0 8px}
+.sec p{color:#475569;margin-bottom:10px}
+table{width:100%;border-collapse:collapse;margin:14px 0 18px;font-size:13px}
+th{background:#f8fafc;padding:10px 14px;text-align:left;font-weight:600;color:#475569;border-bottom:2px solid #e2e8f0;white-space:nowrap}
+td{padding:9px 14px;border-bottom:1px solid #f1f5f9;color:#334155;vertical-align:top}
+tr:hover td{background:#fafbfd}
+td:first-child{font-weight:500;color:#1e293b}
+.tag{display:inline-block;padding:2px 10px;border-radius:4px;font-size:11px;font-weight:600;white-space:nowrap}
+.tag-blue{background:#eff6ff;color:#2563eb}
+.tag-green{background:#f0fdf4;color:#16a34a}
+.tag-orange{background:#fffbeb;color:#d97706}
+.tag-red{background:#fef2f2;color:#dc2626}
+.tag-gray{background:#f1f5f9;color:#64748b}
+.tag-purple{background:#faf5ff;color:#9333ea}
+.callout{border-radius:8px;padding:14px 18px;margin:14px 0;font-size:13px}
+.callout-info{background:#eff6ff;border-left:3px solid #3b82f6;color:#1e40af}
+.callout-warn{background:#fffbeb;border-left:3px solid #f59e0b;color:#92400e}
+.callout-note{background:#f8fafc;border-left:3px solid #94a3b8;color:#475569}
+.callout-success{background:#f0fdf4;border-left:3px solid #22c55e;color:#166534}
+.callout strong{font-weight:600}
+.flow{display:flex;gap:0;margin:16px 0;flex-wrap:wrap}
+.flow-step{flex:1;min-width:140px;position:relative;text-align:center;padding:16px 12px}
+.flow-step .step-num{width:32px;height:32px;border-radius:50%;background:#3b82f6;color:#fff;font-size:14px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;margin-bottom:8px}
+.flow-step .step-title{font-size:13px;font-weight:600;color:#1e293b;margin-bottom:4px}
+.flow-step .step-desc{font-size:12px;color:#64748b}
+.flow-step:not(:last-child)::after{content:'';position:absolute;top:30px;right:-8px;width:16px;height:2px;background:#cbd5e1}
+.toc{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:20px 28px;margin-bottom:24px}
+.toc h3{font-size:14px;font-weight:700;color:#0f172a;margin-bottom:10px}
+.toc ol{padding-left:20px}
+.toc li{font-size:13px;color:#3b82f6;margin-bottom:4px}
+.toc li a{color:inherit;text-decoration:none}
+.toc li a:hover{color:#1d4ed8;text-decoration:underline}
+.screenshot{background:#f1f5f9;border:1px solid #e2e8f0;border-radius:8px;padding:12px;margin:12px 0;text-align:center}
+.screenshot img{max-width:100%;border-radius:4px}
+.screenshot .caption{font-size:12px;color:#64748b;margin-top:8px}
+.page-map{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
+.page-card{border:1px solid #e2e8f0;border-radius:8px;padding:14px 16px}
+.page-card .url{font-size:11px;color:#3b82f6;font-family:monospace;margin-bottom:4px}
+.page-card .desc{font-size:13px;color:#334155}
+.page-card .title{font-size:13px;font-weight:600;color:#0f172a;margin-bottom:4px}
+.kbd{display:inline-block;padding:1px 6px;border-radius:3px;background:#f1f5f9;border:1px solid #e2e8f0;font-size:12px;font-family:monospace;color:#475569}
+@media(max-width:640px){
+  .doc{padding:16px 10px}
+  .sec{padding:20px 18px}
+  .doc-header{padding:32px 24px}
+  .flow{flex-direction:column}
+  .flow-step::after{display:none}
+  .page-map{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<!-- Header -->
+<div class="doc-header">
+<h1>Copy Trading 运营指南</h1>
+<div class="subtitle">面向运营团队的产品操作与业务逻辑说明</div>
+<div class="doc-meta">
+<span>Detrade Platform</span>
+<span>|</span>
+<span>内部文档</span>
+<span>|</span>
+<span>v1.0</span>
+<span>|</span>
+<span>2026-07-28</span>
+</div>
+</div>
+
+<!-- TOC -->
+<div class="toc">
+<h3>目录</h3>
+<ol>
+<li><a href="#s1">产品架构与页面地图</a></li>
+<li><a href="#s2">四种交易玩法差异</a></li>
+<li><a href="#s3">交易员（Lead Trader）侧功能</a></li>
+<li><a href="#s4">跟单员（Copy Trader）侧功能</a></li>
+<li><a href="#s5">跟单参数配置详解</a></li>
+<li><a href="#s6">分润机制与结算</a></li>
+<li><a href="#s7">My Lead 交易员管理面板</a></li>
+<li><a href="#s8">Copy Overview 跟单组合管理</a></li>
+<li><a href="#s9">运营关注指标与数据看板</a></li>
+<li><a href="#s10">常见运营场景处理</a></li>
+</ol>
+</div>
+
+<!-- ==================== 1 ==================== -->
+<div class="sec" id="s1">
+<h2><span class="num">1</span>产品架构与页面地图</h2>
+<p>Copy Trading 功能位于导航栏 <kbd>Copy Trade</kbd> 入口，入口 URL 为 <code>/dashboard/copy-trading</code>。整体页面结构如下：</p>
+
+<div class="page-map">
+<div class="page-card">
+<div class="title">主列表页</div>
+<div class="url">/dashboard/copy-trading</div>
+<div class="desc">展示所有交易员卡片，支持搜索、排序。顶部切换四种玩法，内部切换 Lead Trader / Copy Trader 视图。</div>
+</div>
+<div class="page-card">
+<div class="title">My Lead 面板</div>
+<div class="url">/dashboard/copy-trading/my-lead</div>
+<div class="desc">交易员查看自己的跟单数据、收益、分润比例设置、跟随者列表。</div>
+</div>
+<div class="page-card">
+<div class="title">Copy Overview 组合</div>
+<div class="url">/dashboard/copy-trading/portfolios</div>
+<div class="desc">跟单员查看自己跟随的交易员组合、已实现/未实现盈亏、今日收益。</div>
+</div>
+<div class="page-card">
+<div class="title">Copy Settings 弹窗</div>
+<div class="url">弹窗（无独立 URL）</div>
+<div class="desc">跟单员点击 "Copy Trade" 按钮后弹出，配置杠杆、金额、止损等参数。</div>
+</div>
+</div>
+
+<div class="callout callout-info">
+<strong>页面入口逻辑：</strong>用户在主列表页通过顶部 Tab 切换玩法（Futures / Spread / High Low / Up Down），通过内部 Tab 切换身份视图（Lead Trader / Copy Trader）。不同玩法的 URL 通过 <code>?tradeType=</code> 参数区分（CONTRACT / SPREAD / HIGHLOW / UPDOWN）。
+</div>
+</div>
+
+<!-- ==================== 2 ==================== -->
+<div class="sec" id="s2">
+<h2><span class="num">2</span>四种交易玩法差异</h2>
+<p>平台支持 4 种交易玩法的跟单，每种玩法独立运作。运营需注意它们之间的关键差异：</p>
+
+<table>
+<tr><th>维度</th><th><span class="tag tag-blue">Futures</span></th><th><span class="tag tag-orange">Spread</span></th><th><span class="tag tag-orange">High Low</span></th><th><span class="tag tag-orange">Up Down</span></th></tr>
+<tr><td>类型</td><td>合约交易</td><td>价差预测</td><td>高低预测</td><td>涨跌预测</td></tr>
+<tr><td>分润比例范围</td><td>1% — 15%</td><td>1% — 5%</td><td>1% — 5%</td><td>1% — 5%</td></tr>
+<tr><td>默认分润</td><td>5%</td><td>2.5%</td><td>2.5%</td><td>2.5%</td></tr>
+<tr><td>杠杆支持</td><td>支持（跟随/固定）</td><td>不适用</td><td>不适用</td><td>不适用</td></tr>
+<tr><td>止损机制</td><td>支持（按单笔订单止损）</td><td>支持（按总跟单金额止损）</td><td>支持（按总跟单金额止损）</td><td>支持（按总跟单金额止损）</td></tr>
+<tr><td>交易员申请</td><td>独立申请</td><td>独立申请</td><td>独立申请</td><td>独立申请</td></tr>
+<tr><td>最大跟单员数</td><td>400</td><td>400</td><td>400</td><td>400</td></tr>
+<tr><td>结算币种</td><td>USDT</td><td>USDT</td><td>USDT</td><td>USDT</td></tr>
+</table>
+
+<div class="callout callout-warn">
+<strong>运营注意：</strong>四种玩法的交易员身份完全独立。一个用户可以在 Futures 中是交易员（12% 分润），同时在 Spread 中是普通用户。推广时需按玩法分别引导。
+</div>
+
+<h3>2.1 页面状态差异</h3>
+<table>
+<tr><th>用户状态</th><th>Futures（已有交易员身份）</th><th>Spread / High Low / Up Down（未申请）</th></tr>
+<tr><td>顶部显示</td><td>Lead Trader / Copy Trader 子 Tab</td><td>招募 Banner："Be a [玩法] Lead Trader, enjoy up to 30% profit share"</td></tr>
+<tr><td>操作按钮</td><td>My Lead + Trade</td><td>Apply Now + Copy Overview</td></tr>
+<tr><td>列表内容</td><td>展示所有已审核通过的交易员卡片</td><td>展示该玩法已审核的交易员卡片（如有）</td></tr>
+</table>
+</div>
+
+<!-- ==================== 3 ==================== -->
+<div class="sec" id="s3">
+<h2><span class="num">3</span>交易员（Lead Trader）侧功能</h2>
+
+<h3>3.1 Lead Trader 视图</h3>
+<p>当用户已拥有某玩法的交易员身份时，主列表页显示 <strong>Lead Trader</strong> 和 <strong>Copy Trader</strong> 两个子 Tab。Lead Trader 视图展示所有可供跟单的交易员卡片。</p>
+
+<h4>交易员卡片信息</h4>
+<table>
+<tr><th>字段</th><th>说明</th><th>示例</th></tr>
+<tr><td>Trader ID</td><td>脱敏的钱包地址或用户名</td><td>YdkKE7 1184****3673</td></tr>
+<tr><td>30 Days PnL (USDT)</td><td>近 30 天累计盈亏</td><td>1,976.988</td></tr>
+<tr><td>ROI</td><td>近 30 天投资回报率</td><td>43.29%</td></tr>
+<tr><td>Copy Traders</td><td>当前跟单人数 / 最大上限</td><td>0 / 400</td></tr>
+<tr><td>30 Days MDD</td><td>近 30 天最大回撤</td><td>-275.59</td></tr>
+<tr><td>Days Leading Trading</td><td>担任交易员的天数</td><td>28</td></tr>
+</table>
+
+<h4>排序与筛选</h4>
+<table>
+<tr><th>控件</th><th>选项</th><th>说明</th></tr>
+<tr><td>时间周期</td><td>30 Day（默认）</td><td>下拉选择，决定 PnL 和 ROI 的统计窗口</td></tr>
+<tr><td>排序维度</td><td>PnL（默认）</td><td>可按 PnL 或 ROI 排序</td></tr>
+<tr><td>搜索</td><td>Search traders</td><td>按交易员 ID 搜索</td></tr>
+</table>
+
+<h3>3.2 My Lead 管理面板</h3>
+<p>点击 <strong>My Lead</strong> 按钮进入交易员自己的管理面板，URL 为 <code>/dashboard/copy-trading/my-lead?tradeType=CONTRACT</code>。</p>
+
+<h4>面板内容</h4>
+<table>
+<tr><th>区域</th><th>字段</th><th>说明</th></tr>
+<tr><td rowspan="4">交易员信息卡</td><td>Trader ID</td><td>当前用户的脱敏 ID</td></tr>
+<tr><td>Days Trading</td><td>担任交易员的天数</td></tr>
+<tr><td>Copiers</td><td>当前跟单人数 / 上限（如 0 / 400）</td></tr>
+<tr><td>操作按钮</td><td>Trade（跳转交易中心）、Close（关闭交易员身份）</td></tr>
+<tr><td rowspan="4">收益统计</td><td>Copying Trading (USDT)</td><td>当前所有跟单员的总跟单金额</td></tr>
+<tr><td>Profit Sharing</td><td>当前分润比例（如 12%）</td></tr>
+<tr><td>Today's Earnings (USDT)</td><td>今日分润收益</td></tr>
+<tr><td>Net Profit (USDT)</td><td>累计净收益</td></tr>
+<tr><td>Follow List 表格</td><td colspan="2">列出所有跟单员：Username / Amount(USDT) / Total PnL(USDT) / Net Profit (USDT) / Count</td></tr>
+</table>
+
+<h4>Profit Sharing Ratio 设置</h4>
+<p>点击 <strong>Profit Sharing Ratio</strong> 按钮弹出设置弹窗：</p>
+<ul style="padding-left:20px;color:#475569;margin:8px 0">
+<li>输入框显示当前分润比例（如 12）</li>
+<li>修改后点击 Save 保存</li>
+<li>Futures 范围：1% — 15%</li>
+<li>Spread / High Low / Up Down 范围：1% — 5%</li>
+</ul>
+
+<div class="callout callout-warn">
+<strong>运营注意：</strong>交易员可以随时调整自己的分润比例。调整后立即生效，已建立的跟单关系不会受影响（跟单员不会因分润变化被自动解除）。
+</div>
+</div>
+
+<!-- ==================== 4 ==================== -->
+<div class="sec" id="s4">
+<h2><span class="num">4</span>跟单员（Copy Trader）侧功能</h2>
+
+<h3>4.1 Copy Trader 视图</h3>
+<p>切换到 <strong>Copy Trader</strong> 子 Tab 后，页面展示所有可供跟随的交易员列表。顶部汇总信息变更为：</p>
+<ul style="padding-left:20px;color:#475569;margin:8px 0">
+<li><strong>Total Copying PnL</strong>：当前所有跟单仓位的总盈亏</li>
+<li><strong>Total Unrealized PnL</strong>：未实现盈亏</li>
+<li><strong>Copy Overview</strong> 按钮：跳转跟单组合管理页</li>
+</ul>
+
+<h3>4.2 发起跟单流程</h3>
+<div class="flow">
+<div class="flow-step">
+<div class="step-num">1</div>
+<div class="step-title">浏览交易员</div>
+<div class="step-desc">在列表中查看交易员卡片，了解 PnL / ROI / MDD</div>
+</div>
+<div class="flow-step">
+<div class="step-num">2</div>
+<div class="step-title">点击 Copy Trade</div>
+<div class="step-desc">弹出 Copy Settings 配置弹窗</div>
+</div>
+<div class="flow-step">
+<div class="step-num">3</div>
+<div class="step-title">配置参数</div>
+<div class="step-desc">设置杠杆、金额、止损等</div>
+</div>
+<div class="flow-step">
+<div class="step-num">4</div>
+<div class="step-title">确认跟单</div>
+<div class="step-desc">点击 Copy Trade 按钮确认</div>
+</div>
+</div>
+
+<h3>4.3 Copy Overview 组合管理</h3>
+<p>URL：<code>/dashboard/copy-trading/portfolios?tradeType=CONTRACT</code></p>
+
+<table>
+<tr><th>区域</th><th>字段</th><th>说明</th></tr>
+<tr><td rowspan="2">子 Tab</td><td>Ongoing</td><td>进行中的跟单仓位</td></tr>
+<tr><td>Closed</td><td>已关闭的跟单仓位</td></tr>
+<tr><td rowspan="4">汇总统计</td><td>Total Copying Balance (USDT)</td><td>当前总跟单余额</td></tr>
+<tr><td>Total Realized PnL (USDT)</td><td>已实现总盈亏</td></tr>
+<tr><td>Total Today's PnL (USDT)</td><td>今日盈亏</td></tr>
+<tr><td>Net Profit (USDT)</td><td>净收益（扣除分润后）</td></tr>
+</table>
+</div>
+
+<!-- ==================== 5 ==================== -->
+<div class="sec" id="s5">
+<h2><span class="num">5</span>跟单参数配置详解</h2>
+<p>跟单员点击交易员卡片上的 "Copy Trade" 按钮后，弹出 <strong>Copy Settings</strong> 弹窗。以下是各参数说明：</p>
+
+<table>
+<tr><th style="width:200px">参数</th><th>说明</th><th>默认值</th><th>约束</th></tr>
+<tr><td><strong>Leverage（杠杆）</strong></td><td>下拉选择，两个选项：<br>① <strong>Copy Leader Trader's Leverage</strong>：跟随交易员使用的杠杆倍数<br>② <strong>Fixed Leverage</strong>：固定杠杆倍数（跟单员自行设定）</td><td>Copy Leader Trader's Leverage</td><td>仅 Futures 玩法有此参数</td></tr>
+<tr><td><strong>Latest Cost Per Order</strong></td><td>每笔跟单的最大金额（USDT）。交易员每次下单时，系统按此金额为跟单员同步下单。</td><td>1</td><td>正数，需账户余额充足</td></tr>
+<tr><td><strong>Latest Copy Amount</strong></td><td>跟单总金额上限。当累计跟单金额达到此值后停止跟单。</td><td>100</td><td>正数，需 ≥ Cost Per Order</td></tr>
+<tr><td><strong>Currency</strong></td><td>跟单结算币种</td><td>USDT</td><td>当前仅支持 USDT</td></tr>
+<tr><td><strong>Trading Amount Limit Note</strong></td><td>勾选后，当跟单金额接近限制时发送提醒通知</td><td>勾选</td><td>可选</td></tr>
+<tr><td><strong>Stop Loss Ratio</strong></td><td>止损比例（%）。<br><strong>Futures</strong>：按单笔订单计算，当某笔订单亏损达到此比例时，自动平掉该笔订单。<br><strong>Spread / High Low / Up Down</strong>：按总跟单金额计算，当累计亏损达到总跟单金额的此比例时，停止跟单并触发止损。</td><td>50</td><td>0 — 90 之间的整数</td></tr>
+</table>
+
+<div class="callout callout-info">
+<strong>关键业务逻辑：</strong>
+<ul style="padding-left:16px;margin-top:6px">
+<li>杠杆选择"跟随交易员"时，交易员调整杠杆后跟单员自动同步；选择"固定杠杆"则不受交易员影响。</li>
+<li>止损机制因玩法不同：<strong>Futures</strong> 按单笔订单止损（某笔订单亏损达到比例时平仓该笔）；<strong>Spread / High Low / Up Down</strong> 按总跟单金额止损（累计亏损达到总跟单金额的比例时，停止跟单并触发止损）。</li>
+<li>Stop Loss Ratio 的验证规则：必须在 0-90% 之间，超出范围提交时提示 "Stop-loss ratio must be between 0-90%"。</li>
+</ul>
+</div>
+</div>
+
+<!-- ==================== 6 ==================== -->
+<div class="sec" id="s6">
+<h2><span class="num">6</span>分润机制与结算</h2>
+
+<h3>6.1 分润计算逻辑</h3>
+<table>
+<tr><th>场景</th><th>计算方式</th><th>示例</th></tr>
+<tr><td>跟单员盈利</td><td>交易员从跟单员的盈利中按比例抽取分润</td><td>跟单员盈利 100 USDT，分润 12%→ 交易员获得 12 USDT，跟单员获得 88 USDT</td></tr>
+<tr><td>跟单员亏损</td><td>无分润。交易员不从跟单员的亏损中获得任何收益。</td><td>跟单员亏损 50 USDT → 交易员获得 0</td></tr>
+</table>
+
+<h3>6.2 分润比例设置</h3>
+<table>
+<tr><th>玩法</th><th>范围</th><th>默认值</th><th>修改方式</th></tr>
+<tr><td>Futures</td><td>1% — 15%</td><td>5%</td><td>交易员在 My Lead 面板点击 "Profit Sharing Ratio" 修改</td></tr>
+<tr><td>Spread</td><td>1% — 5%</td><td>2.5%</td><td>同上</td></tr>
+<tr><td>High Low</td><td>1% — 5%</td><td>2.5%</td><td>同上</td></tr>
+<tr><td>Up Down</td><td>1% — 5%</td><td>2.5%</td><td>同上</td></tr>
+</table>
+
+<div class="callout callout-success">
+<strong>运营要点：</strong>分润比例由交易员自行设定，平台不干预。较高的分润比例可能吸引更多优质交易员申请，但也可能降低跟单员的跟随意愿。运营可通过活动引导交易员设置合理的分润比例。
+</div>
+</div>
+
+<!-- ==================== 7 ==================== -->
+<div class="sec" id="s7">
+<h2><span class="num">7</span>My Lead 交易员管理面板</h2>
+
+<h3>7.1 页面功能总结</h3>
+<table>
+<tr><th>功能</th><th>操作</th><th>说明</th></tr>
+<tr><td>查看跟单数据</td><td>进入 My Lead 页面</td><td>查看跟随自己的所有跟单员及其盈亏数据</td></tr>
+<tr><td>调整分润比例</td><td>点击 "Profit Sharing Ratio"</td><td>修改分润比例，立即生效</td></tr>
+<tr><td>跳转交易</td><td>点击 "Trade"</td><td>跳转到对应玩法的交易中心</td></tr>
+<tr><td>关闭交易员身份</td><td>点击 "Close"</td><td>关闭后不再接受新的跟单，已有仓位继续运行至关闭</td></tr>
+</table>
+
+<h3>7.2 Follow List 表格字段</h3>
+<table>
+<tr><th>字段</th><th>说明</th></tr>
+<tr><td>Username</td><td>跟单员的用户名（脱敏显示）</td></tr>
+<tr><td>Amount (USDT)</td><td>该跟单员当前的跟单金额</td></tr>
+<tr><td>Total PnL (USDT)</td><td>该跟单员产生的总盈亏</td></tr>
+<tr><td>Net Profit (USDT)</td><td>交易员从该跟单员获得的净分润收益</td></tr>
+<tr><td>Count</td><td>该跟单员的跟单笔数</td></tr>
+</table>
+</div>
+
+<!-- ==================== 8 ==================== -->
+<div class="sec" id="s8">
+<h2><span class="num">8</span>Copy Overview 跟单组合管理</h2>
+
+<h3>8.1 页面功能</h3>
+<p>跟单员通过主列表页的 "Copy Overview" 按钮进入此页面，管理自己所有的跟单仓位。</p>
+
+<table>
+<tr><th>功能</th><th>说明</th></tr>
+<tr><td>Ongoing Tab</td><td>查看当前正在运行的跟单仓位</td></tr>
+<tr><td>Closed Tab</td><td>查看已关闭（止盈/止损/手动关闭）的跟单仓位</td></tr>
+<tr><td>汇总统计</td><td>总跟单余额、已实现盈亏、今日盈亏、净收益</td></tr>
+</table>
+
+<h3>8.2 数据字段说明</h3>
+<table>
+<tr><th>字段</th><th>计算逻辑</th></tr>
+<tr><td>Total Copying Balance</td><td>所有进行中跟单的剩余金额之和</td></tr>
+<tr><td>Total Realized PnL</td><td>所有已关闭跟单的累计盈亏</td></tr>
+<tr><td>Total Today's PnL</td><td>今日所有跟单（含进行中 + 已关闭）的盈亏</td></tr>
+<tr><td>Net Profit</td><td>扣除分润后的净收益</td></tr>
+</table>
+</div>
+
+<!-- ==================== 9 ==================== -->
+<div class="sec" id="s9">
+<h2><span class="num">9</span>运营关注指标与数据看板</h2>
+
+<h3>9.1 核心运营指标</h3>
+<table>
+<tr><th>指标</th><th>定义</th><th>关注频率</th><th>健康阈值</th></tr>
+<tr><td>活跃交易员数</td><td>当前有跟单者的交易员数量</td><td>日</td><td>持续增长</td></tr>
+<tr><td>活跃跟单员数</td><td>当前有进行中跟单的用戶数</td><td>日</td><td>持续增长</td></tr>
+<tr><td>总跟单余额</td><td>所有进行中跟单的总金额</td><td>日</td><td>稳定或增长</td></tr>
+<tr><td>平均 ROI</td><td>所有交易员的平均 30 天 ROI</td><td>周</td><td>> 0</td></tr>
+<tr><td>平均 MDD</td><td>所有交易员的平均 30 天最大回撤</td><td>周</td><td>绝对值 < 30%</td></tr>
+<tr><td>分润收入</td><td>平台从分润中获得的收入（如有平台分成）</td><td>月</td><td>—</td></tr>
+<tr><td>跟单员留存率</td><td>30 天后仍在跟单的用戶比例</td><td>月</td><td>> 50%</td></tr>
+</table>
+
+<h3>9.2 交易员卡片指标解读</h3>
+<table>
+<tr><th>指标</th><th>对跟单员的意义</th><th>运营关注点</th></tr>
+<tr><td>30 Days PnL</td><td>近期盈利能力</td><td>负值过多说明交易员质量下降</td></tr>
+<tr><td>ROI</td><td>投资回报效率</td><td>异常高 ROI 可能是高风险策略</td></tr>
+<tr><td>Copy Traders (n/400)</td><td>受欢迎程度</td><td>接近 400 上限的交易员需要关注服务质量</td></tr>
+<tr><td>30 Days MDD</td><td>风险水平</td><td>负值过大（如 < -500）需预警</td></tr>
+<tr><td>Days Leading Trading</td><td>经验水平</td><td>天数过短（< 7）的交易员需关注稳定性</td></tr>
+</table>
+</div>
+
+<!-- ==================== 10 ==================== -->
+<div class="sec" id="s10">
+<h2><span class="num">10</span>常见运营场景处理</h2>
+
+<h3>场景 1：用户反馈跟单未同步</h3>
+<table>
+<tr><th style="width:120px">排查步骤</th><th>操作</th></tr>
+<tr><td>1. 确认身份</td><td>确认用户是跟单员还是交易员，在哪种玩法下</td></tr>
+<tr><td>2. 检查仓位</td><td>在 Copy Overview → Ongoing 中查看是否有进行中的跟单</td></tr>
+<tr><td>3. 检查余额</td><td>确认跟单员账户余额是否充足（≥ Cost Per Order）</td></tr>
+<tr><td>4. 检查限额</td><td>确认 Copy Amount 上限是否已用完</td></tr>
+<tr><td>5. 检查止损</td><td>Futures：确认是否有单笔订单触发止损平仓；Spread/HighLow/UpDown：确认累计亏损是否达到总跟单金额的止损比例，触发后系统会停止跟单</td></tr>
+</table>
+
+<h3>场景 2：交易员想调整分润比例</h3>
+<p>引导路径：<kbd>Copy Trade</kbd> → <kbd>Futures</kbd>（对应玩法） → <kbd>Lead Trader</kbd> → <kbd>My Lead</kbd> → <kbd>Profit Sharing Ratio</kbd></p>
+<ul style="padding-left:20px;color:#475569;margin:8px 0">
+<li>Futures 范围：1% — 15%</li>
+<li>Spread / High Low / Up Down 范围：1% — 5%</li>
+<li>修改后立即生效，已有跟单关系不受影响</li>
+</ul>
+
+<h3>场景 3：用户想成为交易员</h3>
+<p>引导路径：</p>
+<ul style="padding-left:20px;color:#475569;margin:8px 0">
+<li>进入对应玩法 Tab（如 Spread）</li>
+<li>点击 Banner 上的 "Apply Now" 按钮</li>
+<li>提交申请后等待平台审核</li>
+<li>审核通过后即可在 Lead Trader 视图中展示自己的交易数据</li>
+</ul>
+
+<h3>场景 4：用户想停止跟单</h3>
+<p>引导路径：<kbd>Copy Trade</kbd> → <kbd>Copy Overview</kbd> → <kbd>Ongoing</kbd> → 选择对应仓位关闭</p>
+<ul style="padding-left:20px;color:#475569;margin:8px 0">
+<li>关闭后仓位结算，已实现盈亏计入 Total Realized PnL</li>
+<li>分润仅对盈利部分收取，亏损不产生分润</li>
+</ul>
+
+<h3>场景 5：交易员想关闭交易员身份</h3>
+<p>引导路径：<kbd>Copy Trade</kbd> → <kbd>My Lead</kbd> → <kbd>Close</kbd></p>
+<ul style="padding-left:20px;color:#475569;margin:8px 0">
+<li>关闭后不再接受新的跟单</li>
+<li>已有仓位继续运行至自然关闭或止损触发</li>
+<li>关闭后可以重新申请成为交易员</li>
+</ul>
+
+<div class="callout callout-note">
+<strong>文档维护说明：</strong>本文档基于 2026-07-28 的平台实际体验编写。如产品功能有更新，请及时同步修改对应章节。如有疑问请联系产品团队。
+</div>
+</div>
+
+<div style="text-align:center;padding:20px;font-size:12px;color:#94a3b8">
+Detrade Copy Trading 运营指南 | 内部文档 | v1.0 | 2026-07-28
+</div>
+
+</div>
+</body>
+</html>

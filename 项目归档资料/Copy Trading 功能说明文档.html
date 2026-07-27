@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Copy Trading 功能说明文档</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:#f5f6fa;color:#1d1d1f;line-height:1.75;font-size:14px}
+.doc{max-width:920px;margin:0 auto;padding:32px 24px}
+
+/* Header */
+.doc-header{background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);color:#fff;padding:48px 44px;border-radius:14px;margin-bottom:36px;position:relative;overflow:hidden}
+.doc-header::after{content:'';position:absolute;top:-40%;right:-10%;width:300px;height:300px;border-radius:50%;background:rgba(59,130,246,0.08)}
+.doc-header h1{font-size:26px;font-weight:700;margin-bottom:6px;position:relative;z-index:1}
+.doc-header .subtitle{font-size:15px;color:rgba(255,255,255,.6);position:relative;z-index:1}
+.doc-meta{display:flex;gap:28px;margin-top:18px;font-size:12px;color:rgba(255,255,255,.45);position:relative;z-index:1}
+.doc-meta span{display:flex;align-items:center;gap:4px}
+
+/* Section */
+.sec{background:#fff;border-radius:10px;padding:32px 36px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.sec h2{font-size:18px;font-weight:700;color:#0f172a;margin-bottom:18px;padding-bottom:10px;border-bottom:2px solid #e2e8f0;display:flex;align-items:center;gap:8px}
+.sec h2 .num{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:6px;background:#3b82f6;color:#fff;font-size:13px;font-weight:700}
+.sec h3{font-size:15px;font-weight:600;color:#334155;margin:22px 0 10px}
+.sec p{color:#475569;margin-bottom:10px}
+
+/* Table */
+table{width:100%;border-collapse:collapse;margin:14px 0 18px;font-size:13px}
+th{background:#f8fafc;padding:10px 14px;text-align:left;font-weight:600;color:#475569;border-bottom:2px solid #e2e8f0;white-space:nowrap}
+td{padding:9px 14px;border-bottom:1px solid #f1f5f9;color:#334155;vertical-align:top}
+tr:hover td{background:#fafbfd}
+td:first-child{font-weight:500;color:#1e293b}
+
+/* Tags */
+.tag{display:inline-block;padding:2px 10px;border-radius:4px;font-size:11px;font-weight:600;white-space:nowrap}
+.tag-blue{background:#eff6ff;color:#2563eb}
+.tag-green{background:#f0fdf4;color:#16a34a}
+.tag-orange{background:#fffbeb;color:#d97706}
+.tag-red{background:#fef2f2;color:#dc2626}
+.tag-gray{background:#f1f5f9;color:#64748b}
+.tag-purple{background:#faf5ff;color:#9333ea}
+
+/* Callout */
+.callout{border-radius:8px;padding:14px 18px;margin:14px 0;font-size:13px}
+.callout-info{background:#eff6ff;border-left:3px solid #3b82f6;color:#1e40af}
+.callout-warn{background:#fffbeb;border-left:3px solid #f59e0b;color:#92400e}
+.callout-note{background:#f8fafc;border-left:3px solid #94a3b8;color:#475569}
+.callout strong{font-weight:600}
+
+/* Param Card */
+.param-card{border:1px solid #e2e8f0;border-radius:10px;padding:20px 24px;margin:14px 0}
+.param-card .card-title{font-size:14px;font-weight:700;color:#0f172a;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.param-card .card-title .icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff}
+
+/* Flow */
+.flow{display:flex;gap:0;margin:16px 0;flex-wrap:wrap}
+.flow-step{flex:1;min-width:140px;position:relative;text-align:center;padding:16px 12px}
+.flow-step .step-num{width:32px;height:32px;border-radius:50%;background:#3b82f6;color:#fff;font-size:14px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;margin-bottom:8px}
+.flow-step .step-title{font-size:13px;font-weight:600;color:#1e293b;margin-bottom:4px}
+.flow-step .step-desc{font-size:12px;color:#64748b}
+.flow-step:not(:last-child)::after{content:'';position:absolute;top:30px;right:-8px;width:16px;height:2px;background:#cbd5e1}
+
+/* TOC */
+.toc{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:20px 28px;margin-bottom:24px}
+.toc h3{font-size:14px;font-weight:700;color:#0f172a;margin-bottom:10px}
+.toc ol{padding-left:20px}
+.toc li{font-size:13px;color:#3b82f6;margin-bottom:4px;cursor:pointer}
+.toc li:hover{color:#1d4ed8;text-decoration:underline}
+
+/* Footer */
+.doc-footer{text-align:center;padding:20px;font-size:12px;color:#94a3b8}
+
+@media(max-width:640px){
+  .doc{padding:16px 10px}
+  .sec{padding:20px 18px}
+  .doc-header{padding:32px 24px}
+  .flow{flex-direction:column}
+  .flow-step::after{display:none}
+}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<!-- Header -->
+<div class="doc-header">
+<h1>Copy Trading 功能说明文档</h1>
+<div class="subtitle">面向第三方合作平台的功能接入说明</div>
+<div class="doc-meta">
+<span>Detrade Platform</span>
+<span>|</span>
+<span>文档版本 v1.0</span>
+<span>|</span>
+<span>2026-07-23</span>
+<span>|</span>
+<span>Confidential</span>
+</div>
+</div>
+
+<!-- TOC -->
+<div class="toc">
+<h3>目录</h3>
+<ol>
+<li><a href="#s1" style="color:inherit;text-decoration:none">功能概述</a></li>
+<li><a href="#s2" style="color:inherit;text-decoration:none">支持的交易玩法</a></li>
+<li><a href="#s3" style="color:inherit;text-decoration:none">交易员体系</a></li>
+<li><a href="#s4" style="color:inherit;text-decoration:none">分润机制</a></li>
+<li><a href="#s5" style="color:inherit;text-decoration:none">跟单员跟单参数配置</a></li>
+<li><a href="#s6" style="color:inherit;text-decoration:none">风控机制</a></li>
+<li><a href="#s7" style="color:inherit;text-decoration:none">交易员审核流程</a></li>
+<li><a href="#s8" style="color:inherit;text-decoration:none">业务规则汇总</a></li>
+</ol>
+</div>
+
+<!-- ==================== 1. 功能概述 ==================== -->
+<div class="sec" id="s1">
+<h2><span class="num">1</span>功能概述</h2>
+<p>Copy Trading（跟单交易）是 Detrade 平台的核心社交交易功能。该功能允许平台用户（交易员）在产生交易信号时，由其他用户（跟单员）自动同步复制其交易操作。交易员无需额外操作，跟单员可灵活配置跟单参数以控制风险。</p>
+
+<h3>核心角色</h3>
+<table>
+<tr><th style="width:120px">角色</th><th>说明</th><th style="width:180px">收益模式</th></tr>
+<tr><td><strong>交易员（Trader）</strong></td><td>平台任意用户均可申请成为交易员。交易员正常交易，无需感知跟单者的存在。当其产生盈利时，系统自动按设定比例从跟单员的盈利中抽取分润。</td><td>自身交易盈利 + 跟单员盈利分润</td></tr>
+<tr><td><strong>跟单员（Follower）</strong></td><td>选择信任的交易员并设置跟单参数后，系统将在交易员下单时自动同步跟单。跟单员完全控制自己的仓位参数（金额、杠杆、止损等）。</td><td>交易信号带来的交易盈利（扣减分润后）</td></tr>
+</table>
+
+<h3>核心流程</h3>
+<div class="flow">
+<div class="flow-step">
+<div class="step-num">1</div>
+<div class="step-title">用户申请交易员</div>
+<div class="step-desc">选择玩法 → 提交申请</div>
+</div>
+<div class="flow-step">
+<div class="step-num">2</div>
+<div class="step-title">平台审核</div>
+<div class="step-desc">审核 PNL / ROI / 胜率 / 最大回撤</div>
+</div>
+<div class="flow-step">
+<div class="step-num">3</div>
+<div class="step-title">跟单员选择跟单</div>
+<div class="step-desc">选择交易员 → 配置跟单参数</div>
+</div>
+<div class="flow-step">
+<div class="step-num">4</div>
+<div class="step-title">自动同步交易</div>
+<div class="step-desc">交易员下单 → 跟单员同步下单</div>
+</div>
+<div class="flow-step">
+<div class="step-num">5</div>
+<div class="step-title">结算分润</div>
+<div class="step-desc">跟单员盈利 → 按比例分润给交易员</div>
+</div>
+</div>
+</div>
+
+<!-- ==================== 2. 支持的交易玩法 ==================== -->
+<div class="sec" id="s2">
+<h2><span class="num">2</span>支持的交易玩法</h2>
+<p>Copy Trading 功能覆盖平台全部 4 种交易玩法，每种玩法独立运作，交易员需按玩法分别申请，跟单员需按玩法分别配置跟单参数。</p>
+<table>
+<tr><th>玩法</th><th>类型</th><th>分润比例范围</th><th>默认分润</th><th>杠杆支持</th></tr>
+<tr><td><span class="tag tag-blue">Futures</span></td><td>合约交易</td><td>1% — 15%</td><td>5%</td><td>支持（可跟随 / 自定义）</td></tr>
+<tr><td><span class="tag tag-orange">UpDown</span></td><td>涨跌预测</td><td>1% — 5%</td><td>2.5%</td><td>不适用</td></tr>
+<tr><td><span class="tag tag-orange">HighLow</span></td><td>高低预测</td><td>1% — 5%</td><td>2.5%</td><td>不适用</td></tr>
+<tr><td><span class="tag tag-orange">Spread</span></td><td>价差预测</td><td>1% — 5%</td><td>2.5%</td><td>不适用</td></tr>
+</table>
+<div class="callout callout-info">
+<strong>说明：</strong>每种玩法的交易员身份和分润比例相互独立。一个用户可以在 Futures 中是交易员（5% 分润），同时在 UpDown 中也是交易员（2.5% 分润），两者互不影响。
+</div>
+</div>
+
+<!-- ==================== 3. 交易员体系 ==================== -->
+<div class="sec" id="s3">
+<h2><span class="num">3</span>交易员体系</h2>
+
+<h3>3.1 申请条件</h3>
+<table>
+<tr><th style="width:200px">条件</th><th>说明</th></tr>
+<tr><td>用户身份</td><td>平台任意注册用户均可申请，<strong>无交易记录要求</strong>。即使是从未交易过的新用户也可以提交交易员申请。</td></tr>
+<tr><td>申请粒度</td><td>按玩法独立申请。申请 Futures 交易员不影响 UpDown/HighLow/Spread 的申请状态。</td></tr>
+<tr><td>申请次数</td><td>同一玩法可重复申请，被拒绝后可再次提交。</td></tr>
+</table>
+
+<h3>3.2 申请流程</h3>
+<div class="flow">
+<div class="flow-step">
+<div class="step-num">1</div>
+<div class="step-title">选择玩法</div>
+<div class="step-desc">选择要申请的交易员玩法</div>
+</div>
+<div class="flow-step">
+<div class="step-num">2</div>
+<div class="step-title">提交申请</div>
+<div class="step-desc">系统自动分配默认分润比例</div>
+</div>
+<div class="flow-step">
+<div class="step-num">3</div>
+<div class="step-title">平台审核</div>
+<div class="step-desc">后台审核交易员资质</div>
+</div>
+<div class="flow-step">
+<div class="step-num">4</div>
+<div class="step-title">审核通过</div>
+<div class="step-desc">交易员身份生效，可被跟单</div>
+</div>
+</div>
+
+<h3>3.3 分润比例管理</h3>
+<p>交易员申请通过时，系统会根据玩法自动分配默认分润比例：</p>
+<table>
+<tr><th>玩法</th><th>默认分润比例</th><th>可调整范围</th></tr>
+<tr><td><span class="tag tag-blue">Futures</span></td><td>5%</td><td>1% — 15%</td></tr>
+<tr><td><span class="tag tag-orange">UpDown / HighLow / Spread</span></td><td>2.5%</td><td>1% — 5%</td></tr>
+</table>
+<p>交易员可在个人管理页面查看和修改分润比例，修改后<strong>即时生效</strong>。已跟单的跟单员将按新比例执行后续分润结算。</p>
+<div class="callout callout-warn">
+<strong>注意：</strong>修改分润比例仅影响未来的分润结算，不会对已产生的历史盈利进行追溯调整。
+</div>
+</div>
+
+<!-- ==================== 4. 分润机制 ==================== -->
+<div class="sec" id="s4">
+<h2><span class="num">4</span>分润机制</h2>
+
+<h3>4.1 分润计算规则</h3>
+<table>
+<tr><th style="width:180px">项目</th><th>说明</th></tr>
+<tr><td>分润触发条件</td><td>仅当跟单员在该笔跟单中产生<strong>净盈利</strong>时触发分润。跟单员亏损时不产生分润，交易员不分担亏损。</td></tr>
+<tr><td>分润计算公式</td><td><strong>分润金额 = 跟单员盈利金额 × 分润比例</strong></td></tr>
+<tr><td>分润来源</td><td>从跟单员的盈利中扣除，不影响交易员自身的交易盈亏。</td></tr>
+<tr><td>结算方式</td><td>按每笔交易实时结算，分润直接划转至交易员账户。</td></tr>
+</table>
+
+<h3>4.2 分润示例</h3>
+<div class="param-card">
+<div class="card-title">示例场景</div>
+<p style="margin-bottom:8px">交易员 A 的 Futures 分润比例为 5%。跟单员 B 跟随 A 进行一笔 Futures 交易。</p>
+<table>
+<tr><th>场景</th><th>B 的盈利</th><th>A 获得分润</th><th>B 实际到手</th></tr>
+<tr><td>B 盈利 100 USDT</td><td>100 USDT</td><td>100 × 5% = <strong>5 USDT</strong></td><td>100 − 5 = <strong>95 USDT</strong></td></tr>
+<tr><td>B 盈利 50 USDT</td><td>50 USDT</td><td>50 × 5% = <strong>2.5 USDT</strong></td><td>50 − 2.5 = <strong>47.5 USDT</strong></td></tr>
+<tr><td>B 亏损 80 USDT</td><td>—</td><td><strong>0 USDT</strong></td><td><strong>−80 USDT</strong></td></tr>
+</table>
+</div>
+
+<h3>4.3 各玩法分润对比</h3>
+<table>
+<tr><th>玩法</th><th>分润范围</th><th>默认值</th><th>分润基数</th><th>说明</th></tr>
+<tr><td><span class="tag tag-blue">Futures</span></td><td>1% — 15%</td><td>5%</td><td>跟单员的单笔盈利金额</td><td>范围较宽，交易员可灵活设定</td></tr>
+<tr><td><span class="tag tag-orange">UpDown</span></td><td>1% — 5%</td><td>2.5%</td><td>跟单员的单笔盈利金额</td><td>范围较窄，保护跟单员利益</td></tr>
+<tr><td><span class="tag tag-orange">HighLow</span></td><td>1% — 5%</td><td>2.5%</td><td>跟单员的单笔盈利金额</td><td>同 UpDown</td></tr>
+<tr><td><span class="tag tag-orange">Spread</span></td><td>1% — 5%</td><td>2.5%</td><td>跟单员的单笔盈利金额</td><td>同 UpDown</td></tr>
+</table>
+</div>
+
+<!-- ==================== 5. 跟单员参数配置 ==================== -->
+<div class="sec" id="s5">
+<h2><span class="num">5</span>跟单员跟单参数配置</h2>
+<p>跟单员在跟随某位交易员前，需按玩法分别配置跟单参数。不同玩法的可配置参数有所不同。</p>
+
+<!-- 5.1 Futures -->
+<h3>5.1 <span class="tag tag-blue">Futures</span> 跟单参数</h3>
+<div class="param-card">
+<div class="card-title"><div class="icon" style="background:#3b82f6">F</div>Futures 跟单参数列表</div>
+<table>
+<tr><th style="width:160px">参数</th><th style="width:120px">类型</th><th>说明</th></tr>
+<tr>
+<td><strong>杠杆倍数</strong></td>
+<td><span class="tag tag-gray">必填</span></td>
+<td>
+<strong>两种模式可选：</strong>
+<ul style="margin:4px 0 0 16px;padding:0">
+<li><strong>跟随交易员杠杆</strong>：自动同步交易员使用的杠杆倍数，交易员调整杠杆时跟单员同步变化。</li>
+<li><strong>自定义杠杆</strong>：跟单员自行设定固定杠杆倍数，不受交易员杠杆变化影响。</li>
+</ul>
+</td>
+</tr>
+<tr>
+<td><strong>单笔跟单金额</strong></td>
+<td><span class="tag tag-gray">必填</span></td>
+<td>每笔跟单的交易金额，单位为 <strong>USDT</strong>。交易员每次下单时，跟单员按此金额同步开仓。</td>
+</tr>
+<tr>
+<td><strong>总跟单金额</strong></td>
+<td><span class="tag tag-gray">必填</span></td>
+<td>跟单的最大总投入金额，单位为 <strong>USDT</strong>。当所有未平仓跟单的累计投入达到此金额时，不再产生新的跟单。</td>
+</tr>
+<tr>
+<td><strong>下单币种</strong></td>
+<td><span class="tag tag-gray">必填</span></td>
+<td>跟单时使用的交易币种。设置后，每次跟单均使用该币种下单。如需更换币种，需修改此参数。</td>
+</tr>
+<tr>
+<td><strong>止损比例</strong></td>
+<td><span class="tag tag-gray">必填</span></td>
+<td>根据跟单仓位的亏损比例触发止损。例如设置 20%，当某一跟单单笔亏损达到该仓位的 20% 时，系统自动平仓止损。</td>
+</tr>
+</table>
+</div>
+
+<div class="callout callout-info">
+<strong>自动终止规则（Futures）：</strong>当跟单员的累计亏损金额达到设定的「总跟单金额」时，系统将自动取消对该交易员的跟单，不再产生新的跟单订单。
+</div>
+
+<!-- 5.2 UpDown / HighLow / Spread -->
+<h3>5.2 <span class="tag tag-orange">UpDown / HighLow / Spread</span> 跟单参数</h3>
+<div class="param-card">
+<div class="card-title"><div class="icon" style="background:#f59e0b">U</div>UpDown / HighLow / Spread 跟单参数列表</div>
+<table>
+<tr><th style="width:160px">参数</th><th style="width:120px">类型</th><th>说明</th></tr>
+<tr>
+<td><strong>单笔跟单金额</strong></td>
+<td><span class="tag tag-gray">必填</span></td>
+<td>每笔跟单的交易金额，单位为 <strong>USDT</strong>。交易员每次下单时，跟单员按此金额同步参与。</td>
+</tr>
+<tr>
+<td><strong>总跟单金额</strong></td>
+<td><span class="tag tag-gray">必填</span></td>
+<td>跟单的最大总投入金额，单位为 <strong>USDT</strong>。当累计投入达到此金额时，不再产生新的跟单。</td>
+</tr>
+<tr>
+<td><strong>止损比例</strong></td>
+<td><span class="tag tag-gray">必填</span></td>
+<td>根据<strong>总跟单金额</strong>的亏损比例触发止损。例如总跟单金额 1000 USDT、止损比例 30%，当累计亏损达到 300 USDT 时，系统自动取消跟单。</td>
+</tr>
+</table>
+</div>
+
+<div class="callout callout-warn">
+<strong>关键区别：</strong>UpDown/HighLow/Spread 的止损比例基于「总跟单金额」的累计亏损计算，而非单笔仓位。Futures 的止损比例基于单笔仓位的亏损比例计算。两者逻辑不同，接入时需注意区分。
+</div>
+
+<!-- 参数对比 -->
+<h3>5.3 各玩法参数对比总览</h3>
+<table>
+<tr><th>参数</th><th><span class="tag tag-blue">Futures</span></th><th><span class="tag tag-orange">UpDown</span></th><th><span class="tag tag-orange">HighLow</span></th><th><span class="tag tag-orange">Spread</span></th></tr>
+<tr><td>杠杆倍数</td><td>跟随交易员 / 自定义</td><td>—</td><td>—</td><td>—</td></tr>
+<tr><td>单笔跟单金额</td><td>USDT</td><td>USDT</td><td>USDT</td><td>USDT</td></tr>
+<tr><td>总跟单金额</td><td>USDT</td><td>USDT</td><td>USDT</td><td>USDT</td></tr>
+<tr><td>下单币种</td><td>可指定</td><td>—</td><td>—</td><td>—</td></tr>
+<tr><td>止损基准</td><td>单笔仓位亏损比例</td><td>总跟单金额亏损比例</td><td>总跟单金额亏损比例</td><td>总跟单金额亏损比例</td></tr>
+<tr><td>累计亏损终止</td><td>亏损 ≥ 总跟单金额</td><td>由止损比例控制</td><td>由止损比例控制</td><td>由止损比例控制</td></tr>
+</table>
+</div>
+
+<!-- ==================== 6. 风控机制 ==================== -->
+<div class="sec" id="s6">
+<h2><span class="num">6</span>风控机制</h2>
+
+<h3>6.1 跟单员侧风控</h3>
+<table>
+<tr><th style="width:180px">风控规则</th><th>适用玩法</th><th>触发条件</th><th>执行动作</th></tr>
+<tr>
+<td><strong>单笔止损</strong></td>
+<td><span class="tag tag-blue">Futures</span></td>
+<td>单笔跟单仓位亏损达到设定的止损比例</td>
+<td>系统自动平仓该笔跟单</td>
+</tr>
+<tr>
+<td><strong>累计亏损终止</strong></td>
+<td><span class="tag tag-blue">Futures</span></td>
+<td>跟单员累计亏损金额 ≥ 总跟单金额</td>
+<td>自动取消跟单，不再产生新订单</td>
+</tr>
+<tr>
+<td><strong>总资金止损</strong></td>
+<td><span class="tag tag-orange">UpDown / HighLow / Spread</span></td>
+<td>总跟单金额的累计亏损达到止损比例</td>
+<td>自动取消跟单</td>
+</tr>
+<tr>
+<td><strong>总额度耗尽</strong></td>
+<td>全部玩法</td>
+<td>累计投入达到总跟单金额上限</td>
+<td>不再产生新的跟单订单</td>
+</tr>
+</table>
+
+<h3>6.2 平台侧风控</h3>
+<table>
+<tr><th>规则</th><th>说明</th></tr>
+<tr><td>交易员审核</td><td>所有交易员申请必须经过平台后台人工审核，审核维度包括 PNL、ROI、最大回撤、胜率等指标。</td></tr>
+<tr><td>分润比例限制</td><td>平台设定各玩法的分润比例上下限，交易员不可超出范围设置。</td></tr>
+<tr><td>分润仅基于盈利</td><td>交易员仅从跟单员的盈利中获得分润，跟单员亏损时不产生任何费用。</td></tr>
+</table>
+</div>
+
+<!-- ==================== 7. 审核流程 ==================== -->
+<div class="sec" id="s7">
+<h2><span class="num">7</span>交易员审核流程</h2>
+<p>交易员申请提交后，将由 Detrade 平台后台进行人工审核。审核通过后方可成为正式交易员并接受跟单。</p>
+
+<h3>7.1 审核维度</h3>
+<table>
+<tr><th style="width:140px">审核指标</th><th style="width:100px">英文标识</th><th>说明</th></tr>
+<tr>
+<td><strong>盈亏总额</strong></td>
+<td><span class="tag tag-gray">PNL</span></td>
+<td>交易员的历史累计盈亏金额。正 PNL 表示整体盈利，是审核的核心指标之一。</td>
+</tr>
+<tr>
+<td><strong>投资回报率</strong></td>
+<td><span class="tag tag-gray">ROI</span></td>
+<td>交易员的历史投资回报率，反映资金利用效率。高 ROI 表明交易员在相对小的投入下获得了可观的回报。</td>
+</tr>
+<tr>
+<td><strong>最大回撤</strong></td>
+<td><span class="tag tag-gray">Max Drawdown</span></td>
+<td>交易员历史上从最高点到最低点的最大资金回撤幅度。回撤越小，说明交易员的风控能力越强、收益越稳定。</td>
+</tr>
+<tr>
+<td><strong>胜率</strong></td>
+<td><span class="tag tag-gray">Win Rate</span></td>
+<td>交易员历史交易中盈利笔数占总笔数的比例。高胜率表明交易员的信号质量较高。</td>
+</tr>
+</table>
+
+<h3>7.2 审核流程</h3>
+<div class="flow">
+<div class="flow-step">
+<div class="step-num">1</div>
+<div class="step-title">用户提交申请</div>
+<div class="step-desc">选择玩法，提交交易员申请</div>
+</div>
+<div class="flow-step">
+<div class="step-num">2</div>
+<div class="step-title">进入审核队列</div>
+<div class="step-desc">申请进入平台后台审核队列</div>
+</div>
+<div class="flow-step">
+<div class="step-num">3</div>
+<div class="step-title">后台审核</div>
+<div class="step-desc">审核 PNL / ROI / 最大回撤 / 胜率</div>
+</div>
+<div class="flow-step">
+<div class="step-num">4</div>
+<div class="step-title">结果通知</div>
+<div class="step-desc">通过 / 拒绝，通知用户审核结果</div>
+</div>
+</div>
+
+<div class="callout callout-note">
+<strong>补充说明：</strong>即使申请用户无交易记录（新用户），也可提交申请。对于无交易记录的用户，审核将基于其他维度综合评估。审核标准和通过条件由 Detrade 平台运营管理团队制定和调整。
+</div>
+</div>
+
+<!-- ==================== 8. 业务规则汇总 ==================== -->
+<div class="sec" id="s8">
+<h2><span class="num">8</span>业务规则汇总</h2>
+
+<h3>8.1 核心规则一览</h3>
+<table>
+<tr><th style="width:40px">#</th><th style="width:200px">规则</th><th>说明</th></tr>
+<tr><td>1</td><td>交易员申请门槛</td><td>平台任意注册用户均可申请，无交易记录要求。</td></tr>
+<tr><td>2</td><td>按玩法独立申请</td><td>每种玩法需单独申请交易员身份，审核独立进行。</td></tr>
+<tr><td>3</td><td>分润比例即时生效</td><td>交易员修改分润比例后即时生效，不影响历史已结算的分润。</td></tr>
+<tr><td>4</td><td>分润仅基于盈利</td><td>仅当跟单员盈利时产生分润，亏损时不产生任何费用。</td></tr>
+<tr><td>5</td><td>跟单参数按玩法独立</td><td>跟单员需为每个玩法分别设置跟单参数。</td></tr>
+<tr><td>6</td><td>Futures 杠杆双模式</td><td>跟单员可选择跟随交易员杠杆或自定义固定杠杆。</td></tr>
+<tr><td>7</td><td>Futures 止损基于单笔</td><td>Futures 的止损比例基于单笔仓位的亏损比例计算。</td></tr>
+<tr><td>8</td><td>其他玩法止损基于总额</td><td>UpDown/HighLow/Spread 的止损比例基于总跟单金额的累计亏损计算。</td></tr>
+<tr><td>9</td><td>累计亏损自动终止</td><td>Futures 跟单员累计亏损 ≥ 总跟单金额时自动取消跟单。</td></tr>
+<tr><td>10</td><td>总额度上限</td><td>所有玩法在累计投入达到总跟单金额后不再产生新跟单。</td></tr>
+<tr><td>11</td><td>交易员需平台审核</td><td>所有交易员申请须经 Detrade 后台审核通过后方可生效。</td></tr>
+<tr><td>12</td><td>审核指标</td><td>审核维度：PNL、ROI、最大回撤、胜率。</td></tr>
+</table>
+
+<h3>8.2 分润速查表</h3>
+<table>
+<tr><th>玩法</th><th>分润范围</th><th>默认分润</th><th>分润基数</th><th>亏损时分润</th></tr>
+<tr><td><span class="tag tag-blue">Futures</span></td><td>1% — 15%</td><td>5%</td><td>跟单员单笔盈利</td><td>0（不产生）</td></tr>
+<tr><td><span class="tag tag-orange">UpDown</span></td><td>1% — 5%</td><td>2.5%</td><td>跟单员单笔盈利</td><td>0（不产生）</td></tr>
+<tr><td><span class="tag tag-orange">HighLow</span></td><td>1% — 5%</td><td>2.5%</td><td>跟单员单笔盈利</td><td>0（不产生）</td></tr>
+<tr><td><span class="tag tag-orange">Spread</span></td><td>1% — 5%</td><td>2.5%</td><td>跟单员单笔盈利</td><td>0（不产生）</td></tr>
+</table>
+</div>
+
+<!-- Footer -->
+<div class="doc-footer">
+<p>Detrade Copy Trading — 功能说明文档 v1.0 — Confidential</p>
+<p>如有疑问，请联系 Detrade 商务对接团队</p>
+</div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Detrade 后台管理 - TapTrading 幸运倍率活动</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; background: #f0f2f5; display: flex; height: 100vh; overflow: hidden; }
+
+  /* ===== Sidebar (from shared framework) ===== */
+  .sidebar { width: 220px; min-width: 220px; background: #0b1a2e; color: #c0c8d4; display: flex; flex-direction: column; height: 100vh; overflow-y: auto; overflow-x: hidden; }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+  .logo-area { display: flex; align-items: center; padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .logo-icon { width: 32px; height: 32px; border-radius: 6px; background: linear-gradient(135deg, #6366f1, #3b82f6, #06b6d4); display: flex; align-items: center; justify-content: center; margin-right: 10px; flex-shrink: 0; }
+  .logo-icon svg { width: 20px; height: 20px; }
+  .logo-text { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: 0.5px; }
+  .menu { padding: 8px 0; flex: 1; }
+  .menu-item { user-select: none; }
+  .menu-title { display: flex; align-items: center; padding: 10px 20px; cursor: pointer; font-size: 14px; color: #c0c8d4; transition: background 0.2s, color 0.2s; position: relative; }
+  .menu-title:hover { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+  .menu-title.active { background: rgba(99,102,241,0.15); color: #fff; }
+  .menu-title .arrow { margin-left: auto; font-size: 10px; transition: transform 0.25s; color: #6b7a90; }
+  .menu-title.expanded .arrow { transform: rotate(180deg); }
+  .menu-title.no-sub { cursor: pointer; }
+  .menu-title.no-sub:hover { background: rgba(255,255,255,0.04); }
+  .menu-title.no-sub.active { background: rgba(99,102,241,0.15); color: #fff; }
+  .submenu { display: none; }
+  .submenu.open { display: block; }
+  .submenu-item { padding: 9px 20px 9px 40px; font-size: 13px; color: #8896a8; cursor: pointer; transition: background 0.2s, color 0.2s; display: flex; align-items: center; }
+  .submenu-item:hover { background: rgba(255,255,255,0.03); color: #c0c8d4; }
+  .submenu-item.active { background: rgba(99,102,241,0.12); color: #fff; }
+  .submenu-item .arrow { margin-left: auto; font-size: 10px; transition: transform 0.25s; color: #5a6a7e; }
+  .submenu-item.expanded .arrow { transform: rotate(180deg); }
+  .sub-submenu { display: none; }
+  .sub-submenu.open { display: block; }
+  .sub-submenu-item { padding: 8px 20px 8px 56px; font-size: 13px; color: #7a8a9e; cursor: pointer; transition: background 0.2s, color 0.2s; }
+  .sub-submenu-item:hover { background: rgba(255,255,255,0.03); color: #c0c8d4; }
+  .sub-submenu-item.active { background: rgba(99,102,241,0.12); color: #fff; }
+
+  /* ===== Main Area ===== */
+  .main-wrapper { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .topbar { height: 48px; background: #fff; border-bottom: 1px solid #e8ecf1; display: flex; align-items: center; padding: 0 24px; flex-shrink: 0; }
+  .breadcrumb { font-size: 14px; color: #8896a8; }
+  .breadcrumb span { color: #334155; }
+  .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+  .topbar-right .avatar { width: 30px; height: 30px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #64748b; cursor: pointer; }
+  .content { flex: 1; padding: 20px 24px; overflow-y: auto; }
+
+  /* ===== Page ===== */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* Cards */
+  .card { background: #fff; border-radius: 8px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+  .card-title { font-size: 14px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; color: #334155; }
+  .card-desc { font-size: 12px; color: #8896a8; margin-bottom: 16px; }
+
+  /* Stats */
+  .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 16px; }
+  .stat-card { background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+  .stat-label { font-size: 12px; color: #8896a8; margin-bottom: 8px; }
+  .stat-value { font-size: 28px; font-weight: 700; color: #334155; }
+  .stat-change { font-size: 12px; margin-top: 4px; }
+  .stat-change.up { color: #52c41a; }
+
+  /* Status Badge */
+  .status-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; }
+  .status-badge.running { background: #f6ffed; color: #52c41a; border: 1px solid #b7eb8f; }
+  .status-badge.paused { background: #fff7e6; color: #fa8c16; border: 1px solid #ffd591; }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+  /* Table */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .data-table th { background: #fafafa; padding: 10px 12px; text-align: left; font-weight: 600; color: #8896a8; font-size: 12px; border-bottom: 1px solid #f0f0f0; }
+  .data-table td { padding: 10px 12px; border-bottom: 1px solid #f0f0f0; color: #334155; }
+  .data-table tr:hover td { background: #fafafa; }
+
+  /* Form */
+  .form-row { display: flex; align-items: center; margin-bottom: 16px; gap: 12px; }
+  .form-label { width: 140px; font-size: 13px; color: #8896a8; flex-shrink: 0; }
+  .form-input { flex: 1; max-width: 300px; padding: 8px 12px; border: 1px solid #d9d9d9; border-radius: 6px; font-size: 13px; outline: none; transition: border-color 0.2s; }
+  .form-input:focus { border-color: #6366f1; box-shadow: 0 0 0 2px rgba(99,102,241,0.1); }
+  .form-select { flex: 1; max-width: 300px; padding: 8px 12px; border: 1px solid #d9d9d9; border-radius: 6px; font-size: 13px; outline: none; background: #fff; cursor: pointer; }
+  .form-hint { font-size: 12px; color: #8896a8; margin-top: 4px; }
+  .form-textarea { flex: 1; max-width: 500px; padding: 8px 12px; border: 1px solid #d9d9d9; border-radius: 6px; font-size: 13px; outline: none; resize: vertical; min-height: 80px; font-family: inherit; transition: border-color 0.2s; }
+  .form-textarea:focus { border-color: #6366f1; box-shadow: 0 0 0 2px rgba(99,102,241,0.1); }
+
+  /* Buttons */
+  .btn { padding: 8px 16px; border-radius: 6px; font-size: 13px; cursor: pointer; border: 1px solid transparent; transition: all 0.2s; font-family: inherit; }
+  .btn-primary { background: #6366f1; color: #fff; border-color: #6366f1; }
+  .btn-primary:hover { background: #818cf8; }
+  .btn-default { background: #fff; color: #334155; border-color: #d9d9d9; }
+  .btn-default:hover { color: #6366f1; border-color: #6366f1; }
+  .btn-danger { background: #fff; color: #f5222d; border-color: #f5222d; }
+  .btn-danger:hover { background: #f5222d; color: #fff; }
+  .btn-success { background: #52c41a; color: #fff; }
+  .btn-sm { padding: 4px 10px; font-size: 12px; }
+
+  /* Toggle */
+  .toggle { position: relative; width: 40px; height: 22px; cursor: pointer; display: inline-block; }
+  .toggle input { display: none; }
+  .toggle-slider { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #ccc; border-radius: 11px; transition: 0.3s; }
+  .toggle-slider::before { content: ''; position: absolute; width: 18px; height: 18px; border-radius: 50%; background: #fff; top: 2px; left: 2px; transition: 0.3s; }
+  .toggle input:checked + .toggle-slider { background: #52c41a; }
+  .toggle input:checked + .toggle-slider::before { transform: translateX(18px); }
+
+  /* Tags */
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; }
+  .tag-lucky { background: #fffbe6; color: #d48806; border: 1px solid #ffe58f; }
+  .tag-hidden { background: #f9f0ff; color: #531dab; border: 1px solid #d3adf7; }
+  .tag-success { background: #f6ffed; color: #389e0d; border: 1px solid #b7eb8f; }
+  .tag-pending { background: #fff7e6; color: #d46b08; border: 1px solid #ffd591; }
+  .tag-info { background: #e6f7ff; color: #1890ff; border: 1px solid #91d5ff; }
+
+  /* Sequence Table */
+  .seq-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .seq-table th, .seq-table td { padding: 8px 12px; border: 1px solid #f0f0f0; text-align: center; }
+  .seq-table th { background: #fafafa; font-weight: 600; color: #8896a8; font-size: 12px; }
+  .seq-table td input { width: 80px; padding: 4px 8px; border: 1px solid #d9d9d9; border-radius: 4px; text-align: center; font-size: 13px; outline: none; }
+  .seq-table td input:focus { border-color: #6366f1; }
+
+  /* Two Column */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  /* Filter Bar */
+  .filter-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+  .filter-bar .form-input, .filter-bar .form-select { max-width: 200px; }
+
+  /* Modal */
+  .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.45); z-index: 200; align-items: center; justify-content: center; }
+  .modal-overlay.show { display: flex; }
+  .modal { background: #fff; border-radius: 8px; width: 520px; max-width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.15); animation: modalIn 0.2s; }
+  .modal.wide { width: 720px; }
+  @keyframes modalIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .modal-header { padding: 16px 20px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; justify-content: space-between; font-size: 15px; font-weight: 600; color: #334155; }
+  .modal-close { background: none; border: none; font-size: 18px; cursor: pointer; color: #8896a8; }
+  .modal-body { padding: 20px; }
+  .modal-footer { padding: 12px 20px; border-top: 1px solid #f0f0f0; display: flex; justify-content: flex-end; gap: 8px; }
+
+  /* Notification */
+  .notification { position: fixed; top: 20px; right: 20px; background: #fff; border-radius: 8px; padding: 12px 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 300; display: none; animation: slideDown 0.3s; font-size: 13px; border-left: 3px solid #52c41a; color: #334155; }
+  .notification.show { display: block; }
+  @keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  /* Proto badge */
+  .proto-badge { background: #f0b90b; color: #000; font-size: 11px; padding: 3px 8px; border-radius: 4px; font-weight: 600; }
+
+  /* Section divider */
+  .section-divider { border: none; border-top: 1px solid #f0f0f0; margin: 20px 0; }
+
+  /* Radio group */
+  .radio-group { display: flex; gap: 16px; }
+  .radio-item { display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 13px; color: #334155; }
+  .radio-item input[type="radio"] { accent-color: #6366f1; }
+
+  /* Alert box */
+  .alert { padding: 10px 14px; border-radius: 6px; font-size: 12px; margin-top: 8px; }
+  .alert-warning { background: #fffbe6; border: 1px solid #ffe58f; color: #d48806; }
+  .alert-info { background: #e6f7ff; border: 1px solid #91d5ff; color: #1890ff; }
+  .alert-success { background: #f6ffed; border: 1px solid #b7eb8f; color: #389e0d; }
+
+  /* Pagination */
+  .pagination { display: flex; align-items: center; justify-content: flex-end; gap: 4px; margin-top: 16px; font-size: 13px; }
+  .pagination button { padding: 4px 10px; border: 1px solid #d9d9d9; background: #fff; border-radius: 4px; cursor: pointer; font-size: 12px; }
+  .pagination button.active { background: #6366f1; color: #fff; border-color: #6366f1; }
+  .pagination span { color: #8896a8; font-size: 12px; margin: 0 8px; }
+
+  /* Internal Tab (for consolidated page) */
+  .int-tab-group { display: flex; border-bottom: 1px solid #f0f0f0; margin-bottom: 20px; }
+  .int-tab-item { padding: 10px 20px; font-size: 13px; color: #8896a8; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; }
+  .int-tab-item:hover { color: #334155; }
+  .int-tab-item.active { color: #6366f1; border-bottom-color: #6366f1; font-weight: 500; }
+  .int-tab-content { display: none; }
+  .int-tab-content.active { display: block; }
+
+  /* Language sub-tab */
+  .lang-tab-group { display: flex; gap: 0; border-bottom: 1px solid #f0f0f0; margin-bottom: 20px; }
+  .lang-tab-item { padding: 8px 16px; font-size: 12px; color: #8896a8; cursor: pointer; border-bottom: 2px solid transparent; }
+  .lang-tab-item.active { color: #6366f1; border-bottom-color: #6366f1; }
+  .lang-tab-content { display: none; }
+  .lang-tab-content.active { display: block; }
+
+  /* Chart placeholder */
+  .chart-placeholder { background: #fafafa; border: 1px dashed #d9d9d9; border-radius: 8px; height: 280px; display: flex; align-items: center; justify-content: center; color: #8896a8; font-size: 13px; }
+
+  /* Range display */
+  .range-display { display: flex; align-items: center; gap: 8px; }
+  .range-display .range-val { font-size: 24px; font-weight: 700; }
+  .range-display .range-sep { font-size: 16px; color: #8896a8; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #d9d9d9; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- ===== Sidebar ===== -->
+<div class="sidebar" id="sidebar">
+  <div class="logo-area">
+    <div class="logo-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5z" fill="#fff" opacity="0.9"/><path d="M2 17l10 5 10-5" stroke="#fff" stroke-width="2" fill="none" opacity="0.6"/><path d="M2 12l10 5 10-5" stroke="#fff" stroke-width="2" fill="none" opacity="0.75"/></svg></div>
+    <div class="logo-text">Detrade</div>
+  </div>
+  <div class="menu" id="menu">
+    <!-- 运营看板 -->
+    <div class="menu-item"><div class="menu-title" data-toggle="sub-1">运营看板 <span class="arrow">&#9660;</span></div><div class="submenu" id="sub-1"><div class="submenu-item" data-page="统计概览" data-parent="运营看板">统计概览</div><div class="submenu-item" data-page="活动概览" data-parent="运营看板">活动概览</div></div></div>
+    <!-- 备用金概览 -->
+    <div class="menu-item"><div class="menu-title no-sub" data-page="备用金概览">备用金概览</div></div>
+    <!-- 币管理 -->
+    <div class="menu-item"><div class="menu-title" data-toggle="sub-2">币管理 <span class="arrow">&#9660;</span></div><div class="submenu" id="sub-2"><div class="submenu-item" data-page="货币管理" data-parent="币管理">货币管理</div><div class="submenu-item" data-page="交易对配置" data-parent="币管理">交易对配置</div><div class="submenu-item" data-page="交易对管理" data-parent="币管理">交易对管理</div></div></div>
+    <!-- 玩法管理 (TapTrading基础配置 + 交易对管理) -->
+    <div class="menu-item">
+      <div class="menu-title" data-toggle="sub-4">玩法管理 <span class="arrow">&#9660;</span></div>
+      <div class="submenu" id="sub-4">
+        <div class="submenu-item" data-page="HighLow管理" data-parent="玩法管理">HighLow管理</div>
+        <div class="submenu-item" data-page="Contract管理" data-parent="玩法管理">Contract管理</div>
+        <div class="submenu-item" data-page="UpDown管理" data-parent="玩法管理">UpDown管理</div>
+        <div class="submenu-item" data-toggle="sub-tt" data-parent="玩法管理">TapTrading管理 <span class="arrow">&#9660;</span></div>
+        <div class="sub-submenu" id="sub-tt">
+          <div class="sub-submenu-item" data-page="TapTrading基础配置" data-parent="玩法管理 / TapTrading管理">基础配置</div>
+          <div class="sub-submenu-item" data-page="TapTrading交易对" data-parent="玩法管理 / TapTrading管理">交易对管理</div>
+        </div>
+      </div>
+    </div>
+    <!-- 资金池配置 -->
+    <div class="menu-item"><div class="menu-title no-sub" data-page="资金池配置">资金池配置</div></div>
+    <!-- 流水记录 -->
+    <div class="menu-item"><div class="menu-title" data-toggle="sub-5">流水记录 <span class="arrow">&#9660;</span></div><div class="submenu" id="sub-5"><div class="submenu-item" data-page="账户流水" data-parent="流水记录">账户流水</div><div class="submenu-item" data-page="充值流水" data-parent="流水记录">充值流水</div></div></div>
+    <!-- ★ 活动管理 (幸运倍率活动 moved here) -->
+    <div class="menu-item">
+      <div class="menu-title expanded" data-toggle="sub-9">活动管理 <span class="arrow">&#9660;</span></div>
+      <div class="submenu open" id="sub-9">
+        <div class="submenu-item active" data-page="幸运倍率活动" data-parent="活动管理">幸运倍率活动</div>
+        <div class="submenu-item" data-page="发奖管理" data-parent="活动管理">发奖管理</div>
+        <div class="submenu-item" data-page="活动配置" data-parent="活动管理">活动配置</div>
+        <div class="submenu-item" data-page="任务配置" data-parent="活动管理">任务配置</div>
+      </div>
+    </div>
+    <!-- 用户管理 -->
+    <div class="menu-item"><div class="menu-title" data-toggle="sub-10">用户管理 <span class="arrow">&#9660;</span></div><div class="submenu" id="sub-10"><div class="submenu-item" data-page="用户列表" data-parent="用户管理">用户列表</div><div class="submenu-item" data-page="会员管理" data-parent="用户管理">会员管理</div></div></div>
+    <!-- 风控管理 -->
+    <div class="menu-item"><div class="menu-title" data-toggle="sub-12">风控管理 <span class="arrow">&#9660;</span></div><div class="submenu" id="sub-12"><div class="submenu-item" data-page="提现审核" data-parent="风控管理">提现审核</div><div class="submenu-item" data-page="风控报警" data-parent="风控管理">风控报警</div></div></div>
+    <!-- 系统管理 -->
+    <div class="menu-item"><div class="menu-title" data-toggle="sub-11">系统管理 <span class="arrow">&#9660;</span></div><div class="submenu" id="sub-11"><div class="submenu-item" data-page="平台配置管理" data-parent="系统管理">平台配置管理</div><div class="submenu-item" data-page="操作日志" data-parent="系统管理">操作日志</div></div></div>
+  </div>
+</div>
+
+<!-- ===== Main Area ===== -->
+<div class="main-wrapper">
+  <div class="topbar">
+    <div class="breadcrumb" id="breadcrumb">活动管理 / <span>幸运倍率活动</span></div>
+    <div class="topbar-right">
+      <span class="proto-badge">PROTOTYPE</span>
+      <div class="avatar">A</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ==================== PAGE: 幸运倍率活动 (Consolidated) ==================== -->
+    <div class="page active" id="page-lucky-activity">
+
+      <!-- Status Bar (always visible) -->
+      <div class="card" style="display:flex;align-items:center;justify-content:space-between;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="font-size:14px;font-weight:600;color:#334155;">活动状态</span>
+          <span class="status-badge running" id="activityStatus"><span class="status-dot"></span> 运行中</span>
+          <span style="font-size:12px;color:#8896a8;">活动周期：2026-07-01 ~ 2026-09-30</span>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-default btn-sm" id="toggleActivityBtn" onclick="toggleActivityStatus()">暂停活动</button>
+          <button class="btn btn-primary btn-sm" onclick="showModal('editActivityModal')">编辑配置</button>
+        </div>
+      </div>
+
+      <!-- Internal Tab Navigation -->
+      <div class="int-tab-group" id="mainTabs">
+        <div class="int-tab-item active" onclick="switchMainTab('overview', this)">活动概览</div>
+        <div class="int-tab-item" onclick="switchMainTab('multiplier', this)">倍率配置</div>
+        <div class="int-tab-item" onclick="switchMainTab('content', this)">活动内容配置</div>
+        <div class="int-tab-item" onclick="switchMainTab('winners', this)">中奖记录</div>
+        <div class="int-tab-item" onclick="switchMainTab('fallback', this)">保底管理</div>
+        <div class="int-tab-item" onclick="switchMainTab('stats', this)">数据统计</div>
+      </div>
+
+      <!-- ===== TAB: 活动概览 ===== -->
+      <div class="int-tab-content active" id="tab-overview">
+        <!-- Stats (3 cards) -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">今日参与人数</div>
+            <div class="stat-value" style="color:#6366f1;">1,247</div>
+            <div class="stat-change up">+18.3% vs yesterday</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Lucky 中奖人数</div>
+            <div class="stat-value" style="color:#d48806;">23</div>
+            <div class="stat-change up">奖励发放: 460U</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Hidden 中奖人数</div>
+            <div class="stat-value" style="color:#722ed1;">4/5</div>
+            <div class="stat-change up">奖励发放: 400U</div>
+          </div>
+        </div>
+
+        <!-- Today's Multipliers -->
+        <div class="two-col">
+          <div class="card">
+            <div class="card-title">
+              <span>今日 Lucky Multiplier 区间</span>
+              <button class="btn btn-primary btn-sm" onclick="showModal('changeLuckyModal')">修改</button>
+            </div>
+            <div style="text-align:center;padding:16px 0;">
+              <div class="range-display" style="justify-content:center;">
+                <span class="range-val" style="color:#d48806;">150x</span>
+                <span class="range-sep">~</span>
+                <span class="range-val" style="color:#d48806;">250x</span>
+              </div>
+              <div style="font-size:13px;color:#8896a8;margin-top:8px;">奖励: 20U Bonus | 已中奖: 23 人</div>
+              <div class="alert alert-info" style="margin-top:12px;text-align:left;">用户投注倍率落在 150x~250x 区间内且 K 线经过该倍率方块，即获得 Lucky 奖励。Hidden 倍率不会出现在此区间。</div>
+            </div>
+            <div style="display:flex;justify-content:center;gap:24px;margin-top:12px;">
+              <div style="text-align:center;"><div style="font-size:20px;font-weight:700;">8,421</div><div style="font-size:11px;color:#8896a8;">投注人数</div></div>
+              <div style="text-align:center;"><div style="font-size:20px;font-weight:700;color:#52c41a;">0.27%</div><div style="font-size:11px;color:#8896a8;">命中率</div></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">
+              <span>今日 Hidden Multiplier</span>
+              <span class="tag tag-hidden">HIDDEN</span>
+            </div>
+            <div style="text-align:center;padding:16px 0;">
+              <div style="font-size:48px;font-weight:700;color:#722ed1;">???</div>
+              <div style="font-size:13px;color:#8896a8;margin-top:8px;">奖励: 100U Bonus | 已中奖: 4/5 人</div>
+              <div class="alert alert-warning" style="margin-top:12px;text-align:left;">Hidden 倍率不在 Lucky 区间（150x~250x）内，确保两类奖励互斥。</div>
+            </div>
+            <div style="display:flex;justify-content:center;gap:24px;margin-top:12px;">
+              <div style="text-align:center;"><div style="font-size:20px;font-weight:700;">1</div><div style="font-size:11px;color:#8896a8;">剩余名额</div></div>
+              <div style="text-align:center;"><div style="font-size:20px;font-weight:700;color:#fa8c16;" id="fallbackTimer">03:24:11</div><div style="font-size:11px;color:#8896a8;">保底倒计时</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Winners -->
+        <div class="card">
+          <div class="card-title">
+            <span>最近中奖记录</span>
+            <button class="btn btn-default btn-sm" onclick="switchMainTabByName('中奖记录')">查看全部 ›</button>
+          </div>
+          <table class="data-table">
+            <thead><tr><th>时间</th><th>用户</th><th>类型</th><th>倍率</th><th>投注金额</th><th>奖励</th><th>状态</th></tr></thead>
+            <tbody>
+              <tr><td>2026-07-22 14:32:18</td><td>user_88***21</td><td><span class="tag tag-lucky">Lucky</span></td><td style="font-weight:600;color:#d48806;">188x</td><td>1.00 USDT</td><td style="color:#52c41a;font-weight:600;">+20U</td><td><span class="tag tag-success">已发放</span></td></tr>
+              <tr><td>2026-07-22 13:15:42</td><td>user_33***77</td><td><span class="tag tag-hidden">Hidden</span></td><td style="font-weight:600;color:#722ed1;">347x</td><td>2.00 USDT</td><td style="color:#52c41a;font-weight:600;">+100U</td><td><span class="tag tag-success">已发放</span></td></tr>
+              <tr><td>2026-07-22 11:08:55</td><td>user_55***09</td><td><span class="tag tag-lucky">Lucky</span></td><td style="font-weight:600;color:#d48806;">200x</td><td>0.50 USDT</td><td style="color:#52c41a;font-weight:600;">+20U</td><td><span class="tag tag-success">已发放</span></td></tr>
+              <tr><td>2026-07-22 09:44:31</td><td>user_12***45</td><td><span class="tag tag-hidden">Hidden</span></td><td style="font-weight:600;color:#722ed1;">347x</td><td>5.00 USDT</td><td style="color:#52c41a;font-weight:600;">+100U</td><td><span class="tag tag-success">已发放</span></td></tr>
+              <tr><td>2026-07-22 08:22:17</td><td>user_77***88</td><td><span class="tag tag-lucky">Lucky</span></td><td style="font-weight:600;color:#d48806;">168x</td><td>0.10 USDT</td><td style="color:#52c41a;font-weight:600;">+20U</td><td><span class="tag tag-pending">待发放</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== TAB: 倍率配置 ===== -->
+      <div class="int-tab-content" id="tab-multiplier">
+        <!-- Lucky 区间配置 -->
+        <div class="card">
+          <div class="card-title"><span>Lucky 区间配置</span></div>
+          <div class="card-desc">设置 Lucky 倍率区间值。用户投注的倍率落在该区间内且 K 线经过该倍率方块，即获得 Lucky 奖励。Hidden 倍率不会出现在此区间内。</div>
+          <div class="form-row">
+            <span class="form-label">区间下限</span>
+            <input type="number" class="form-input" value="150" style="max-width:150px;">
+            <span style="font-size:12px;color:#8896a8;">x</span>
+          </div>
+          <div class="form-row">
+            <span class="form-label">区间上限</span>
+            <input type="number" class="form-input" value="250" style="max-width:150px;">
+            <span style="font-size:12px;color:#8896a8;">x</span>
+          </div>
+          <div class="form-row">
+            <span class="form-label">奖励类型</span>
+            <select class="form-select" style="max-width:160px;" onchange="toggleCouponSelect(this, 'luckyCouponRow')">
+              <option value="real">真金</option>
+              <option value="bonus" selected>奖励金</option>
+              <option value="coupon">优惠券</option>
+            </select>
+          </div>
+          <div class="form-row" id="luckyCouponRow" style="display:none;">
+            <span class="form-label">选择优惠券</span>
+            <select class="form-select" style="max-width:250px;">
+              <option value="">请选择已配置的优惠券</option>
+              <option>新用户 10U 体验券</option>
+              <option>交易手续费 5 折券</option>
+              <option>充值返利 2% 券</option>
+            </select>
+            <span style="font-size:12px;color:#8896a8;">来自「活动管理 > 优惠券配置」</span>
+          </div>
+          <div class="form-row">
+            <span class="form-label">奖励金额</span>
+            <input type="number" class="form-input" value="20" style="max-width:120px;">
+            <span style="font-size:12px;color:#8896a8;">U</span>
+          </div>
+          <div class="alert alert-info">当前 Lucky 区间：150x ~ 250x。系统确保 Hidden 倍率值不在该区间内（如 Hidden=347x，在区间外 ✓）。</div>
+          <div style="text-align:right;margin-top:12px;">
+            <button class="btn btn-primary btn-sm" onclick="showNotif('Lucky 区间配置已保存')">保存区间配置</button>
+          </div>
+        </div>
+
+        <!-- Hidden Multiplier 配置 -->
+        <div class="card">
+          <div class="card-title"><span>Hidden Multiplier 配置</span></div>
+          <div class="form-row">
+            <span class="form-label">生成方式</span>
+            <select class="form-select" style="max-width:200px;">
+              <option selected>系统随机（排除 Lucky 区间）</option>
+              <option>手动设置</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <span class="form-label">随机范围</span>
+            <input type="number" class="form-input" value="2" style="max-width:100px;" placeholder="最小">
+            <span style="color:#8896a8;">~</span>
+            <input type="number" class="form-input" value="9999" style="max-width:100px;" placeholder="最大">
+            <span style="font-size:12px;color:#8896a8;">x（自动排除 Lucky 区间 150x~250x）</span>
+          </div>
+          <div class="form-row">
+            <span class="form-label">每日名额</span>
+            <input type="number" class="form-input" value="5" style="max-width:100px;">
+            <span style="font-size:12px;color:#8896a8;">人</span>
+          </div>
+          <div class="form-row">
+            <span class="form-label">奖励类型</span>
+            <select class="form-select" style="max-width:160px;" onchange="toggleCouponSelect(this, 'hiddenCouponRow')">
+              <option value="real">真金</option>
+              <option value="bonus" selected>奖励金</option>
+              <option value="coupon">优惠券</option>
+            </select>
+          </div>
+          <div class="form-row" id="hiddenCouponRow" style="display:none;">
+            <span class="form-label">选择优惠券</span>
+            <select class="form-select" style="max-width:250px;">
+              <option value="">请选择已配置的优惠券</option>
+              <option>新用户 10U 体验券</option>
+              <option>交易手续费 5 折券</option>
+              <option>充值返利 2% 券</option>
+            </select>
+            <span style="font-size:12px;color:#8896a8;">来自「活动管理 > 优惠券配置」</span>
+          </div>
+          <div class="form-row">
+            <span class="form-label">奖励金额</span>
+            <input type="number" class="form-input" value="100" style="max-width:120px;">
+            <span style="font-size:12px;color:#8896a8;">U</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ===== TAB: 活动内容配置 ===== -->
+      <div class="int-tab-content" id="tab-content">
+        <div class="card">
+          <div class="card-title"><span>活动内容配置</span></div>
+          <div class="card-desc">配置业务端活动页面展示的所有文案内容。文案通过系统「国际化管理」模块进行多语言配置，此处仅展示默认语言（English）模板。</div>
+          <div class="alert alert-info" style="margin-top:0;">多语言文案请前往 <strong>国际化管理 > 语言配置</strong> 页面维护，支持动态添加语种。此处配置的模板变量（如 {multiplier}、{reward}）将在国际化系统中自动注入。</div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span>活动 Banner</span></div>
+          <div class="form-row"><span class="form-label">Banner 标题</span><input type="text" class="form-input" value="Lucky Multiplier" style="max-width:400px;"></div>
+          <div class="form-row"><span class="form-label">Banner 副标题</span><input type="text" class="form-input" value="Hit the multiplier range, win big rewards!" style="max-width:400px;"></div>
+          <div class="form-row"><span class="form-label">活动规则摘要</span><textarea class="form-textarea" style="max-width:500px;min-height:60px;">1. Hit any multiplier within the Lucky range to win 20U Bonus. 2. Hit the Hidden Multiplier to win 100U Bonus (first 5 winners only). 3. If no one hits the Hidden Multiplier by 12:00 UTC, a fallback draw will occur.</textarea></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span>Lucky 中奖弹窗</span></div>
+          <div class="form-row"><span class="form-label">弹窗标题</span><input type="text" class="form-input" value="🎉 Lucky Win!" style="max-width:400px;"></div>
+          <div class="form-row"><span class="form-label">弹窗内容</span><textarea class="form-textarea" style="max-width:500px;min-height:60px;">Congratulations! You hit the Lucky Multiplier {multiplier}x and won {reward}U Bonus!</textarea></div>
+          <div class="form-hint" style="margin-left:152px;">可用变量: {multiplier} = 实际命中倍率, {reward} = 奖励金额, {rangeMin} = 区间下限, {rangeMax} = 区间上限</div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span>Hidden 中奖弹窗</span></div>
+          <div class="form-row"><span class="form-label">弹窗标题</span><input type="text" class="form-input" value="🎰 Secret Multiplier Hit!" style="max-width:400px;"></div>
+          <div class="form-row"><span class="form-label">弹窗内容</span><textarea class="form-textarea" style="max-width:500px;min-height:60px;">Amazing! You discovered the Hidden Multiplier {multiplier}x! You are winner #{winnerNo}/{totalSlots} and won {reward}U Bonus!</textarea></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span>TG Bot 推送模板</span></div>
+          <div class="form-row"><span class="form-label">Lucky 公布模板</span><textarea class="form-textarea" style="max-width:500px;min-height:60px;">🍀 Today's Lucky Range: {rangeMin}x ~ {rangeMax}x! Hit any multiplier in this range to win {reward}U Bonus. Tap now →</textarea></div>
+          <div class="form-row"><span class="form-label">Hidden 揭晓模板</span><textarea class="form-textarea" style="max-width:500px;min-height:60px;">🔮 The Hidden Multiplier was {multiplier}x! Congratulations to all {winnerCount} winners who each earned {reward}U Bonus!</textarea></div>
+          <div class="form-row"><span class="form-label">保底触发模板</span><textarea class="form-textarea" style="max-width:500px;min-height:60px;">⏰ The Hidden Multiplier {multiplier}x has been revealed via fallback! Winners: {winners}.</textarea></div>
+        </div>
+        <div style="text-align:right;margin-top:16px;">
+          <button class="btn btn-default" style="margin-right:8px;">重置</button>
+          <button class="btn btn-primary" onclick="showNotif('活动内容配置已保存')">保存配置</button>
+        </div>
+      </div>
+
+      <!-- ===== TAB: 中奖记录 ===== -->
+      <div class="int-tab-content" id="tab-winners">
+        <div class="card">
+          <div class="card-title"><span>中奖记录</span></div>
+          <div class="filter-bar">
+            <input type="text" class="form-input" placeholder="搜索用户ID" style="max-width:180px;">
+            <select class="form-select" style="max-width:140px;"><option value="">全部类型</option><option>Lucky</option><option>Hidden</option></select>
+            <select class="form-select" style="max-width:140px;"><option value="">全部状态</option><option>已发放</option><option>待发放</option><option>发放失败</option></select>
+            <input type="date" class="form-input" value="2026-07-22" style="max-width:160px;">
+            <button class="btn btn-primary btn-sm">查询</button>
+            <button class="btn btn-default btn-sm">重置</button>
+            <button class="btn btn-default btn-sm" style="margin-left:auto;">导出 Excel</button>
+          </div>
+          <table class="data-table">
+            <thead><tr><th>时间</th><th>用户ID</th><th>类型</th><th>倍率</th><th>投注金额</th><th>奖励金额</th><th>奖励类型</th><th>Hidden名次</th><th>状态</th><th>操作</th></tr></thead>
+            <tbody>
+              <tr><td>2026-07-22 14:32:18</td><td>user_88***21</td><td><span class="tag tag-lucky">Lucky</span></td><td style="font-weight:600;color:#d48806;">188x</td><td>1.00 USDT</td><td style="color:#52c41a;font-weight:600;">20U</td><td>奖励金</td><td>-</td><td><span class="tag tag-success">已发放</span></td><td><button class="btn btn-default btn-sm" onclick="showModal('winnerDetailModal')">详情</button></td></tr>
+              <tr><td>2026-07-22 13:15:42</td><td>user_33***77</td><td><span class="tag tag-hidden">Hidden</span></td><td style="font-weight:600;color:#722ed1;">347x</td><td>2.00 USDT</td><td style="color:#52c41a;font-weight:600;">100U</td><td>奖励金</td><td style="font-weight:600;color:#722ed1;">#3</td><td><span class="tag tag-success">已发放</span></td><td><button class="btn btn-default btn-sm" onclick="showModal('winnerDetailModal')">详情</button></td></tr>
+              <tr><td>2026-07-22 11:08:55</td><td>user_55***09</td><td><span class="tag tag-lucky">Lucky</span></td><td style="font-weight:600;color:#d48806;">200x</td><td>0.50 USDT</td><td style="color:#52c41a;font-weight:600;">20U</td><td>奖励金</td><td>-</td><td><span class="tag tag-success">已发放</span></td><td><button class="btn btn-default btn-sm" onclick="showModal('winnerDetailModal')">详情</button></td></tr>
+              <tr><td>2026-07-22 09:44:31</td><td>user_12***45</td><td><span class="tag tag-hidden">Hidden</span></td><td style="font-weight:600;color:#722ed1;">347x</td><td>5.00 USDT</td><td style="color:#52c41a;font-weight:600;">100U</td><td>奖励金</td><td style="font-weight:600;color:#722ed1;">#2</td><td><span class="tag tag-success">已发放</span></td><td><button class="btn btn-default btn-sm" onclick="showModal('winnerDetailModal')">详情</button></td></tr>
+              <tr><td>2026-07-22 08:22:17</td><td>user_77***88</td><td><span class="tag tag-lucky">Lucky</span></td><td style="font-weight:600;color:#d48806;">168x</td><td>0.10 USDT</td><td style="color:#52c41a;font-weight:600;">20U</td><td>Bonus</td><td>-</td><td><span class="tag tag-pending">待发放</span></td><td><button class="btn btn-default btn-sm" onclick="showModal('winnerDetailModal')">详情</button> <button class="btn btn-primary btn-sm" onclick="showModal('confirmPayoutModal')">手动发放</button></td></tr>
+              <tr><td>2026-07-22 07:55:03</td><td>user_91***34</td><td><span class="tag tag-hidden">Hidden</span></td><td style="font-weight:600;color:#722ed1;">347x</td><td>10.00 USDT</td><td style="color:#52c41a;font-weight:600;">100U</td><td>奖励金</td><td style="font-weight:600;color:#722ed1;">#1</td><td><span class="tag tag-success">已发放</span></td><td><button class="btn btn-default btn-sm" onclick="showModal('winnerDetailModal')">详情</button></td></tr>
+            </tbody>
+          </table>
+          <div class="pagination">
+            <button>‹</button><button class="active">1</button><button>2</button><button>3</button><button>4</button><span>共 32 条</span><button>›</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== TAB: 保底管理 ===== -->
+      <div class="int-tab-content" id="tab-fallback">
+        <div class="card">
+          <div class="card-title"><span>保底机制配置</span></div>
+          <div class="card-desc">当 Hidden Multiplier 在截止时间前未被足够用户命中时，触发保底机制以确保奖励发放。</div>
+          <hr class="section-divider">
+          <div class="form-row">
+            <span class="form-label">保底机制</span>
+            <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+            <span style="font-size:13px;color:#52c41a;font-weight:500;">已启用</span>
+          </div>
+          <div class="form-row">
+            <span class="form-label">截止时间</span>
+            <select class="form-select" style="max-width:200px;"><option selected>UTC 12:00（每日中午）</option><option>UTC 00:00（每日午夜）</option><option>UTC 18:00（每日傍晚）</option></select>
+          </div>
+          <div class="form-row">
+            <span class="form-label">保底触发条件</span>
+            <select class="form-select" style="max-width:300px;"><option selected>截止时间到达且名额未满</option><option>截止时间到达且无人命中</option></select>
+          </div>
+          <div class="form-hint" style="margin-left:152px;">当触发条件满足时，系统将自动从截止时刻前所有投注该 Hidden 倍率的用户中随机抽取剩余名额的中奖者。</div>
+          <div class="form-row">
+            <span class="form-label">保底后公告</span>
+            <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+            <span style="font-size:13px;color:#334155;">通过 TG Bot 推送保底开奖结果</span>
+          </div>
+          <div style="text-align:right;margin-top:16px;" id="fallbackSaveArea">
+            <button class="btn btn-primary" onclick="lockFallbackConfig()">保存配置</button>
+          </div>
+          <div id="fallbackLockedMsg" style="display:none;">
+            <div class="alert alert-warning" style="margin-top:12px;">
+              <strong>当日保底配置已锁定</strong> — 保存后当日不可再修改，次日 00:00 UTC 后将自动解锁并可重新编辑。
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span>今日保底状态</span>
+            <span class="tag tag-info" id="fallbackStatusTag">等待中</span>
+          </div>
+          <div class="two-col">
+            <div>
+              <div style="margin-bottom:12px;"><div style="font-size:12px;color:#8896a8;margin-bottom:4px;">Hidden 倍率</div><div style="font-size:24px;font-weight:700;color:#722ed1;">347x</div></div>
+              <div style="margin-bottom:12px;"><div style="font-size:12px;color:#8896a8;margin-bottom:4px;">已中奖 / 总名额</div><div style="font-size:20px;font-weight:600;">4 / 5</div></div>
+              <div><div style="font-size:12px;color:#8896a8;margin-bottom:4px;">剩余名额</div><div style="font-size:20px;font-weight:600;color:#fa8c16;">1</div></div>
+            </div>
+            <div>
+              <div style="margin-bottom:12px;"><div style="font-size:12px;color:#8896a8;margin-bottom:4px;">截止时间</div><div style="font-size:16px;font-weight:500;">2026-07-22 UTC 12:00</div></div>
+              <div style="margin-bottom:12px;"><div style="font-size:12px;color:#8896a8;margin-bottom:4px;">保底倒计时</div><div style="font-size:24px;font-weight:700;color:#fa8c16;" id="fallbackTimer2">03:24:11</div></div>
+              <div><div style="font-size:12px;color:#8896a8;margin-bottom:4px;">候选池（投注该倍率的用户）</div><div style="font-size:16px;font-weight:500;">127 人</div></div>
+            </div>
+          </div>
+          <hr class="section-divider">
+          <div style="font-size:13px;font-weight:600;color:#334155;margin-bottom:12px;">保底操作流程</div>
+          <div class="alert alert-info" style="margin-top:0;">
+            <div style="margin-bottom:6px;"><strong>自动保底：</strong>截止时间到达后，系统自动从候选池中随机抽取剩余名额的中奖者，奖励自动发放。</div>
+            <div style="margin-bottom:6px;"><strong>手动保底：</strong>运营可在截止前手动指定中奖者（输入用户 ID 或从候选池选择），手动指定的名额从剩余名额中扣除。</div>
+            <div><strong>混合模式：</strong>支持先手动指定部分名额，剩余名额由系统在截止时自动抽取。</div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:16px;">
+            <button class="btn btn-primary btn-sm" onclick="showModal('manualFallbackModal')">手动指定中奖者</button>
+            <button class="btn btn-danger btn-sm" onclick="showModal('confirmTriggerModal')">手动触发保底开奖</button>
+            <button class="btn btn-default btn-sm" onclick="showModal('candidatePoolModal')">查看候选池</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== TAB: 数据统计 ===== -->
+      <div class="int-tab-content" id="tab-stats">
+        <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr);">
+          <div class="stat-card"><div class="stat-label">累计参与人数</div><div class="stat-value" style="color:#6366f1;">28,456</div><div class="stat-change up">活动周期内</div></div>
+          <div class="stat-card"><div class="stat-label">累计奖励发放</div><div class="stat-value" style="color:#f5222d;">8,960U</div><div class="stat-change">Lucky: 4,600U | Hidden: 4,360U</div></div>
+          <div class="stat-card"><div class="stat-label">Lucky 总中奖人次</div><div class="stat-value" style="color:#d48806;">230</div><div class="stat-change up">日均 33 人</div></div>
+          <div class="stat-card"><div class="stat-label">Hidden 总中奖人次</div><div class="stat-value" style="color:#722ed1;">22/35</div><div class="stat-change">含保底 12 次</div></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span>每日数据明细</span>
+            <div style="display:flex;gap:8px;"><input type="date" class="form-input" value="2026-07-16" style="max-width:160px;"><span style="line-height:36px;color:#8896a8;">至</span><input type="date" class="form-input" value="2026-07-22" style="max-width:160px;"><button class="btn btn-default btn-sm">导出</button></div>
+          </div>
+          <table class="data-table">
+            <thead><tr><th>日期</th><th>参与人数</th><th>Lucky中奖</th><th>Hidden中奖</th><th>奖励发放</th><th>保底触发</th></tr></thead>
+            <tbody>
+              <tr><td>2026-07-22</td><td>1,247</td><td style="color:#d48806;">23</td><td style="color:#722ed1;">4</td><td>860U</td><td>否</td></tr>
+              <tr><td>2026-07-21</td><td>1,058</td><td style="color:#d48806;">19</td><td style="color:#722ed1;">5</td><td>880U</td><td style="color:#fa8c16;">是</td></tr>
+              <tr><td>2026-07-20</td><td>986</td><td style="color:#d48806;">15</td><td style="color:#722ed1;">3</td><td>600U</td><td>否</td></tr>
+              <tr><td>2026-07-19</td><td>1,134</td><td style="color:#d48806;">21</td><td style="color:#722ed1;">2</td><td>720U</td><td style="color:#fa8c16;">是</td></tr>
+              <tr><td>2026-07-18</td><td>892</td><td style="color:#d48806;">14</td><td style="color:#722ed1;">5</td><td>780U</td><td>否</td></tr>
+              <tr><td>2026-07-17</td><td>756</td><td style="color:#d48806;">12</td><td style="color:#722ed1;">1</td><td>340U</td><td>否</td></tr>
+              <tr><td>2026-07-16</td><td>683</td><td style="color:#d48806;">10</td><td style="color:#722ed1;">4</td><td>600U</td><td>否</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- end page-lucky-activity -->
+
+    <!-- ========== PAGE: TapTrading基础配置 ========== -->
+    <div class="page" id="page-basic-config">
+      <div class="card">
+        <div class="card-title"><span>TapTrading 基础配置</span></div>
+        <div class="card-desc">配置 TapTrading 玩法的全局参数，影响所有交易对。</div>
+        <hr class="section-divider">
+        <div class="form-row"><span class="form-label">玩法开关</span><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label><span style="font-size:13px;color:#52c41a;font-weight:500;">已开启</span></div>
+        <div class="form-row"><span class="form-label">最小下单金额</span><input type="number" class="form-input" value="0.1" style="max-width:200px;"><span style="font-size:12px;color:#8896a8;">USDT</span></div>
+        <div class="form-row"><span class="form-label">最高投注金额</span><input type="number" class="form-input" value="100" style="max-width:200px;"><span style="font-size:12px;color:#8896a8;">USDT</span></div>
+        <div class="form-row"><span class="form-label">单期时长</span><select class="form-select" style="max-width:200px;"><option>1 分钟</option><option selected>3 分钟</option><option>5 分钟</option><option>10 分钟</option></select></div>
+        <div class="form-row"><span class="form-label">K线动画时长</span><select class="form-select" style="max-width:200px;"><option>5 秒</option><option selected>10 秒</option><option>15 秒</option></select></div>
+        <div class="form-row"><span class="form-label">幸运倍率活动</span><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label><span style="font-size:13px;color:#52c41a;font-weight:500;">已开启</span><button class="btn btn-default btn-sm" style="margin-left:12px;" onclick="navigateToPage('幸运倍率活动')">前往配置 →</button></div>
+        <div class="form-row"><span class="form-label">最小下单金额</span><select class="form-select" style="max-width:200px;"><option selected>KYC 认证用户</option><option>所有注册用户</option><option>VIP 1 及以上</option></select></div>
+        <div style="text-align:right;margin-top:16px;"><button class="btn btn-default" style="margin-right:8px;">重置</button><button class="btn btn-primary" onclick="showNotif('基础配置已保存')">保存配置</button></div>
+      </div>
+    </div>
+
+    <!-- ========== PAGE: TapTrading交易对 ========== -->
+    <div class="page" id="page-trading-pairs">
+      <div class="card">
+        <div class="card-title"><span>TapTrading 交易对管理</span><button class="btn btn-primary btn-sm" onclick="showModal('addPairModal')">+ 添加交易对</button></div>
+        <div class="filter-bar">
+          <input type="text" class="form-input" placeholder="搜索交易对名称" style="max-width:200px;">
+          <select class="form-select" style="max-width:140px;"><option value="">全部状态</option><option>已上线</option><option>已下线</option></select>
+          <button class="btn btn-primary btn-sm">查询</button>
+        </div>
+        <table class="data-table">
+          <thead><tr><th>交易对</th><th>基础币</th><th>计价币</th><th>状态</th><th>今日投注笔数</th><th>今日投注金额</th><th>创建时间</th><th>操作</th></tr></thead>
+          <tbody>
+            <tr><td style="font-weight:600;">BTC/USDT</td><td>BTC</td><td>USDT</td><td><span class="status-badge running"><span class="status-dot"></span> 已上线</span></td><td>4,521</td><td>1,820U</td><td>2026-06-01</td><td><button class="btn btn-default btn-sm">编辑</button> <button class="btn btn-danger btn-sm">下线</button></td></tr>
+            <tr><td style="font-weight:600;">ETH/USDT</td><td>ETH</td><td>USDT</td><td><span class="status-badge running"><span class="status-dot"></span> 已上线</span></td><td>2,834</td><td>980U</td><td>2026-06-01</td><td><button class="btn btn-default btn-sm">编辑</button> <button class="btn btn-danger btn-sm">下线</button></td></tr>
+            <tr><td style="font-weight:600;">SOL/USDT</td><td>SOL</td><td>USDT</td><td><span class="status-badge running"><span class="status-dot"></span> 已上线</span></td><td>1,203</td><td>520U</td><td>2026-06-15</td><td><button class="btn btn-default btn-sm">编辑</button> <button class="btn btn-danger btn-sm">下线</button></td></tr>
+            <tr><td style="font-weight:600;">DOGE/USDT</td><td>DOGE</td><td>USDT</td><td><span class="status-badge paused"><span class="status-dot"></span> 已下线</span></td><td>-</td><td>-</td><td>2026-06-20</td><td><button class="btn btn-default btn-sm">编辑</button> <button class="btn btn-success btn-sm">上线</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== Modals ===== -->
+
+<!-- Modal: 修改今日 Lucky 区间 -->
+<div class="modal-overlay" id="changeLuckyModal">
+  <div class="modal">
+    <div class="modal-header"><span>修改今日 Lucky 倍率区间</span><button class="modal-close" onclick="closeModal('changeLuckyModal')">&times;</button></div>
+    <div class="modal-body">
+      <div class="form-row"><span class="form-label">当前区间</span><span style="font-size:20px;font-weight:700;color:#d48806;">150x ~ 250x</span></div>
+      <div class="form-row"><span class="form-label">新区间下限</span><input type="number" class="form-input" value="150" style="max-width:150px;"><span style="color:#8896a8;font-size:12px;">x</span></div>
+      <div class="form-row"><span class="form-label">新区间上限</span><input type="number" class="form-input" value="250" style="max-width:150px;"><span style="color:#8896a8;font-size:12px;">x</span></div>
+      <div class="alert alert-warning">⚠ 修改后，业务端将立即更新显示。区间下限必须小于上限，且 Hidden 倍率不会出现在该区间内。已投注用户不受影响。</div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-default" onclick="closeModal('changeLuckyModal')">取消</button><button class="btn btn-primary" onclick="closeModal('changeLuckyModal');showNotif('今日 Lucky 区间已更新')">确认修改</button></div>
+  </div>
+</div>
+
+<!-- Modal: 编辑活动配置 -->
+<div class="modal-overlay" id="editActivityModal">
+  <div class="modal">
+    <div class="modal-header"><span>编辑活动配置</span><button class="modal-close" onclick="closeModal('editActivityModal')">&times;</button></div>
+    <div class="modal-body">
+      <div class="form-row"><span class="form-label">活动名称</span><input type="text" class="form-input" value="TapTrading Lucky Multiplier" style="max-width:300px;"></div>
+      <div class="form-row"><span class="form-label">活动状态</span><select class="form-select" style="max-width:200px;"><option>运行中</option><option>已暂停</option><option>已结束</option></select></div>
+      <div class="form-row"><span class="form-label">起止日期</span><input type="date" class="form-input" value="2026-07-01" style="max-width:150px;"><span style="color:#8896a8;">至</span><input type="date" class="form-input" value="2026-09-30" style="max-width:150px;"></div>
+      <div class="form-row"><span class="form-label">最小下单金额</span><input type="number" class="form-input" value="0.1" style="max-width:150px;"><span style="font-size:12px;color:#8896a8;">USDT</span></div>
+      <div class="form-row"><span class="form-label">TG 推送</span><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label><span style="font-size:13px;color:#334155;">开启自动推送</span></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-default" onclick="closeModal('editActivityModal')">取消</button><button class="btn btn-primary" onclick="closeModal('editActivityModal');showNotif('活动配置已更新')">保存</button></div>
+  </div>
+</div>
+
+<!-- Modal: 手动指定中奖者 -->
+<div class="modal-overlay" id="manualFallbackModal">
+  <div class="modal">
+    <div class="modal-header"><span>手动指定 Hidden 中奖者</span><button class="modal-close" onclick="closeModal('manualFallbackModal')">&times;</button></div>
+    <div class="modal-body">
+      <div class="form-row"><span class="form-label">剩余名额</span><span style="font-size:16px;font-weight:600;color:#fa8c16;">1</span></div>
+      <div class="form-row"><span class="form-label">指定方式</span>
+        <div class="radio-group"><label class="radio-item"><input type="radio" name="fallbackMode" value="id" checked> 输入用户ID</label><label class="radio-item"><input type="radio" name="fallbackMode" value="pool"> 从候选池选择</label></div>
+      </div>
+      <div id="fallbackById">
+        <div class="form-row">
+          <span class="form-label">用户 ID</span>
+          <input type="text" class="form-input" id="fallbackUidInput" placeholder="输入用户 ID" style="max-width:200px;">
+          <button class="btn btn-default btn-sm" onclick="verifyFallbackUid()">验证</button>
+        </div>
+        <div id="fallbackUidResult" style="display:none;margin-left:152px;"></div>
+      </div>
+      <div id="fallbackByPool" style="display:none;">
+        <div class="card-desc">从候选池中选择一名用户（单选）。当已中奖名额满足后，将无法继续指定。</div>
+        <div id="poolFullMsg" style="display:none;" class="alert alert-warning" style="margin-bottom:12px;">已中奖名额已满，无法再手动指定中奖者。</div>
+        <table class="data-table" style="margin-bottom:12px;" id="candidateSelectTable">
+          <thead><tr><th style="width:40px;">选择</th><th>用户ID</th><th>投注金额</th><th>投注时间</th></tr></thead>
+          <tbody>
+            <tr><td><input type="radio" name="candidate" value="user_44"></td><td>user_44***88</td><td>3.00 USDT</td><td>10:22:15</td></tr>
+            <tr><td><input type="radio" name="candidate" value="user_22"></td><td>user_22***11</td><td>1.50 USDT</td><td>09:45:33</td></tr>
+            <tr><td><input type="radio" name="candidate" value="user_99"></td><td>user_99***77</td><td>5.00 USDT</td><td>08:12:44</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="alert alert-info">手动指定的中奖者将获得 100U Bonus 奖励，TG 频道将正常推送中奖消息。</div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-default" onclick="closeModal('manualFallbackModal')">取消</button><button class="btn btn-primary" onclick="closeModal('manualFallbackModal');showNotif('已指定中奖者，奖励已发放')">确认指定</button></div>
+  </div>
+</div>
+
+<!-- Modal: 候选池 -->
+<div class="modal-overlay" id="candidatePoolModal">
+  <div class="modal wide">
+    <div class="modal-header"><span>候选池 - 投注 Hidden 倍率 347x 的用户</span><button class="modal-close" onclick="closeModal('candidatePoolModal')">&times;</button></div>
+    <div class="modal-body">
+      <div style="margin-bottom:12px;font-size:13px;color:#8896a8;">共 127 位用户投注了 Hidden 倍率 347x，其中 4 人已中奖，剩余 123 人为候选。</div>
+      <table class="data-table">
+        <thead><tr><th>用户ID</th><th>投注金额</th><th>投注时间</th><th>状态</th></tr></thead>
+        <tbody>
+          <tr><td>user_91***34</td><td>10.00 USDT</td><td>07:55:03</td><td><span class="tag tag-success">已中奖 #1</span></td></tr>
+          <tr><td>user_12***45</td><td>5.00 USDT</td><td>09:44:31</td><td><span class="tag tag-success">已中奖 #2</span></td></tr>
+          <tr><td>user_33***77</td><td>2.00 USDT</td><td>13:15:42</td><td><span class="tag tag-success">已中奖 #3</span></td></tr>
+          <tr><td>user_66***99</td><td>8.00 USDT</td><td>10:33:21</td><td><span class="tag tag-success">已中奖 #4</span></td></tr>
+          <tr><td>user_44***88</td><td>3.00 USDT</td><td>10:22:15</td><td><span class="tag tag-pending">候选中</span></td></tr>
+          <tr><td>user_22***11</td><td>1.50 USDT</td><td>09:45:33</td><td><span class="tag tag-pending">候选中</span></td></tr>
+          <tr><td>user_99***77</td><td>5.00 USDT</td><td>08:12:44</td><td><span class="tag tag-pending">候选中</span></td></tr>
+          <tr><td colspan="4" style="text-align:center;color:#8896a8;">... 共 123 位候选用户 ...</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-footer"><button class="btn btn-default" onclick="closeModal('candidatePoolModal')">关闭</button></div>
+  </div>
+</div>
+
+<!-- Modal: 添加交易对 -->
+<div class="modal-overlay" id="addPairModal">
+  <div class="modal">
+    <div class="modal-header"><span>添加交易对</span><button class="modal-close" onclick="closeModal('addPairModal')">&times;</button></div>
+    <div class="modal-body">
+      <div class="form-row"><span class="form-label">基础币</span><select class="form-select" style="max-width:200px;"><option>BTC</option><option>ETH</option><option>SOL</option><option>DOGE</option><option>XRP</option></select></div>
+      <div class="form-row"><span class="form-label">计价币</span><select class="form-select" style="max-width:200px;"><option>USDT</option><option>USDC</option></select></div>
+      <div class="form-row"><span class="form-label">状态</span><select class="form-select" style="max-width:200px;"><option>已上线</option><option>已下线</option></select></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-default" onclick="closeModal('addPairModal')">取消</button><button class="btn btn-primary" onclick="closeModal('addPairModal');showNotif('交易对已添加')">确认添加</button></div>
+  </div>
+</div>
+
+<!-- Modal: 确认手动触发保底开奖 -->
+<div class="modal-overlay" id="confirmTriggerModal">
+  <div class="modal" style="width:440px;">
+    <div class="modal-header"><span>确认手动触发保底开奖</span><button class="modal-close" onclick="closeModal('confirmTriggerModal')">&times;</button></div>
+    <div class="modal-body">
+      <div class="alert alert-warning" style="margin-top:0;">
+        <strong>操作确认</strong><br><br>
+        你即将手动触发今日 Hidden Multiplier 的保底开奖。触发后：<br>
+        1. 系统将从候选池中随机抽取剩余名额的中奖者<br>
+        2. 奖励将自动发放至中奖用户账户<br>
+        3. TG 频道将推送保底开奖公告<br>
+        4. <strong>此操作不可撤销</strong>
+      </div>
+      <div class="form-row" style="margin-top:16px;">
+        <span class="form-label">今日 Hidden 倍率</span>
+        <span style="font-size:16px;font-weight:700;color:#722ed1;">347x</span>
+      </div>
+      <div class="form-row">
+        <span class="form-label">剩余名额</span>
+        <span style="font-size:16px;font-weight:600;color:#fa8c16;">1</span>
+      </div>
+      <div class="form-row">
+        <span class="form-label">候选池人数</span>
+        <span style="font-size:16px;font-weight:600;">123 人</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('confirmTriggerModal')">取消</button>
+      <button class="btn btn-danger" onclick="closeModal('confirmTriggerModal');showNotif('已手动触发保底开奖，系统正在抽取中奖者')">确认触发</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: 确认手动发放 -->
+<div class="modal-overlay" id="confirmPayoutModal">
+  <div class="modal" style="width:440px;">
+    <div class="modal-header"><span>确认手动发放奖励</span><button class="modal-close" onclick="closeModal('confirmPayoutModal')">&times;</button></div>
+    <div class="modal-body">
+      <div class="alert alert-warning" style="margin-top:0;">
+        <strong>二次确认</strong><br><br>
+        你即将为该用户手动发放奖励，请确认以下信息无误：
+      </div>
+      <div style="margin-top:16px;background:#fafafa;border-radius:6px;padding:14px;">
+        <div class="form-row"><span class="form-label">用户 ID</span><span style="font-weight:600;">user_77***88</span></div>
+        <div class="form-row"><span class="form-label">中奖类型</span><span class="tag tag-lucky">Lucky</span></div>
+        <div class="form-row"><span class="form-label">命中倍率</span><span style="font-weight:600;color:#d48806;">168x</span></div>
+        <div class="form-row"><span class="form-label">奖励金额</span><span style="font-weight:700;color:#52c41a;">20U 奖励金</span></div>
+        <div class="form-row"><span class="form-label">原始状态</span><span class="tag tag-pending">待发放</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-default" onclick="closeModal('confirmPayoutModal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('confirmPayoutModal');showNotif('奖励已手动发放至用户账户')">确认发放</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: 中奖详情 -->
+<div class="modal-overlay" id="winnerDetailModal">
+  <div class="modal wide">
+    <div class="modal-header"><span>中奖记录详情</span><button class="modal-close" onclick="closeModal('winnerDetailModal')">&times;</button></div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 24px;">
+        <div class="form-row"><span class="form-label">中奖时间</span><span style="font-size:13px;color:#334155;">2026-07-22 14:32:18 UTC</span></div>
+        <div class="form-row"><span class="form-label">用户 ID</span><span style="font-size:13px;font-weight:600;color:#334155;">user_88***21</span></div>
+        <div class="form-row"><span class="form-label">中奖类型</span><span class="tag tag-lucky">Lucky</span></div>
+        <div class="form-row"><span class="form-label">命中倍率</span><span style="font-size:16px;font-weight:700;color:#d48806;">188x</span></div>
+        <div class="form-row"><span class="form-label">Lucky 区间</span><span style="font-size:13px;color:#334155;">150x ~ 250x</span></div>
+        <div class="form-row"><span class="form-label">投注金额</span><span style="font-size:13px;color:#334155;">1.00 USDT</span></div>
+        <div class="form-row"><span class="form-label">奖励金额</span><span style="font-size:16px;font-weight:700;color:#52c41a;">20U</span></div>
+        <div class="form-row"><span class="form-label">奖励类型</span><span style="font-size:13px;color:#334155;">奖励金</span></div>
+        <div class="form-row"><span class="form-label">发放状态</span><span class="tag tag-success">已发放</span></div>
+        <div class="form-row"><span class="form-label">发放时间</span><span style="font-size:13px;color:#334155;">2026-07-22 14:32:20 UTC</span></div>
+        <div class="form-row"><span class="form-label">交易对</span><span style="font-size:13px;color:#334155;">BTC/USDT</span></div>
+        <div class="form-row"><span class="form-label">订单 ID</span><span style="font-size:12px;color:#6366f1;font-family:monospace;">ORD-20260722-143218-8821</span></div>
+      </div>
+      <hr class="section-divider">
+      <div style="font-size:13px;font-weight:600;color:#334155;margin-bottom:8px;">操作日志</div>
+      <table class="data-table">
+        <thead><tr><th>时间</th><th>操作人</th><th>操作</th><th>备注</th></tr></thead>
+        <tbody>
+          <tr><td>2026-07-22 14:32:18</td><td>系统</td><td>自动判定中奖</td><td>Lucky 倍率 188x 命中区间 150x~250x</td></tr>
+          <tr><td>2026-07-22 14:32:20</td><td>系统</td><td>自动发放奖励</td><td>20U 奖励金已到账</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-footer"><button class="btn btn-default" onclick="closeModal('winnerDetailModal')">关闭</button></div>
+  </div>
+</div>
+
+<div class="notification" id="notification"></div>
+
+<script>
+  // ===== Framework Menu Toggle Logic =====
+  document.querySelectorAll('.menu-title[data-toggle]').forEach(el => {
+    el.addEventListener('click', () => {
+      const targetId = el.getAttribute('data-toggle');
+      const submenu = document.getElementById(targetId);
+      if (submenu) { submenu.classList.toggle('open'); el.classList.toggle('expanded'); }
+    });
+  });
+  document.querySelectorAll('.submenu-item[data-toggle]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const targetId = el.getAttribute('data-toggle');
+      const submenu = document.getElementById(targetId);
+      if (submenu) { submenu.classList.toggle('open'); el.classList.toggle('expanded'); }
+    });
+  });
+
+  // ===== Page Routing =====
+  const pageMap = {
+    '幸运倍率活动': 'page-lucky-activity',
+    'TapTrading基础配置': 'page-basic-config',
+    'TapTrading交易对': 'page-trading-pairs'
+  };
+
+  function navigateToPage(pageName) {
+    const targetItem = document.querySelector(`[data-page="${pageName}"]`);
+    if (targetItem) {
+      const parentName = targetItem.getAttribute('data-parent');
+      setActivePage(pageName, parentName, targetItem);
+    }
+  }
+
+  function setActivePage(pageName, parentName, el) {
+    document.querySelectorAll('.menu-title.active, .submenu-item.active, .sub-submenu-item.active').forEach(e => e.classList.remove('active'));
+    if (el) el.classList.add('active');
+    const breadcrumb = document.getElementById('breadcrumb');
+    if (parentName) { breadcrumb.innerHTML = parentName + ' / <span>' + pageName + '</span>'; }
+    else { breadcrumb.innerHTML = '<span>' + pageName + '</span>'; }
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    const targetId = pageMap[pageName];
+    if (targetId) document.getElementById(targetId).classList.add('active');
+  }
+
+  // Sub-submenu clicks
+  document.querySelectorAll('.sub-submenu-item[data-page]').forEach(el => {
+    el.addEventListener('click', () => {
+      setActivePage(el.getAttribute('data-page'), el.getAttribute('data-parent'), el);
+    });
+  });
+  // Submenu leaf clicks
+  document.querySelectorAll('.submenu-item[data-page]').forEach(el => {
+    el.addEventListener('click', () => {
+      setActivePage(el.getAttribute('data-page'), el.getAttribute('data-parent'), el);
+    });
+  });
+  // Menu-title no-sub clicks
+  document.querySelectorAll('.menu-title.no-sub[data-page]').forEach(el => {
+    el.addEventListener('click', () => {
+      setActivePage(el.getAttribute('data-page'), null, el);
+    });
+  });
+
+  // ===== Internal Tab Switching =====
+  function switchMainTab(tabName, el) {
+    document.querySelectorAll('#mainTabs .int-tab-item').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    document.querySelectorAll('.int-tab-content').forEach(c => c.classList.remove('active'));
+    document.getElementById('tab-' + tabName).classList.add('active');
+  }
+
+  function switchMainTabByName(tabName) {
+    const tabMap = { '活动概览': 'overview', '倍率配置': 'multiplier', '活动内容配置': 'content', '中奖记录': 'winners', '保底管理': 'fallback', '数据统计': 'stats' };
+    const key = tabMap[tabName];
+    if (!key) return;
+    document.querySelectorAll('#mainTabs .int-tab-item').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('#mainTabs .int-tab-item').forEach(t => { if (t.textContent.trim() === tabName) t.classList.add('active'); });
+    document.querySelectorAll('.int-tab-content').forEach(c => c.classList.remove('active'));
+    document.getElementById('tab-' + key).classList.add('active');
+  }
+
+  // ===== Content Language Tab =====
+  function switchContentTab(lang, el) {
+    document.querySelectorAll('#contentLangTabs .lang-tab-item').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    document.querySelectorAll('.lang-tab-content').forEach(c => c.classList.remove('active'));
+    document.getElementById('contentTab-' + lang).classList.add('active');
+  }
+
+  // ===== Activity Status Toggle =====
+  function toggleActivityStatus() {
+    const badge = document.getElementById('activityStatus');
+    const btn = document.getElementById('toggleActivityBtn');
+    if (badge.classList.contains('running')) {
+      badge.classList.remove('running'); badge.classList.add('paused');
+      badge.innerHTML = '<span class="status-dot"></span> 已暂停';
+      btn.textContent = '开启活动';
+      showNotif('活动已暂停，业务端将停止展示活动入口');
+    } else {
+      badge.classList.remove('paused'); badge.classList.add('running');
+      badge.innerHTML = '<span class="status-dot"></span> 运行中';
+      btn.textContent = '暂停活动';
+      showNotif('活动已恢复运行');
+    }
+  }
+
+  // ===== Modal =====
+  function showModal(id) { document.getElementById(id).classList.add('show'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+  // ===== Notification =====
+  function showNotif(msg) {
+    const n = document.getElementById('notification');
+    n.textContent = msg; n.classList.add('show');
+    setTimeout(() => n.classList.remove('show'), 3000);
+  }
+
+  // Close modals on overlay click
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('show'); });
+  });
+
+  // ===== Fallback Mode Toggle =====
+  document.querySelectorAll('input[name="fallbackMode"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+      document.getElementById('fallbackById').style.display = this.value === 'id' ? 'block' : 'none';
+      document.getElementById('fallbackByPool').style.display = this.value === 'pool' ? 'block' : 'none';
+    });
+  });
+
+  // ===== Coupon Select Toggle =====
+  function toggleCouponSelect(selectEl, rowId) {
+    const row = document.getElementById(rowId);
+    if (row) row.style.display = selectEl.value === 'coupon' ? 'flex' : 'none';
+  }
+
+  // ===== UID Verification =====
+  function verifyFallbackUid() {
+    const input = document.getElementById('fallbackUidInput');
+    const result = document.getElementById('fallbackUidResult');
+    const uid = input.value.trim();
+    if (!uid) {
+      result.style.display = 'block';
+      result.innerHTML = '<span style="color:#f5222d;font-size:12px;">请输入用户 ID</span>';
+      return;
+    }
+    // Simulate verification
+    result.style.display = 'block';
+    result.innerHTML = '<span style="color:#8896a8;font-size:12px;">验证中...</span>';
+    setTimeout(() => {
+      const exists = uid.length > 3;
+      if (exists) {
+        result.innerHTML = '<span style="color:#52c41a;font-size:12px;">✓ 用户存在 — UID: ' + uid + '，昵称: user_' + uid.substring(0,2) + '***，已 KYC 认证，当日已参与 TapTrading 投注</span>';
+      } else {
+        result.innerHTML = '<span style="color:#f5222d;font-size:12px;">✗ 用户不存在，请检查 ID 是否正确</span>';
+      }
+    }, 600);
+  }
+
+  // ===== Fallback Config Lock =====
+  function lockFallbackConfig() {
+    showNotif('保底配置已保存并锁定，次日 00:00 UTC 后可重新编辑');
+    // Disable all form elements in fallback config card
+    const configCard = document.getElementById('fallbackSaveArea');
+    configCard.style.display = 'none';
+    const lockedMsg = document.getElementById('fallbackLockedMsg');
+    lockedMsg.style.display = 'block';
+    // Disable inputs
+    const fallbackTab = document.getElementById('tab-fallback');
+    const inputs = fallbackCard = fallbackTab.querySelectorAll('input, select, .toggle');
+    inputs.forEach(el => { el.disabled = true; el.style.opacity = '0.6'; el.style.pointerEvents = 'none'; });
+  }
+
+  // ===== Fallback Timer =====
+  let fallbackSeconds = 3 * 3600 + 24 * 60 + 11;
+  setInterval(() => {
+    fallbackSeconds--;
+    if (fallbackSeconds < 0) fallbackSeconds = 0;
+    const h = Math.floor(fallbackSeconds / 3600);
+    const m = Math.floor((fallbackSeconds % 3600) / 60);
+    const s = fallbackSeconds % 60;
+    const timeStr = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    const el1 = document.getElementById('fallbackTimer');
+    const el2 = document.getElementById('fallbackTimer2');
+    if (el1) el1.textContent = timeStr;
+    if (el2) el2.textContent = timeStr;
+  }, 1000);
+</script>
+
+</body>
+</html>

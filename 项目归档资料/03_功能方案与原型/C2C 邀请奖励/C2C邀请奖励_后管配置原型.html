@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C2C 邀请奖励 - 后管配置原型 v4.0</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f2f5; color: #333; overflow: hidden; font-size: 13px; }
+        .container { display: flex; height: 100vh; }
+
+        /* 侧栏 */
+        .sidebar { width: 200px; background: #001529; color: #fff; display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; }
+        .logo { padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .logo h1 { font-size: 14px; color: #fff; }
+        .logo span { font-size: 11px; color: rgba(255,255,255,0.45); display: block; margin-top: 2px; }
+        .menu-parent { padding: 10px 16px; cursor: pointer; color: rgba(255,255,255,0.65); font-size: 13px; display: flex; justify-content: space-between; align-items: center; }
+        .menu-parent:hover { color: #fff; }
+        .menu-parent .arrow { font-size: 10px; transition: transform 0.2s; }
+        .menu-parent.expanded .arrow { transform: rotate(90deg); }
+        .menu-children { display: none; background: #000c17; }
+        .menu-children.open { display: block; }
+        .menu-child { padding: 9px 16px 9px 32px; cursor: pointer; color: rgba(255,255,255,0.55); font-size: 12px; transition: all 0.15s; }
+        .menu-child:hover { color: #fff; background: rgba(255,255,255,0.05); }
+        .menu-child.active { color: #fff; background: #1890ff; }
+        .menu-child.new-tag { position: relative; }
+        .menu-child.new-tag::after { content: 'NEW'; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 9px; background: #ff4d4f; color: #fff; padding: 1px 4px; border-radius: 2px; }
+
+        /* 主区域 */
+        .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .topbar { height: 44px; background: #fff; border-bottom: 1px solid #e8e8e8; display: flex; align-items: center; padding: 0 20px; }
+        .breadcrumb { font-size: 13px; color: #666; }
+        .breadcrumb span { color: #1890ff; }
+        .content { flex: 1; overflow-y: auto; padding: 16px 20px; }
+
+        /* 按钮 */
+        .btn { padding: 6px 14px; border-radius: 4px; border: 1px solid #d9d9d9; cursor: pointer; font-size: 12px; background: #fff; color: #333; transition: all 0.15s; }
+        .btn:hover { border-color: #1890ff; color: #1890ff; }
+        .btn-primary { background: #1890ff; color: #fff; border-color: #1890ff; }
+        .btn-primary:hover { background: #40a9ff; border-color: #40a9ff; color: #fff; }
+        .btn-danger { color: #ff4d4f; border-color: #ff4d4f; background: #fff; }
+        .btn-danger:hover { background: #fff1f0; }
+        .btn-sm { padding: 4px 10px; font-size: 11px; }
+        .btn-link { border: none; color: #1890ff; background: none; padding: 0; cursor: pointer; font-size: 12px; }
+        .btn-link:hover { color: #40a9ff; }
+        .btn-link.danger { color: #ff4d4f; }
+
+        /* 表格 */
+        table { width: 100%; border-collapse: collapse; }
+        thead { background: #fafafa; }
+        th { padding: 10px 12px; text-align: left; font-size: 12px; font-weight: 500; color: #666; border-bottom: 1px solid #e8e8e8; }
+        td { padding: 10px 12px; font-size: 12px; border-bottom: 1px solid #f0f0f0; }
+        tbody tr:hover { background: #f5f5f5; }
+        .mono { font-family: 'Menlo', 'Consolas', monospace; }
+
+        /* 状态标签 */
+        .tag { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 500; }
+        .tag-green { background: #f6ffed; color: #52c41a; border: 1px solid #b7eb8f; }
+        .tag-red { background: #fff1f0; color: #ff4d4f; border: 1px solid #ffa39e; }
+        .tag-gray { background: #f5f5f5; color: #999; border: 1px solid #d9d9d9; }
+        .tag-blue { background: #e6f7ff; color: #1890ff; border: 1px solid #91d5ff; }
+        .tag-orange { background: #fff7e6; color: #fa8c16; border: 1px solid #ffd591; }
+
+        /* 卡片 */
+        .card { background: #fff; border-radius: 6px; border: 1px solid #e8e8e8; }
+        .card-bd { padding: 0; }
+
+        /* 筛选 */
+        .filter-bar { display: flex; gap: 10px; align-items: flex-end; margin-bottom: 14px; flex-wrap: wrap; }
+        .filter-item { display: flex; flex-direction: column; gap: 3px; }
+        .filter-item label { font-size: 11px; color: #999; }
+        .filter-item input, .filter-item select { border: 1px solid #d9d9d9; border-radius: 4px; padding: 5px 8px; font-size: 12px; min-width: 120px; }
+        .filter-item input:focus, .filter-item select:focus { outline: none; border-color: #1890ff; }
+
+        /* 分页 */
+        .pager { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; font-size: 12px; color: #999; border-top: 1px solid #f0f0f0; }
+
+        /* 弹窗 */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1000; align-items: center; justify-content: center; }
+        .modal-overlay.open { display: flex; }
+        .modal-box { background: #fff; border-radius: 8px; width: 660px; max-height: 88vh; display: flex; flex-direction: column; }
+        .modal-hd { padding: 14px 20px; border-bottom: 1px solid #e8e8e8; display: flex; justify-content: space-between; align-items: center; }
+        .modal-hd h3 { font-size: 15px; font-weight: 500; }
+        .modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: #999; padding: 4px 8px; border-radius: 4px; }
+        .modal-close:hover { background: #f5f5f5; color: #333; }
+        .modal-bd { flex: 1; overflow-y: auto; padding: 20px; }
+        .modal-ft { padding: 12px 20px; border-top: 1px solid #e8e8e8; display: flex; justify-content: flex-end; gap: 8px; }
+
+        /* 区块 */
+        .section { margin-bottom: 20px; }
+        .section-title { font-size: 13px; font-weight: 500; color: #333; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #f0f0f0; }
+
+        /* 表单 */
+        .fg { margin-bottom: 12px; }
+        .fl { display: block; margin-bottom: 4px; font-size: 12px; color: #666; }
+        .fi { width: 100%; border: 1px solid #d9d9d9; border-radius: 4px; padding: 6px 10px; font-size: 12px; color: #333; }
+        .fi:focus { outline: none; border-color: #1890ff; box-shadow: 0 0 0 2px rgba(24,144,255,0.1); }
+        .fi[readonly] { background: #f5f5f5; color: #999; }
+        .fr { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        select.fi { appearance: auto; }
+
+        /* 开关 */
+        .sw { position: relative; display: inline-block; width: 32px; height: 18px; }
+        .sw input { opacity: 0; width: 0; height: 0; }
+        .sl { position: absolute; cursor: pointer; inset: 0; background: #bfbfbf; transition: .2s; border-radius: 18px; }
+        .sl:before { position: absolute; content: ""; height: 14px; width: 14px; left: 2px; bottom: 2px; background: #fff; transition: .2s; border-radius: 50%; }
+        input:checked + .sl { background: #1890ff; }
+        input:checked + .sl:before { transform: translateX(14px); }
+
+        /* 风控行 */
+        .risk-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f5f5f5; }
+        .risk-row:last-child { border-bottom: none; }
+        .risk-label { font-size: 12px; }
+        .risk-desc { font-size: 11px; color: #999; }
+
+        /* 阶梯表格 */
+        .tier-table input { border: 1px solid transparent; background: transparent; padding: 4px 8px; width: 100%; text-align: center; font-size: 12px; border-radius: 3px; }
+        .tier-table input:hover { border-color: #d9d9d9; }
+        .tier-table input:focus { border-color: #1890ff; background: #fff; outline: none; }
+        .tier-table input[readonly] { color: #999; }
+        .tier-type-sel { border: 1px solid transparent; background: transparent; padding: 4px 4px; font-size: 11px; border-radius: 3px; cursor: pointer; width: 100%; text-align: center; color: #333; }
+        .tier-type-sel:hover { border-color: #d9d9d9; }
+        .tier-type-sel:focus { border-color: #1890ff; background: #fff; outline: none; }
+        .tier-prize-amt { border: 1px solid transparent; background: transparent; padding: 4px 8px; width: 100%; text-align: center; font-size: 12px; border-radius: 3px; }
+        .tier-prize-amt:hover { border-color: #d9d9d9; }
+        .tier-prize-amt:focus { border-color: #1890ff; background: #fff; outline: none; }
+        .tier-prize-coupon { border: 1px solid #d9d9d9; background: #fff; padding: 4px 6px; font-size: 11px; border-radius: 3px; cursor: pointer; width: 100%; color: #333; }
+        .tier-prize-coupon:focus { border-color: #1890ff; outline: none; }
+        .coupon-hint { font-size: 11px; color: #999; margin-top: 6px; padding: 6px 10px; background: #fffbe6; border: 1px solid #ffe58f; border-radius: 4px; display: none; }
+        .coupon-hint.show { display: block; }
+        .tier-summary { padding: 10px 14px; background: #f6ffed; border: 1px solid #b7eb8f; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+        .tier-summary .label { color: #666; font-size: 12px; }
+        .tier-summary .value { font-size: 18px; color: #52c41a; font-weight: 600; }
+
+        /* 上传 */
+        .upload-box { border: 1px dashed #d9d9d9; border-radius: 4px; padding: 16px; text-align: center; cursor: pointer; }
+        .upload-box:hover { border-color: #1890ff; }
+        .upload-box p { font-size: 12px; color: #999; }
+
+        /* 操作列 */
+        .actions { display: flex; gap: 8px; align-items: center; }
+        .divider { width: 1px; height: 12px; background: #e8e8e8; }
+
+        /* Toast 提示 */
+        .toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 2000; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+        .toast { padding: 10px 16px; border-radius: 4px; font-size: 13px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); pointer-events: auto; animation: toastIn 0.3s ease; max-width: 400px; }
+        .toast-error { background: #fff1f0; border: 1px solid #ffa39e; color: #ff4d4f; }
+        .toast-success { background: #f6ffed; border: 1px solid #b7eb8f; color: #52c41a; }
+        .toast-warning { background: #fffbe6; border: 1px solid #ffe58f; color: #faad14; }
+        @keyframes toastIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* 确认弹窗 */
+        .confirm-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 1500; align-items: center; justify-content: center; }
+        .confirm-overlay.open { display: flex; }
+        .confirm-box { background: #fff; border-radius: 8px; width: 380px; padding: 20px; }
+        .confirm-box h4 { font-size: 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+        .confirm-box p { font-size: 12px; color: #666; line-height: 1.6; margin-bottom: 16px; }
+        .confirm-box .warn { color: #faad14; }
+        .confirm-ft { display: flex; justify-content: flex-end; gap: 8px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- 侧栏 -->
+    <div class="sidebar">
+        <div class="logo">
+            <h1>DeTrade 后台管理</h1>
+            <span>配置原型 v4.0</span>
+        </div>
+        <div class="menu-parent" style="font-size:12px;opacity:0.5;">运营看板</div>
+        <div class="menu-parent" style="font-size:12px;opacity:0.5;">交易管理</div>
+        <div class="menu-parent" style="font-size:12px;opacity:0.5;">玩法管理</div>
+
+        <div style="padding:4px 0;">
+            <div class="menu-parent expanded" onclick="this.classList.toggle('expanded');this.nextElementSibling.classList.toggle('open')">活动管理 <span class="arrow">▶</span></div>
+            <div class="menu-children open">
+                <div class="menu-child">发奖管理</div>
+                <div class="menu-child">活动配置</div>
+                <div class="menu-child new-tag active">C2C 邀请奖励</div>
+                <div class="menu-child">TG邀请配置</div>
+                <div class="menu-child">优惠券配置</div>
+            </div>
+        </div>
+
+        <div style="padding:4px 0;">
+            <div class="menu-parent expanded" onclick="this.classList.toggle('expanded');this.nextElementSibling.classList.toggle('open')">代理中心 <span class="arrow">▶</span></div>
+            <div class="menu-children open">
+                <div class="menu-child">代理管理</div>
+                <div class="menu-child">反佣概览</div>
+                <div class="menu-child">普通邀请管理</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主区域 -->
+    <div class="main">
+        <div class="topbar">
+            <div class="breadcrumb">活动管理 / <span>C2C 邀请奖励</span></div>
+        </div>
+        <div class="content">
+
+            <!-- 筛选 + 新建 -->
+            <div class="filter-bar">
+                <div class="filter-item">
+                    <label>活动状态</label>
+                    <select>
+                        <option>全部</option>
+                        <option>未上线</option>
+                        <option>已上线</option>
+                        <option>已下线</option>
+                        <option>已结束</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label>活动名称</label>
+                    <input type="text" placeholder="搜索活动名称">
+                </div>
+                <button class="btn btn-primary btn-sm">查 询</button>
+                <button class="btn btn-sm">重 置</button>
+                <div style="flex:1"></div>
+                <button class="btn btn-primary" onclick="openModal('create')">+ 新建活动</button>
+            </div>
+
+            <!-- 活动列表 -->
+            <div class="card">
+                <div class="card-bd">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width:60px;">ID</th>
+                                <th>活动名称</th>
+                                <th style="width:80px;">状态</th>
+                                <th style="width:160px;">活动时间</th>
+                                <th style="width:130px;">有效邀请 / 参与用户</th>
+                                <th style="width:120px;">累计奖励 (USDT)</th>
+                                <th style="width:200px;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="mono">1001</td>
+                                <td>Invite & Earn Q3</td>
+                                <td><span class="tag tag-green">已上线</span></td>
+                                <td class="mono" style="font-size:11px;">2026-07-01 ~ 2026-09-30</td>
+                                <td class="mono">256 / 1,024</td>
+                                <td class="mono">12,500</td>
+                                <td>
+                                    <div class="actions">
+                                        <button class="btn-link" onclick="openModal('view')">查看</button>
+                                        <span class="divider"></span>
+                                        <button class="btn-link danger" onclick="tryOffline('Invite & Earn Q3')">下线</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="mono">1002</td>
+                                <td>Summer Invite</td>
+                                <td><span class="tag tag-gray">未上线</span></td>
+                                <td class="mono" style="font-size:11px;">2026-08-01 ~ 2026-08-31</td>
+                                <td class="mono">0 / 0</td>
+                                <td class="mono">0</td>
+                                <td>
+                                    <div class="actions">
+                                        <button class="btn-link" onclick="openModal('edit')">编辑</button>
+                                        <span class="divider"></span>
+                                        <button class="btn-link" onclick="tryOnline('Summer Invite')">上线</button>
+                                        <span class="divider"></span>
+                                        <button class="btn-link danger" onclick="tryDelete('Summer Invite')">删除</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="mono">1003</td>
+                                <td>VIP Invite Event</td>
+                                <td><span class="tag tag-blue">已下线</span></td>
+                                <td class="mono" style="font-size:11px;">2026-06-01 ~ 2026-06-30</td>
+                                <td class="mono">89 / 320</td>
+                                <td class="mono">5,200</td>
+                                <td>
+                                    <div class="actions">
+                                        <button class="btn-link" onclick="openModal('view')">查看</button>
+                                        <span class="divider"></span>
+                                        <button class="btn-link" onclick="copyActivity('VIP Invite Event')">复制</button>
+                                        <span class="divider"></span>
+                                        <button class="btn-link" onclick="tryOnline('VIP Invite Event')">上线</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="mono">1004</td>
+                                <td>Spring Festival</td>
+                                <td><span class="tag tag-gray">已结束</span></td>
+                                <td class="mono" style="font-size:11px;">2026-01-15 ~ 2026-02-28</td>
+                                <td class="mono">450 / 1,800</td>
+                                <td class="mono">32,000</td>
+                                <td>
+                                    <div class="actions">
+                                        <button class="btn-link" onclick="openModal('view')">查看</button>
+                                        <span class="divider"></span>
+                                        <button class="btn-link" onclick="copyActivity('Spring Festival')">复制</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="mono">1005</td>
+                                <td>New User Bonus</td>
+                                <td><span class="tag tag-gray">已结束</span></td>
+                                <td class="mono" style="font-size:11px;">2026-03-01 ~ 2026-05-31</td>
+                                <td class="mono">180 / 720</td>
+                                <td class="mono">8,900</td>
+                                <td>
+                                    <div class="actions">
+                                        <button class="btn-link" onclick="openModal('view')">查看</button>
+                                        <span class="divider"></span>
+                                        <button class="btn-link" onclick="copyActivity('New User Bonus')">复制</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="pager">
+                        <span>共 5 条记录</span>
+                        <span>1 / 1</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- ========== 新建/编辑/查看 弹窗 ========== -->
+<div class="modal-overlay" id="modal-activity">
+    <div class="modal-box">
+        <div class="modal-hd">
+            <h3 id="modal-title">新建活动</h3>
+            <button class="modal-close" onclick="closeModal()">×</button>
+        </div>
+        <div class="modal-bd">
+
+            <!-- 区块 A：基本信息 -->
+            <div class="section">
+                <div class="section-title">基本信息</div>
+                <div class="fg">
+                    <label class="fl">活动名称</label>
+                    <input type="text" class="fi" id="f-name" placeholder="输入活动名称">
+                </div>
+                <div class="fr">
+                    <div class="fg">
+                        <label class="fl">开始时间</label>
+                        <input type="datetime-local" class="fi" id="f-start">
+                    </div>
+                    <div class="fg">
+                        <label class="fl">结束时间</label>
+                        <input type="datetime-local" class="fi" id="f-end">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 区块 B：阶梯奖励 -->
+            <div class="section">
+                <div class="section-title" style="display:flex;justify-content:space-between;align-items:center;">
+                    <span>阶梯奖励</span>
+                    <button class="btn btn-sm" id="btn-add-tier" onclick="addTier()">+ 添加阶梯</button>
+                </div>
+                <table class="tier-table" style="border:1px solid #e8e8e8;border-radius:4px;overflow:hidden;">
+                    <thead>
+                        <tr>
+                            <th style="width:40px;text-align:center;background:#fafafa;font-size:11px;">序号</th>
+                            <th style="text-align:center;background:#fafafa;font-size:11px;">阶梯邀请人数完成</th>
+                            <th style="text-align:center;background:#fafafa;font-size:11px;width:110px;">奖励类型</th>
+                            <th style="text-align:center;background:#fafafa;font-size:11px;">奖品</th>
+                            <th style="width:50px;text-align:center;background:#fafafa;font-size:11px;" id="th-tier-op">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tier-body">
+                        <tr><td style="text-align:center;color:#999;">1</td><td><input type="number" value="1"></td><td><select class="tier-type-sel" onchange="onTypeChange(this)"><option value="real" selected>真金</option><option value="bonus">奖励金</option><option value="coupon">优惠券</option></select></td><td class="tier-prize-cell"><input type="number" value="5" class="tier-prize-amt"></td><td style="text-align:center;" class="tier-op"><button class="btn-link danger" onclick="delTier(this)">删除</button></td></tr>
+                        <tr><td style="text-align:center;color:#999;">2</td><td><input type="number" value="3"></td><td><select class="tier-type-sel" onchange="onTypeChange(this)"><option value="real">真金</option><option value="bonus" selected>奖励金</option><option value="coupon">优惠券</option></select></td><td class="tier-prize-cell"><input type="number" value="15" class="tier-prize-amt"></td><td style="text-align:center;" class="tier-op"><button class="btn-link danger" onclick="delTier(this)">删除</button></td></tr>
+                        <tr><td style="text-align:center;color:#999;">3</td><td><input type="number" value="5"></td><td><select class="tier-type-sel" onchange="onTypeChange(this)"><option value="real">真金</option><option value="bonus" selected>奖励金</option><option value="coupon">优惠券</option></select></td><td class="tier-prize-cell"><input type="number" value="30" class="tier-prize-amt"></td><td style="text-align:center;" class="tier-op"><button class="btn-link danger" onclick="delTier(this)">删除</button></td></tr>
+                        <tr><td style="text-align:center;color:#999;">4</td><td><input type="number" value="10"></td><td><select class="tier-type-sel" onchange="onTypeChange(this)"><option value="real">真金</option><option value="bonus" selected>奖励金</option><option value="coupon">优惠券</option></select></td><td class="tier-prize-cell"><input type="number" value="70" class="tier-prize-amt"></td><td style="text-align:center;" class="tier-op"><button class="btn-link danger" onclick="delTier(this)">删除</button></td></tr>
+                        <tr><td style="text-align:center;color:#999;">5</td><td><input type="number" value="20"></td><td><select class="tier-type-sel" onchange="onTypeChange(this)"><option value="real">真金</option><option value="bonus" selected>奖励金</option><option value="coupon">优惠券</option></select></td><td class="tier-prize-cell"><input type="number" value="150" class="tier-prize-amt"></td><td style="text-align:center;" class="tier-op"><button class="btn-link danger" onclick="delTier(this)">删除</button></td></tr>
+                        <tr><td style="text-align:center;color:#999;">6</td><td><input type="number" value="50"></td><td><select class="tier-type-sel" onchange="onTypeChange(this)"><option value="real">真金</option><option value="coupon" selected>优惠券</option><option value="bonus">奖励金</option></select></td><td class="tier-prize-cell"><select class="tier-prize-coupon"><option value="">请选择优惠券</option><option value="c1">新人 5U 体验金券</option><option value="c2">交易手续费 8 折券</option><option value="c3">充值送 10U 券</option></select></td><td style="text-align:center;" class="tier-op"><button class="btn-link danger" onclick="delTier(this)">删除</button></td></tr>
+                    </tbody>
+                </table>
+                <div class="tier-summary">
+                    <span class="label">累计奖励上限</span>
+                    <span class="value" id="tier-total">770 USDT</span>
+                </div>
+                <div class="coupon-hint" id="coupon-hint">
+                    💡 选择「优惠券」类型的阶梯，将从已配置的优惠券列表中拉取。请确保在 <a href="#" style="color:#1890ff;">优惠券配置</a> 中已创建对应优惠券。
+                </div>
+            </div>
+
+            <!-- 区块 C：邀请条件 & 风控 -->
+            <div class="section">
+                <div class="section-title">邀请条件 & 风控</div>
+                <div class="fr" style="margin-bottom:12px;">
+                    <div class="fg">
+                        <label class="fl">首次充值门槛 (USDT)</label>
+                        <input type="number" class="fi" id="f-deposit" value="20">
+                    </div>
+                    <div class="fg">
+                        <label class="fl">交易额门槛 (USDT)</label>
+                        <input type="number" class="fi" id="f-trade" value="200">
+                    </div>
+                </div>
+                <div style="margin-top:14px;padding-top:10px;border-top:1px solid #f0f0f0;">
+                    <div style="font-size:11px;color:#999;margin-bottom:8px;">风控策略</div>
+                    <div class="risk-row">
+                        <div><div class="risk-label">IP 校验</div><div class="risk-desc">邀请人与被邀请人 IP 不能相同</div></div>
+                        <label class="sw"><input type="checkbox" checked><span class="sl"></span></label>
+                    </div>
+                    <div class="risk-row">
+                        <div><div class="risk-label">钱包地址校验</div><div class="risk-desc">不能使用相同充值钱包</div></div>
+                        <label class="sw"><input type="checkbox" checked><span class="sl"></span></label>
+                    </div>
+                    <div class="risk-row">
+                        <div><div class="risk-label">设备指纹校验</div><div class="risk-desc">同设备只能绑定一个邀请关系</div></div>
+                        <label class="sw"><input type="checkbox" checked><span class="sl"></span></label>
+                    </div>
+                    <div class="risk-row">
+                        <div><div class="risk-label">单日邀请上限</div><div class="risk-desc">单用户每日最大有效邀请数</div></div>
+                        <input type="number" class="fi" id="f-daily" value="20" style="width:70px;text-align:center;">
+                    </div>
+                </div>
+
+                <!-- 自定义规则 -->
+                <div style="margin-top:16px;">
+                    <div style="font-size:12px;color:#666;margin-bottom:6px;">自定义规则 <span style="color:#999;font-weight:400;">（可选，为空时业务端自动生成）</span></div>
+                    <textarea class="fi" id="f-custom-rules" rows="4" placeholder="填写后业务端优先展示此内容，替代自动生成的规则文案。支持中英文，如：&#10;EN: Additional terms...&#10;ZH: 补充条款..." style="resize:vertical;line-height:1.6;"></textarea>
+                    <div style="font-size:11px;color:#999;margin-top:4px;">留空则业务端按模板自动生成：充值门槛 + 交易额门槛 + 自动发放说明</div>
+                </div>
+            </div>
+
+        </div>
+        <div class="modal-ft" id="modal-footer">
+            <button class="btn" onclick="closeModal()">取消</button>
+            <button class="btn btn-primary" onclick="closeModal()">保存</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast 容器 -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- 确认弹窗 -->
+<div class="confirm-overlay" id="confirm-dialog">
+    <div class="confirm-box">
+        <h4 id="confirm-title">确认操作</h4>
+        <p id="confirm-msg">确认执行此操作？</p>
+        <div class="confirm-ft">
+            <button class="btn btn-sm" onclick="closeConfirm()">取消</button>
+            <button class="btn btn-primary btn-sm" id="confirm-ok" onclick="confirmAction()">确认</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Toast 提示
+    function showToast(msg, type) {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = 'toast toast-' + type;
+        toast.textContent = msg;
+        container.appendChild(toast);
+        setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
+    }
+
+    // 确认弹窗
+    let confirmCallback = null;
+    function showConfirm(title, msg, callback) {
+        document.getElementById('confirm-title').innerHTML = title;
+        document.getElementById('confirm-msg').innerHTML = msg;
+        document.getElementById('confirm-dialog').classList.add('open');
+        confirmCallback = callback;
+    }
+    function closeConfirm() {
+        document.getElementById('confirm-dialog').classList.remove('open');
+        confirmCallback = null;
+    }
+    function confirmAction() {
+        if (confirmCallback) confirmCallback();
+        closeConfirm();
+    }
+
+    // ===== 操作交互 =====
+
+    // 上线操作 - 异常分支演示
+    function tryOnline(name) {
+        // 模拟：当前已有「Invite & Earn Q3」在线
+        showToast('上线失败：当前已有活动「Invite & Earn Q3」在线，请先下线后再操作', 'error');
+    }
+
+    // 下线操作 - 确认弹窗
+    function tryOffline(name) {
+        showConfirm(
+            '⚠️ 确认下线',
+            '下线后用户将无法看到该活动，已产生的邀请记录继续有效。<br><br><span class="warn">该活动仍有 3 笔待发放奖励，下线后不会自动发放。</span><br><br>确认下线「' + name + '」？',
+            function() { showToast('活动「' + name + '」已下线', 'success'); }
+        );
+    }
+
+    // 删除操作 - 异常分支演示
+    function tryDelete(name) {
+        // 模拟：该活动无邀请记录，可以删除
+        showConfirm(
+            '🗑️ 确认删除',
+            '确认删除活动「' + name + '」？删除后不可恢复。',
+            function() { showToast('活动「' + name + '」已删除', 'success'); }
+        );
+    }
+
+    // 复制操作
+    function copyActivity(name) {
+        showToast('已复制活动「' + name + ' - 副本」，请编辑后上线', 'success');
+    }
+
+    // 弹窗模式切换
+    function openModal(mode) {
+        const modal = document.getElementById('modal-activity');
+        const title = document.getElementById('modal-title');
+        const footer = document.getElementById('modal-footer');
+        const inputs = modal.querySelectorAll('.fi');
+        const tierInputs = modal.querySelectorAll('.tier-table input');
+        const tierSels = modal.querySelectorAll('.tier-type-sel');
+        const couponSels = modal.querySelectorAll('.tier-prize-coupon');
+        const swInputs = modal.querySelectorAll('.sw input');
+        const addBtn = document.getElementById('btn-add-tier');
+        const tierOps = modal.querySelectorAll('.tier-op');
+
+        if (mode === 'create') {
+            title.textContent = '新建活动';
+            footer.innerHTML = '<button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="closeModal()">保存</button>';
+            setReadonly(inputs, false);
+            setReadonly(tierInputs, false);
+            setSelDisabled(tierSels, false);
+            setSelDisabled(couponSels, false);
+            setSwDisabled(swInputs, false);
+            addBtn.style.display = '';
+            tierOps.forEach(el => el.style.display = '');
+        } else if (mode === 'edit') {
+            title.textContent = '编辑活动';
+            footer.innerHTML = '<button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="closeModal()">保存</button>';
+            setReadonly(inputs, false);
+            setReadonly(tierInputs, false);
+            setSelDisabled(tierSels, false);
+            setSelDisabled(couponSels, false);
+            setSwDisabled(swInputs, false);
+            addBtn.style.display = '';
+            tierOps.forEach(el => el.style.display = '');
+        } else if (mode === 'view') {
+            title.textContent = '查看活动';
+            footer.innerHTML = '<button class="btn" onclick="closeModal()">关闭</button><button class="btn btn-primary" onclick="closeModal()">复制为新活动</button>';
+            setReadonly(inputs, true);
+            setReadonly(tierInputs, true);
+            setSelDisabled(tierSels, true);
+            setSelDisabled(couponSels, true);
+            setSwDisabled(swInputs, true);
+            addBtn.style.display = 'none';
+            tierOps.forEach(el => el.style.display = 'none');
+        }
+        modal.classList.add('open');
+    }
+    function closeModal() {
+        document.getElementById('modal-activity').classList.remove('open');
+    }
+    function setReadonly(inputs, readonly) {
+        inputs.forEach(el => {
+            if (el.tagName === 'INPUT' || el.tagName === 'SELECT') {
+                el.readOnly = readonly;
+                if (el.tagName === 'SELECT') el.disabled = readonly;
+            }
+        });
+    }
+    function setSwDisabled(inputs, disabled) {
+        inputs.forEach(el => el.disabled = disabled);
+    }
+    function setSelDisabled(sels, disabled) {
+        sels.forEach(el => el.disabled = disabled);
+    }
+
+    // 奖品列内容生成
+    function prizeAmountHTML(val) {
+        return `<input type="number" value="${val || ''}" class="tier-prize-amt">`;
+    }
+    function prizeCouponHTML() {
+        return `<select class="tier-prize-coupon"><option value="">请选择优惠券</option><option value="c1">新人 5U 体验金券</option><option value="c2">交易手续费 8 折券</option><option value="c3">充值送 10U 券</option></select>`;
+    }
+
+    // 奖励类型切换 → 奖品列联动
+    function onTypeChange(sel) {
+        const cell = sel.closest('tr').querySelector('.tier-prize-cell');
+        if (sel.value === 'coupon') {
+            cell.innerHTML = prizeCouponHTML();
+        } else {
+            cell.innerHTML = prizeAmountHTML('');
+        }
+        checkCouponHint();
+    }
+
+    // 阶梯操作
+    function addTier() {
+        const body = document.getElementById('tier-body');
+        const idx = body.rows.length + 1;
+        const row = body.insertRow();
+        row.innerHTML = `<td style="text-align:center;color:#999;">${idx}</td><td><input type="number" value=""></td><td><select class="tier-type-sel" onchange="onTypeChange(this)"><option value="real">真金</option><option value="bonus" selected>奖励金</option><option value="coupon">优惠券</option></select></td><td class="tier-prize-cell">${prizeAmountHTML('')}</td><td style="text-align:center;" class="tier-op"><button class="btn-link danger" onclick="delTier(this)">删除</button></td>`;
+        calcTotal();
+    }
+    function delTier(btn) {
+        const body = document.getElementById('tier-body');
+        if (body.rows.length <= 1) return;
+        btn.closest('tr').remove();
+        Array.from(body.rows).forEach((r, i) => r.cells[0].textContent = i + 1);
+        calcTotal();
+        checkCouponHint();
+    }
+    function calcTotal() {
+        const rows = document.getElementById('tier-body').querySelectorAll('tr');
+        let total = 0;
+        rows.forEach(r => {
+            const amt = r.querySelector('.tier-prize-amt');
+            if (amt) total += parseFloat(amt.value) || 0;
+        });
+        document.getElementById('tier-total').textContent = total.toLocaleString() + ' USDT';
+    }
+    function checkCouponHint() {
+        const sels = document.querySelectorAll('.tier-type-sel');
+        const hasCoupon = Array.from(sels).some(s => s.value === 'coupon');
+        document.getElementById('coupon-hint').classList.toggle('show', hasCoupon);
+    }
+    document.getElementById('tier-body').addEventListener('input', e => { if (e.target.tagName === 'INPUT') calcTotal(); });
+    // 初始化检查
+    checkCouponHint();
+</script>
+</body>
+</html>

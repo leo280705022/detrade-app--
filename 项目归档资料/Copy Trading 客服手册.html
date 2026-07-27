@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Copy Trading 客服手册</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;background:#f5f6fa;color:#1d1d1f;line-height:1.75;font-size:14px}
+.doc{max-width:960px;margin:0 auto;padding:32px 24px}
+.doc-header{background:linear-gradient(135deg,#164e3f 0%,#1a3a2a 100%);color:#fff;padding:48px 44px;border-radius:14px;margin-bottom:36px;position:relative;overflow:hidden}
+.doc-header::after{content:'';position:absolute;top:-40%;right:-10%;width:300px;height:300px;border-radius:50%;background:rgba(34,197,94,0.08)}
+.doc-header h1{font-size:26px;font-weight:700;margin-bottom:6px;position:relative;z-index:1}
+.doc-header .subtitle{font-size:15px;color:rgba(255,255,255,.6);position:relative;z-index:1}
+.doc-meta{display:flex;gap:28px;margin-top:18px;font-size:12px;color:rgba(255,255,255,.45);position:relative;z-index:1}
+.sec{background:#fff;border-radius:10px;padding:32px 36px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.sec h2{font-size:18px;font-weight:700;color:#0f172a;margin-bottom:18px;padding-bottom:10px;border-bottom:2px solid #e2e8f0;display:flex;align-items:center;gap:8px}
+.sec h2 .num{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:6px;background:#16a34a;color:#fff;font-size:13px;font-weight:700}
+.sec h3{font-size:15px;font-weight:600;color:#334155;margin:22px 0 10px}
+.sec h4{font-size:14px;font-weight:600;color:#475569;margin:16px 0 8px}
+.sec p{color:#475569;margin-bottom:10px}
+table{width:100%;border-collapse:collapse;margin:14px 0 18px;font-size:13px}
+th{background:#f8fafc;padding:10px 14px;text-align:left;font-weight:600;color:#475569;border-bottom:2px solid #e2e8f0;white-space:nowrap}
+td{padding:9px 14px;border-bottom:1px solid #f1f5f9;color:#334155;vertical-align:top}
+tr:hover td{background:#fafbfd}
+td:first-child{font-weight:500;color:#1e293b}
+.tag{display:inline-block;padding:2px 10px;border-radius:4px;font-size:11px;font-weight:600;white-space:nowrap}
+.tag-blue{background:#eff6ff;color:#2563eb}
+.tag-green{background:#f0fdf4;color:#16a34a}
+.tag-orange{background:#fffbeb;color:#d97706}
+.tag-red{background:#fef2f2;color:#dc2626}
+.tag-gray{background:#f1f5f9;color:#64748b}
+.callout{border-radius:8px;padding:14px 18px;margin:14px 0;font-size:13px}
+.callout-info{background:#eff6ff;border-left:3px solid #3b82f6;color:#1e40af}
+.callout-warn{background:#fffbeb;border-left:3px solid #f59e0b;color:#92400e}
+.callout-note{background:#f8fafc;border-left:3px solid #94a3b8;color:#475569}
+.callout-success{background:#f0fdf4;border-left:3px solid #22c55e;color:#166534}
+.callout-danger{background:#fef2f2;border-left:3px solid #ef4444;color:#991b1b}
+.callout strong{font-weight:600}
+.faq{border:1px solid #e2e8f0;border-radius:8px;margin:12px 0;overflow:hidden}
+.faq-q{background:#f8fafc;padding:12px 16px;font-weight:600;color:#0f172a;font-size:13px;display:flex;align-items:flex-start;gap:8px}
+.faq-q .q-icon{color:#16a34a;font-weight:700;flex-shrink:0}
+.faq-a{padding:12px 16px;font-size:13px;color:#475569;border-top:1px solid #f1f5f9}
+.faq-a .a-icon{color:#3b82f6;font-weight:700}
+.toc{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:20px 28px;margin-bottom:24px}
+.toc h3{font-size:14px;font-weight:700;color:#0f172a;margin-bottom:10px}
+.toc ol{padding-left:20px}
+.toc li{font-size:13px;color:#16a34a;margin-bottom:4px}
+.toc li a{color:inherit;text-decoration:none}
+.toc li a:hover{color:#15803d;text-decoration:underline}
+.kbd{display:inline-block;padding:1px 6px;border-radius:3px;background:#f1f5f9;border:1px solid #e2e8f0;font-size:12px;font-family:monospace;color:#475569}
+.script{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:12px 16px;margin:8px 0;font-size:13px;color:#166534;font-style:italic}
+.script::before{content:'话术参考：';font-weight:600;font-style:normal;display:block;margin-bottom:4px;color:#15803d}
+.priority{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}
+.priority-high{background:#fef2f2;color:#dc2626}
+.priority-med{background:#fffbeb;color:#d97706}
+.priority-low{background:#f0fdf4;color:#16a34a}
+@media(max-width:640px){
+  .doc{padding:16px 10px}
+  .sec{padding:20px 18px}
+  .doc-header{padding:32px 24px}
+}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<!-- Header -->
+<div class="doc-header">
+<h1>Copy Trading 客服手册</h1>
+<div class="subtitle">面向客服团队的用户问题处理指南与 FAQ</div>
+<div class="doc-meta">
+<span>Detrade Platform</span>
+<span>|</span>
+<span>内部文档</span>
+<span>|</span>
+<span>v1.0</span>
+<span>|</span>
+<span>2026-07-28</span>
+</div>
+</div>
+
+<!-- TOC -->
+<div class="toc">
+<h3>目录</h3>
+<ol>
+<li><a href="#s1">Copy Trading 基础知识（必读）</a></li>
+<li><a href="#s2">高频 FAQ 速查表</a></li>
+<li><a href="#s3">跟单员常见问题处理</a></li>
+<li><a href="#s4">交易员常见问题处理</a></li>
+<li><a href="#s5">分润相关常见问题</a></li>
+<li><a href="#s6">账户与资金相关</a></li>
+<li><a href="#s7">操作引导话术模板</a></li>
+<li><a href="#s8">升级处理流程</a></li>
+</ol>
+</div>
+
+<!-- ==================== 1 ==================== -->
+<div class="sec" id="s1">
+<h2><span class="num">1</span>Copy Trading 基础知识（必读）</h2>
+
+<h3>1.1 什么是 Copy Trading？</h3>
+<p>Copy Trading（跟单交易）允许用户（跟单员）选择信任的交易员，在交易员下单时自动同步复制其交易操作。交易员正常交易即可，无需额外操作。跟单员盈利时，系统自动按比例分润给交易员。</p>
+
+<h3>1.2 两个核心角色</h3>
+<table>
+<tr><th style="width:150px">角色</th><th>定义</th><th>收益来源</th></tr>
+<tr><td><strong>交易员（Lead Trader）</strong></td><td>正常交易的用户。当其产生盈利时，系统自动从跟单员的盈利中抽取分润。</td><td>自身交易盈利 + 跟单员盈利分润</td></tr>
+<tr><td><strong>跟单员（Copy Trader）</strong></td><td>选择交易员并设置跟单参数的用户。系统自动同步交易员的操作。</td><td>交易盈利（扣除分润后）</td></tr>
+</table>
+
+<div class="callout callout-info">
+<strong>客服要点：</strong>任何注册用户都可以成为交易员或跟单员，无需特殊资质。交易员申请不需要交易记录门槛。
+</div>
+
+<h3>1.3 四种交易玩法</h3>
+<table>
+<tr><th>玩法</th><th>类型</th><th>分润范围</th><th>默认分润</th><th>杠杆</th><th>止损</th></tr>
+<tr><td><span class="tag tag-blue">Futures</span></td><td>合约交易</td><td>1% — 15%</td><td>5%</td><td>支持</td><td>支持（按单笔订单）</td></tr>
+<tr><td><span class="tag tag-orange">Spread</span></td><td>价差预测</td><td>1% — 5%</td><td>2.5%</td><td>不支持</td><td>支持（按总跟单金额）</td></tr>
+<tr><td><span class="tag tag-orange">High Low</span></td><td>高低预测</td><td>1% — 5%</td><td>2.5%</td><td>不支持</td><td>支持（按总跟单金额）</td></tr>
+<tr><td><span class="tag tag-orange">Up Down</span></td><td>涨跌预测</td><td>1% — 5%</td><td>2.5%</td><td>不支持</td><td>支持（按总跟单金额）</td></tr>
+</table>
+
+<div class="callout callout-warn">
+<strong>重要：</strong>四种玩法的交易员身份完全独立。用户在 Futures 中是交易员，不代表在 Spread 中也是。每种玩法需要分别申请。
+</div>
+
+<h3>1.4 分润机制一句话解释</h3>
+<div class="callout callout-success">
+<strong>分润规则：</strong>跟单员盈利时，交易员按设定比例从盈利中抽取分润。跟单员亏损时，交易员不获得任何分润。<strong>分润只从盈利中收取，不从本金或亏损中收取。</strong>
+</div>
+</div>
+
+<!-- ==================== 2 ==================== -->
+<div class="sec" id="s2">
+<h2><span class="num">2</span>高频 FAQ 速查表</h2>
+<p>以下是最常见的用户问题及标准回答，按频率排序。</p>
+
+<div class="faq">
+<div class="faq-q"><span class="q-icon">Q1</span>如何成为交易员？</div>
+<div class="faq-a"><span class="a-icon">A：</span>进入 Copy Trade 页面 → 选择想成为交易员的玩法（如 Spread）→ 点击 "Apply Now" → 提交申请 → 等待平台审核。审核通过后即可成为交易员。<br><strong>无需交易记录门槛</strong>，新注册用户也可以申请。</div>
+</div>
+
+<div class="faq">
+<div class="faq-q"><span class="q-icon">Q2</span>如何跟单？</div>
+<div class="faq-a"><span class="a-icon">A：</span>进入 Copy Trade 页面 → 切换到 "Copy Trader" Tab → 浏览交易员列表 → 点击想跟随的交易员卡片上的 "Copy Trade" → 在弹窗中设置跟单参数（杠杆、金额、止损等）→ 点击 "Copy Trade" 确认。</div>
+</div>
+
+<div class="faq">
+<div class="faq-q"><span class="q-icon">Q3</span>分润是怎么计算的？</div>
+<div class="faq-a"><span class="a-icon">A：</span>分润由交易员设定（Futures 1%-15%，其他玩法 1%-5%）。当您跟单盈利时，系统自动按该比例将盈利的一部分分给交易员。例如：交易员分润 12%，您盈利 100 USDT → 交易员获得 12 USDT，您获得 88 USDT。<strong>亏损时不收取分润。</strong></div>
+</div>
+
+<div class="faq">
+<div class="faq-q"><span class="q-icon">Q4</span>跟单后为什么没有同步交易？</div>
+<div class="faq-a"><span class="a-icon">A：</span>请检查以下几点：<br>
+① 账户余额是否充足（需 ≥ 每笔跟单金额）<br>
+② 跟单总金额上限（Copy Amount）是否已用完<br>
+③ 是否已触发止损（Futures 按单笔订单止损，其他玩法按总跟单金额止损）<br>
+④ 在 Copy Overview → Ongoing 中确认跟单状态是否正常<br>
+如以上均正常，请联系客服进一步排查。</div>
+</div>
+
+<div class="faq">
+<div class="faq-q"><span class="q-icon">Q5</span>如何停止跟单？</div>
+<div class="faq-a"><span class="a-icon">A：</span>进入 Copy Trade 页面 → 点击 "Copy Overview" → 在 "Ongoing" Tab 中找到要停止的跟单仓位 → 关闭即可。关闭后仓位立即结算。</div>
+</div>
+
+<div class="faq">
+<div class="faq-q"><span class="q-icon">Q6</span>如何修改分润比例？</div>
+<div class="faq-a"><span class="a-icon">A：</span>仅交易员可以修改分润比例。路径：Copy Trade → 选择对应玩法 → Lead Trader Tab → My Lead → Profit Sharing Ratio → 输入新比例 → Save。修改后立即生效。</div>
+</div>
+
+<div class="faq">
+<div class="faq-q"><span class="q-icon">Q7</span>最多可以跟多少人 / 被多少人跟？</div>
+<div class="faq-a"><span class="a-icon">A：</span>每个交易员最多支持 <strong>400 个跟单员</strong>。跟单员可以同时跟随多个交易员（不同玩法分别计算）。</div>
+</div>
+
+<div class="faq">
+<div class="faq-q"><span class="q-icon">Q8</span>杠杆怎么选？</div>
+<div class="faq-a"><span class="a-icon">A：</span>仅 Futures 玩法支持杠杆。跟单时有两个选项：<br>
+① <strong>Copy Leader Trader's Leverage</strong>（推荐）：自动跟随交易员的杠杆倍数，交易员调整时自动同步<br>
+② <strong>Fixed Leverage</strong>：使用固定杠杆，不受交易员影响</div>
+</div>
+
+<div class="faq">
+<div class="faq-q"><span class="q-icon">Q9</span>止损是怎么工作的？</div>
+<div class="faq-a"><span class="a-icon">A：</span>所有玩法都支持止损，但机制不同：<br>
+<strong>Futures</strong>：按单笔订单止损。当某笔订单的亏损达到设定比例时，系统自动平掉该笔订单，其他订单不受影响。<br>
+<strong>Spread / High Low / Up Down</strong>：按总跟单金额止损。当累计亏损达到总跟单金额的设定比例时，系统停止跟单并触发止损。<br>
+止损比例范围 0%-90%，默认 50%。设为 0% 等于不设止损。</div>
+</div>
+
+<div class="faq">
+<div class="faq-q"><span class="q-icon">Q10</span>一个账号可以同时做交易员和跟单员吗？</div>
+<div class="faq-a"><span class="a-icon">A：</span>可以。同一用户可以在同一玩法中既是交易员又是跟单员，也可以在不同玩法中分别担任不同角色。</div>
+</div>
+</div>
+
+<!-- ==================== 3 ==================== -->
+<div class="sec" id="s3">
+<h2><span class="num">3</span>跟单员常见问题处理</h2>
+
+<h3>3.1 跟单未生效</h3>
+<table>
+<tr><th style="width:60px">优先级</th><th>排查项</th><th>处理方式</th></tr>
+<tr><td><span class="priority priority-high">高</span></td><td>账户余额不足</td><td>确认余额 ≥ Latest Cost Per Order。引导用户充值。</td></tr>
+<tr><td><span class="priority priority-high">高</span></td><td>Copy Amount 已用完</td><td>累计跟单金额达到上限后自动停止。引导用户调高 Copy Amount 或重新开始跟单。</td></tr>
+<tr><td><span class="priority priority-med">中</span></td><td>止损已触发</td><td>检查 Copy Overview → Closed 中是否有已止损的仓位。</td></tr>
+<tr><td><span class="priority priority-med">中</span></td><td>交易员已关闭身份</td><td>交易员关闭身份后不再接受新跟单，但已有仓位继续运行。</td></tr>
+<tr><td><span class="priority priority-low">低</span></td><td>系统延迟</td><td>极端行情下可能有几秒延迟，通常自动恢复。</td></tr>
+</table>
+
+<div class="script">
+"您好，请先到 Copy Overview 页面检查您的跟单状态。如果显示 Ongoing 但无新交易，请确认您的账户余额是否充足，以及 Copy Amount 上限是否已用完。如果都正常，请提供您的钱包地址，我帮您进一步排查。"
+</div>
+
+<h3>3.2 跟单盈亏异常</h3>
+<table>
+<tr><th>可能原因</th><th>排查方式</th></tr>
+<tr><td>杠杆不同导致盈亏不同</td><td>确认跟单员选择的是"跟随杠杆"还是"固定杠杆"。如果选择固定杠杆且与交易员不同，盈亏会不同。</td></tr>
+<tr><td>分润扣除</td><td>跟单员的 Net Profit 是扣除分润后的净值。如交易员分润 12%，跟单员盈利 100 USDT，实际获得 88 USDT。</td></tr>
+<tr><td>滑点差异</td><td>极端行情下跟单员成交价可能与交易员略有不同，属于正常现象。</td></tr>
+</table>
+
+<h3>3.3 如何查看跟单历史</h3>
+<p>引导路径：<kbd>Copy Trade</kbd> → <kbd>Copy Overview</kbd> → <kbd>Closed</kbd> Tab</p>
+<ul style="padding-left:20px;color:#475569;margin:8px 0">
+<li>Ongoing：进行中的跟单</li>
+<li>Closed：已关闭的跟单（含止盈、止损、手动关闭）</li>
+</ul>
+</div>
+
+<!-- ==================== 4 ==================== -->
+<div class="sec" id="s4">
+<h2><span class="num">4</span>交易员常见问题处理</h2>
+
+<h3>4.1 没有人跟单怎么办？</h3>
+<table>
+<tr><th>建议</th><th>说明</th></tr>
+<tr><td>提升交易表现</td><td>跟单员主要看 30 Days PnL、ROI、MDD 来选择交易员</td></tr>
+<tr><td>降低分润比例</td><td>较低的分润比例对跟单员更有吸引力</td></tr>
+<tr><td>积累交易天数</td><td>Days Leading Trading 越长，信任度越高</td></tr>
+</table>
+
+<h3>4.2 如何查看我的跟单员</h3>
+<p>引导路径：<kbd>Copy Trade</kbd> → 选择玩法 → <kbd>My Lead</kbd></p>
+<p>在 Follow List 表格中可以看到所有跟单员的：Username、Amount、Total PnL、Net Profit、Count。</p>
+
+<h3>4.3 关闭交易员身份的影响</h3>
+<table>
+<tr><th>影响</th><th>说明</th></tr>
+<tr><td>不再接受新跟单</td><td>关闭后不会有新的跟单员加入</td></tr>
+<tr><td>已有仓位继续运行</td><td>已建立的跟单关系不会立即中断，仓位运行至自然关闭或止损</td></tr>
+<tr><td>可以重新申请</td><td>关闭后可以重新申请成为交易员</td></tr>
+</table>
+
+<div class="script">
+"您好，关闭交易员身份后，您将不再接受新的跟单，但已有的跟单仓位会继续运行直到平仓。您随时可以重新申请成为交易员。"
+</div>
+
+<h3>4.4 分润比例修改</h3>
+<p>路径：<kbd>My Lead</kbd> → <kbd>Profit Sharing Ratio</kbd> → 输入新值 → <kbd>Save</kbd></p>
+<table>
+<tr><th>玩法</th><th>范围</th></tr>
+<tr><td>Futures</td><td>1% — 15%</td></tr>
+<tr><td>Spread / High Low / Up Down</td><td>1% — 5%</td></tr>
+</table>
+<div class="callout callout-warn">
+<strong>注意：</strong>修改分润比例后立即生效。但已有的跟单关系不会因此被解除。
+</div>
+</div>
+
+<!-- ==================== 5 ==================== -->
+<div class="sec" id="s5">
+<h2><span class="num">5</span>分润相关常见问题</h2>
+
+<div class="faq">
+<div class="faq-q"><span class="q-icon">Q</span>分润什么时候结算？</div>
+<div class="faq-a"><span class="a-icon">A：</span>分润在跟单员平仓结算时自动扣除。盈利部分按比例自动分配给交易员，无需手动操作。</div>
+</div>
+
+<div class="faq">
+<div class="faq-q"><span class="q-icon">Q</span>亏损了还需要付分润吗？</div>
+<div class="faq-a"><span class="a-icon">A：</span>不需要。分润只从盈利中收取。亏损时交易员不获得任何分润。</div>
+</div>
+
+<div class="faq">
+<div class="faq-q"><span class="q-icon">Q</span>分润比例是谁设定的？</div>
+<div class="faq-a"><span class="a-icon">A：</span>由交易员自行设定。交易员可以在 My Lead 面板中调整分润比例（Futures 1%-15%，其他玩法 1%-5%）。</div>
+</div>
+
+<div class="faq">
+<div class="faq-q"><span class="q-icon">Q</span>交易员修改分润比例后，已有的跟单会受影响吗？</div>
+<div class="faq-a"><span class="a-icon">A：</span>已有的跟单关系不会被解除，但新的交易将按新比例计算分润。</div>
+</div>
+
+<div class="faq">
+<div class="faq-q"><span class="q-icon">Q</span>在哪里可以看到我的分润收入？</div>
+<div class="faq-a"><span class="a-icon">A：</span>交易员进入 My Lead 面板，可以看到 Today's Earnings（今日分润）和 Net Profit（累计净收益）。</div>
+</div>
+</div>
+
+<!-- ==================== 6 ==================== -->
+<div class="sec" id="s6">
+<h2><span class="num">6</span>账户与资金相关</h2>
+
+<div class="faq">
+<div class="faq-q"><span class="q-icon">Q</span>跟单需要额外费用吗？</div>
+<div class="faq-a"><span class="a-icon">A：</span>跟单本身不收取额外费用。仅在盈利时按交易员设定的比例支付分润。结算币种为 USDT。</div>
+</div>
+
+<div class="faq">
+<div class="faq-q"><span class="q-icon">Q</span>跟单的资金安全吗？</div>
+<div class="faq-a"><span class="a-icon">A：</span>跟单资金始终在用户自己的账户中，交易员无法直接操作跟单员的资金。系统仅根据交易员的交易信号自动同步下单。</div>
+</div>
+
+<div class="faq">
+<div class="faq-q"><span class="q-icon">Q</span>Latest Cost Per Order 和 Latest Copy Amount 有什么区别？</div>
+<div class="faq-a"><span class="a-icon">A：</span><br>
+<strong>Latest Cost Per Order</strong>：每笔跟单的最大金额。交易员每次下单时，系统按此金额为跟单员同步下单。<br>
+<strong>Latest Copy Amount</strong>：跟单总金额上限。累计跟单金额达到此值后自动停止跟单。<br>
+例如：Cost Per Order = 1 USDT，Copy Amount = 100 USDT，则最多跟单 100 笔。</div>
+</div>
+
+<div class="faq">
+<div class="faq-q"><span class="q-icon">Q</span>Trading Amount Limit Note 是什么？</div>
+<div class="faq-a"><span class="a-icon">A：</span>这是一个提醒功能。勾选后，当跟单金额接近限制时，系统会发送通知提醒用户。</div>
+</div>
+</div>
+
+<!-- ==================== 7 ==================== -->
+<div class="sec" id="s7">
+<h2><span class="num">7</span>操作引导话术模板</h2>
+
+<h3>7.1 引导用户开始跟单</h3>
+<div class="script">
+"您好！开始跟单很简单：\n1. 打开 Detrade → 点击顶部 'Copy Trade'\n2. 选择您感兴趣的玩法（Futures / Spread / High Low / Up Down）\n3. 浏览交易员列表，关注 30 Days PnL（盈利）、ROI（回报率）和 MDD（风险）\n4. 点击满意的交易员卡片上的 'Copy Trade'\n5. 设置跟单金额和止损比例 → 确认即可\n\n建议先用小金额试单，熟悉后再增加。"
+</div>
+
+<h3>7.2 引导用户申请交易员</h3>
+<div class="script">
+"您好！申请成为交易员：\n1. 进入 Copy Trade 页面\n2. 选择您想成为交易员的玩法\n3. 点击页面上的 'Apply Now' 按钮\n4. 提交申请后等待审核\n\n申请不需要交易记录门槛，新用户可以申请。每种玩法需要分别申请。审核通过后，其他用户就能看到您的交易数据并跟随您了。"
+</div>
+
+<h3>7.3 引导用户处理跟单异常</h3>
+<div class="script">
+"您好，了解您的跟单可能出现了异常。请帮我确认以下信息：\n1. 您使用的是哪种玩法？（Futures / Spread / High Low / Up Down）\n2. 请打开 Copy Overview 页面，检查 Ongoing 中是否有进行中的跟单\n3. 请确认您的账户余额是否充足\n4. 请检查 Copy Amount 上限是否已用完\n\n请提供您的钱包地址和具体的交易员 ID，我帮您进一步排查。"
+</div>
+
+<h3>7.4 解释分润机制</h3>
+<div class="script">
+"分润机制很简单：\n- 当您跟单盈利时，系统自动按交易员设定的比例（如 12%）将盈利的一部分分给交易员\n- 例如您盈利 100 USDT，分润 12% → 交易员获得 12 USDT，您获得 88 USDT\n- 如果您亏损，交易员不会获得任何分润\n- 分润在平仓时自动结算，不需要您手动操作"
+</div>
+</div>
+
+<!-- ==================== 8 ==================== -->
+<div class="sec" id="s8">
+<h2><span class="num">8</span>升级处理流程</h2>
+
+<h3>8.1 需要升级的问题类型</h3>
+<table>
+<tr><th>问题类型</th><th>升级对象</th><th>需提供的信息</th></tr>
+<tr><td>跟单同步完全失败（非余额/限额问题）</td><td>技术支持</td><td>用户钱包地址、交易员 ID、玩法、时间戳</td></tr>
+<tr><td>分润金额计算异常</td><td>技术支持 + 财务</td><td>用户钱包地址、跟单记录截图、预期 vs 实际分润</td></tr>
+<tr><td>交易员审核超时（>48h）</td><td>运营团队</td><td>用户钱包地址、申请时间、玩法</td></tr>
+<tr><td>用户投诉交易员行为</td><td>运营 + 风控</td><td>用户举报内容、交易员 ID、相关证据</td></tr>
+<tr><td>资金异常（余额变动与交易不符）</td><td>技术支持 + 财务</td><td>用户钱包地址、交易记录截图、异常金额</td></tr>
+</table>
+
+<h3>8.2 升级前必须收集的信息</h3>
+<table>
+<tr><th>信息</th><th>说明</th></tr>
+<tr><td>用户钱包地址</td><td>用于定位账户</td></tr>
+<tr><td>玩法类型</td><td>Futures / Spread / High Low / Up Down</td></tr>
+<tr><td>角色</td><td>交易员还是跟单员</td></tr>
+<tr><td>问题描述</td><td>具体现象、发生时间</td></tr>
+<tr><td>截图</td><td>相关页面截图（Copy Overview / My Lead 等）</td></tr>
+</table>
+
+<div class="callout callout-danger">
+<strong>禁止操作：</strong>客服人员不得代替用户进行任何交易操作、修改分润比例或调整跟单参数。所有操作必须由用户本人完成。
+</div>
+
+<div class="callout callout-note">
+<strong>文档维护说明：</strong>本文档基于 2026-07-28 的平台实际体验编写。如产品功能有更新，请及时同步修改对应章节。如有新的常见问题，请补充到对应章节中。
+</div>
+</div>
+
+<div style="text-align:center;padding:20px;font-size:12px;color:#94a3b8">
+Detrade Copy Trading 客服手册 | 内部文档 | v1.0 | 2026-07-28
+</div>
+
+</div>
+</body>
+</html>

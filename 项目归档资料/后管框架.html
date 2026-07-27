@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Detrade 后台管理</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; background: #f0f2f5; display: flex; height: 100vh; overflow: hidden; }
+
+  /* ===== Sidebar ===== */
+  .sidebar { width: 220px; min-width: 220px; background: #0b1a2e; color: #c0c8d4; display: flex; flex-direction: column; height: 100vh; overflow-y: auto; overflow-x: hidden; }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+
+  /* Logo */
+  .logo-area { display: flex; align-items: center; padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .logo-icon { width: 32px; height: 32px; border-radius: 6px; background: linear-gradient(135deg, #6366f1, #3b82f6, #06b6d4); display: flex; align-items: center; justify-content: center; margin-right: 10px; flex-shrink: 0; }
+  .logo-icon svg { width: 20px; height: 20px; }
+  .logo-text { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: 0.5px; }
+
+  /* Menu */
+  .menu { padding: 8px 0; flex: 1; }
+  .menu-item { user-select: none; }
+
+  /* Level 1 */
+  .menu-title { display: flex; align-items: center; padding: 10px 20px; cursor: pointer; font-size: 14px; color: #c0c8d4; transition: background 0.2s, color 0.2s; position: relative; }
+  .menu-title:hover { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+  .menu-title.active { background: rgba(99,102,241,0.15); color: #fff; }
+  .menu-title .arrow { margin-left: auto; font-size: 10px; transition: transform 0.25s; color: #6b7a90; }
+  .menu-title.expanded .arrow { transform: rotate(180deg); }
+  .menu-title.no-sub { cursor: pointer; }
+  .menu-title.no-sub:hover { background: rgba(255,255,255,0.04); }
+  .menu-title.no-sub.active { background: rgba(99,102,241,0.15); color: #fff; }
+
+  /* Level 2 */
+  .submenu { display: none; }
+  .submenu.open { display: block; }
+  .submenu-item { padding: 9px 20px 9px 40px; font-size: 13px; color: #8896a8; cursor: pointer; transition: background 0.2s, color 0.2s; display: flex; align-items: center; }
+  .submenu-item:hover { background: rgba(255,255,255,0.03); color: #c0c8d4; }
+  .submenu-item.active { background: rgba(99,102,241,0.12); color: #fff; }
+  .submenu-item .arrow { margin-left: auto; font-size: 10px; transition: transform 0.25s; color: #5a6a7e; }
+  .submenu-item.expanded .arrow { transform: rotate(180deg); }
+
+  /* Level 3 */
+  .sub-submenu { display: none; }
+  .sub-submenu.open { display: block; }
+  .sub-submenu-item { padding: 8px 20px 8px 56px; font-size: 13px; color: #7a8a9e; cursor: pointer; transition: background 0.2s, color 0.2s; }
+  .sub-submenu-item:hover { background: rgba(255,255,255,0.03); color: #c0c8d4; }
+  .sub-submenu-item.active { background: rgba(99,102,241,0.12); color: #fff; }
+
+  /* ===== Main Area ===== */
+  .main-wrapper { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+  /* Topbar */
+  .topbar { height: 48px; background: #fff; border-bottom: 1px solid #e8ecf1; display: flex; align-items: center; padding: 0 24px; flex-shrink: 0; }
+  .breadcrumb { font-size: 14px; color: #8896a8; }
+  .breadcrumb span { color: #334155; }
+  .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 16px; }
+  .topbar-right .avatar { width: 30px; height: 30px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #64748b; cursor: pointer; }
+
+  /* Content */
+  .content { flex: 1; padding: 20px 24px; overflow-y: auto; }
+  .content-placeholder { background: #fff; border-radius: 8px; border: 1px dashed #d1d9e6; padding: 60px 40px; text-align: center; color: #94a3b8; }
+  .content-placeholder h2 { font-size: 18px; color: #64748b; margin-bottom: 8px; font-weight: 500; }
+  .content-placeholder p { font-size: 13px; }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+  <div class="logo-area">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5z" fill="#fff" opacity="0.9"/><path d="M2 17l10 5 10-5" stroke="#fff" stroke-width="2" fill="none" opacity="0.6"/><path d="M2 12l10 5 10-5" stroke="#fff" stroke-width="2" fill="none" opacity="0.75"/></svg>
+    </div>
+    <div class="logo-text">Detrade</div>
+  </div>
+
+  <div class="menu" id="menu">
+
+    <!-- 运营看板 -->
+    <div class="menu-item">
+      <div class="menu-title" data-toggle="sub-1">运营看板 <span class="arrow">&#9660;</span></div>
+      <div class="submenu" id="sub-1">
+        <div class="submenu-item" data-page="统计概览">统计概览</div>
+        <div class="submenu-item" data-page="活动概览">活动概览</div>
+      </div>
+    </div>
+
+    <!-- 备用金概览 -->
+    <div class="menu-item">
+      <div class="menu-title no-sub" data-page="备用金概览">备用金概览</div>
+    </div>
+
+    <!-- 币管理 -->
+    <div class="menu-item">
+      <div class="menu-title" data-toggle="sub-2">币管理 <span class="arrow">&#9660;</span></div>
+      <div class="submenu" id="sub-2">
+        <div class="submenu-item" data-page="货币管理">货币管理</div>
+        <div class="submenu-item" data-page="交易对配置">交易对配置</div>
+        <div class="submenu-item" data-page="交易对管理">交易对管理</div>
+        <div class="submenu-item" data-page="币账户管理">币账户管理</div>
+      </div>
+    </div>
+
+    <!-- 预言机监控 -->
+    <div class="menu-item">
+      <div class="menu-title no-sub" data-page="预言机监控">预言机监控</div>
+    </div>
+
+    <!-- 交易管理 -->
+    <div class="menu-item">
+      <div class="menu-title" data-toggle="sub-3">交易管理 <span class="arrow">&#9660;</span></div>
+      <div class="submenu" id="sub-3">
+        <div class="submenu-item" data-page="订单管理">订单管理</div>
+      </div>
+    </div>
+
+    <!-- 玩法管理 -->
+    <div class="menu-item">
+      <div class="menu-title" data-toggle="sub-4">玩法管理 <span class="arrow">&#9660;</span></div>
+      <div class="submenu" id="sub-4">
+        <div class="submenu-item" data-toggle="sub-4-1">HighLow管理 <span class="arrow">&#9660;</span></div>
+        <div class="sub-submenu" id="sub-4-1"></div>
+        <div class="submenu-item" data-toggle="sub-4-2">Contract管理 <span class="arrow">&#9660;</span></div>
+        <div class="sub-submenu" id="sub-4-2"></div>
+        <div class="submenu-item" data-toggle="sub-4-3">UpDown管理 <span class="arrow">&#9660;</span></div>
+        <div class="sub-submenu" id="sub-4-3"></div>
+        <div class="submenu-item" data-page="TapTrading管理">TapTrading管理</div>
+      </div>
+    </div>
+
+    <!-- 资金池配置 -->
+    <div class="menu-item">
+      <div class="menu-title no-sub" data-page="资金池配置">资金池配置</div>
+    </div>
+
+    <!-- 流水记录 -->
+    <div class="menu-item">
+      <div class="menu-title" data-toggle="sub-5">流水记录 <span class="arrow">&#9660;</span></div>
+      <div class="submenu" id="sub-5">
+        <div class="submenu-item" data-page="账户流水">账户流水</div>
+        <div class="submenu-item" data-page="充值流水">充值流水</div>
+        <div class="submenu-item" data-page="转账流水">转账流水</div>
+      </div>
+    </div>
+
+    <!-- 国际化管理 -->
+    <div class="menu-item">
+      <div class="menu-title" data-toggle="sub-6">国际化管理 <span class="arrow">&#9660;</span></div>
+      <div class="submenu" id="sub-6">
+        <div class="submenu-item" data-page="语言配置">语言配置</div>
+      </div>
+    </div>
+
+    <!-- 消息管理 -->
+    <div class="menu-item">
+      <div class="menu-title" data-toggle="sub-7">消息管理 <span class="arrow">&#9660;</span></div>
+      <div class="submenu" id="sub-7">
+        <div class="submenu-item" data-page="公告管理">公告管理</div>
+        <div class="submenu-item" data-page="站内信">站内信</div>
+        <div class="submenu-item" data-page="临时横栏公告">临时横栏公告</div>
+      </div>
+    </div>
+
+    <!-- 弹窗管理 -->
+    <div class="menu-item">
+      <div class="menu-title no-sub" data-page="弹窗管理">弹窗管理</div>
+    </div>
+
+    <!-- 常驻管理 -->
+    <div class="menu-item">
+      <div class="menu-title no-sub" data-page="常驻管理">常驻管理</div>
+    </div>
+
+    <!-- 聊天管理 -->
+    <div class="menu-item">
+      <div class="menu-title" data-toggle="sub-8">聊天管理 <span class="arrow">&#9660;</span></div>
+      <div class="submenu" id="sub-8">
+        <div class="submenu-item" data-page="聊天室管理">聊天室管理</div>
+        <div class="submenu-item" data-page="禁言名单">禁言名单</div>
+      </div>
+    </div>
+
+    <!-- 活动管理 -->
+    <div class="menu-item">
+      <div class="menu-title" data-toggle="sub-9">活动管理 <span class="arrow">&#9660;</span></div>
+      <div class="submenu" id="sub-9">
+        <div class="submenu-item" data-page="发奖管理">发奖管理</div>
+        <div class="submenu-item" data-page="活动配置">活动配置</div>
+        <div class="submenu-item" data-page="任务配置">任务配置</div>
+        <div class="submenu-item" data-page="C2C 邀请奖励">C2C 邀请奖励</div>
+        <div class="submenu-item" data-page="优惠券配置">优惠券配置</div>
+        <div class="submenu-item" data-page="TG邀请配置">TG邀请配置</div>
+        <div class="submenu-item" data-page="周抽奖管理">周抽奖管理</div>
+        <div class="submenu-item" data-page="幸运大转盘配置">幸运大转盘配置</div>
+        <div class="submenu-item" data-page="奖池配置">奖池配置</div>
+      </div>
+    </div>
+
+    <!-- 用户管理 -->
+    <div class="menu-item">
+      <div class="menu-title" data-toggle="sub-10">用户管理 <span class="arrow">&#9660;</span></div>
+      <div class="submenu" id="sub-10">
+        <div class="submenu-item" data-page="用户列表">用户列表</div>
+        <div class="submenu-item" data-page="会员管理">会员管理</div>
+        <div class="submenu-item" data-page="交易轨迹">交易轨迹</div>
+        <div class="submenu-item" data-page="三方用户管理">三方用户管理</div>
+      </div>
+    </div>
+
+    <!-- 系统管理 -->
+    <div class="menu-item">
+      <div class="menu-title" data-toggle="sub-11">系统管理 <span class="arrow">&#9660;</span></div>
+      <div class="submenu" id="sub-11">
+        <div class="submenu-item" data-page="接入申请管理">接入申请管理</div>
+        <div class="submenu-item" data-page="平台配置管理">平台配置管理</div>
+        <div class="submenu-item" data-page="操作日志">操作日志</div>
+        <div class="submenu-item" data-page="文件管理">文件管理</div>
+      </div>
+    </div>
+
+    <!-- 风控管理 -->
+    <div class="menu-item">
+      <div class="menu-title" data-toggle="sub-12">风控管理 <span class="arrow">&#9660;</span></div>
+      <div class="submenu" id="sub-12">
+        <div class="submenu-item" data-page="提现审核">提现审核</div>
+        <div class="submenu-item" data-page="奖励金变现审核">奖励金变现审核</div>
+        <div class="submenu-item" data-page="风控报警">风控报警</div>
+        <div class="submenu-item" data-page="用户风险状态">用户风险状态</div>
+      </div>
+    </div>
+
+    <!-- App配置管理 -->
+    <div class="menu-item">
+      <div class="menu-title" data-toggle="sub-13">App配置管理 <span class="arrow">&#9660;</span></div>
+      <div class="submenu" id="sub-13">
+        <div class="submenu-item" data-page="App更新管理">App更新管理</div>
+      </div>
+    </div>
+
+    <!-- 代理中心 -->
+    <div class="menu-item">
+      <div class="menu-title" data-toggle="sub-14">代理中心 <span class="arrow">&#9660;</span></div>
+      <div class="submenu" id="sub-14">
+        <div class="submenu-item" data-page="代理管理">代理管理</div>
+        <div class="submenu-item" data-page="反佣概览">反佣概览</div>
+        <div class="submenu-item" data-page="代理审核">代理审核</div>
+        <div class="submenu-item" data-page="普通邀请管理">普通邀请管理</div>
+      </div>
+    </div>
+
+    <!-- 理财管理 -->
+    <div class="menu-item">
+      <div class="menu-title" data-toggle="sub-15">理财管理 <span class="arrow">&#9660;</span></div>
+      <div class="submenu" id="sub-15">
+        <div class="submenu-item" data-page="投资列表">投资列表</div>
+        <div class="submenu-item" data-page="产品列表">产品列表</div>
+      </div>
+    </div>
+
+    <!-- 跟单管理 -->
+    <div class="menu-item">
+      <div class="menu-title" data-toggle="sub-16">跟单管理 <span class="arrow">&#9660;</span></div>
+      <div class="submenu" id="sub-16">
+        <div class="submenu-item" data-page="带单员审核">带单员审核</div>
+      </div>
+    </div>
+
+    <!-- 预测市场管理 -->
+    <div class="menu-item">
+      <div class="menu-title" data-toggle="sub-17">预测市场管理 <span class="arrow">&#9660;</span></div>
+      <div class="submenu" id="sub-17">
+        <div class="submenu-item" data-page="预测市场key管理">预测市场key管理</div>
+      </div>
+    </div>
+
+    <!-- 设置 -->
+    <div class="menu-item">
+      <div class="menu-title no-sub" data-page="设置">设置</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Main Area -->
+<div class="main-wrapper">
+  <div class="topbar">
+    <div class="breadcrumb" id="breadcrumb"><span>Detrade 后台管理</span></div>
+    <div class="topbar-right">
+      <div class="avatar">A</div>
+    </div>
+  </div>
+  <div class="content">
+    <div class="content-placeholder" id="contentArea">
+      <h2 id="pageTitle">Detrade 后台管理</h2>
+      <p>页面内容区域 — 后续原型开发时在此填充具体内容</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Menu toggle logic
+  document.querySelectorAll('.menu-title[data-toggle]').forEach(el => {
+    el.addEventListener('click', () => {
+      const targetId = el.getAttribute('data-toggle');
+      const submenu = document.getElementById(targetId);
+      if (submenu) {
+        const isOpen = submenu.classList.contains('open');
+        submenu.classList.toggle('open');
+        el.classList.toggle('expanded');
+      }
+    });
+  });
+
+  // Submenu item toggle (for level 3)
+  document.querySelectorAll('.submenu-item[data-toggle]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const targetId = el.getAttribute('data-toggle');
+      const submenu = document.getElementById(targetId);
+      if (submenu) {
+        submenu.classList.toggle('open');
+        el.classList.toggle('expanded');
+      }
+    });
+  });
+
+  // Page navigation
+  function setActivePage(pageName, parentName) {
+    // Clear all active states
+    document.querySelectorAll('.menu-title.active, .submenu-item.active, .sub-submenu-item.active').forEach(el => el.classList.remove('active'));
+
+    // Find and activate the clicked item
+    const items = document.querySelectorAll('.submenu-item, .sub-submenu-item, .menu-title.no-sub');
+    items.forEach(item => {
+      if (item.getAttribute('data-page') === pageName) {
+        item.classList.add('active');
+      }
+    });
+
+    // Update breadcrumb
+    const breadcrumb = document.getElementById('breadcrumb');
+    if (parentName) {
+      breadcrumb.innerHTML = parentName + ' / <span>' + pageName + '</span>';
+    } else {
+      breadcrumb.innerHTML = '<span>' + pageName + '</span>';
+    }
+
+    // Update content placeholder title
+    document.getElementById('pageTitle').textContent = pageName;
+  }
+
+  // Click handlers for leaf menu items
+  document.querySelectorAll('.submenu-item[data-page]').forEach(el => {
+    el.addEventListener('click', () => {
+      const pageName = el.getAttribute('data-page');
+      const parentTitle = el.closest('.menu-item').querySelector('.menu-title').textContent.replace(/\s*▼\s*/g, '').trim();
+      setActivePage(pageName, parentTitle);
+    });
+  });
+
+  document.querySelectorAll('.menu-title.no-sub[data-page]').forEach(el => {
+    el.addEventListener('click', () => {
+      const pageName = el.getAttribute('data-page');
+      setActivePage(pageName, null);
+    });
+  });
+</script>
+
+</body>
+</html>

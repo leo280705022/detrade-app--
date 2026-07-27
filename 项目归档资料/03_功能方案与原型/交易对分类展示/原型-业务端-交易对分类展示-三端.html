@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeTrade - 交易对分类展示三端原型</title>
+    <style>
+        /* ===== RESET & BASE ===== */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --gold: #F0B90B;
+            --gold-dim: rgba(240,185,11,0.15);
+            --gold-border: rgba(240,185,11,0.25);
+            --gold-hover: rgba(240,185,11,0.5);
+            --bg-deep: #0B0E11;
+            --bg-card: #1E2329;
+            --bg-elevated: #2B3139;
+            --bg-input: #161A1E;
+            --text-primary: #EAECEF;
+            --text-secondary: #848E9C;
+            --text-tertiary: #5E6673;
+            --green: #0ECB81;
+            --green-dim: rgba(14,203,129,0.12);
+            --red: #F6465D;
+            --red-dim: rgba(246,70,93,0.12);
+            --blue: #00B4D8;
+            --blue-dim: rgba(0,180,216,0.15);
+            --purple: #E040FB;
+            --purple-dim: rgba(224,64,251,0.15);
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --radius-xl: 20px;
+            --font-stack: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            --font-mono: 'SF Mono', 'Menlo', 'Consolas', monospace;
+            --transition: 0.2s cubic-bezier(0.4,0,0.2,1);
+        }
+        html { font-size: 16px; }
+        body {
+            font-family: var(--font-stack);
+            background: var(--bg-deep);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--text-tertiary); border-radius: 4px; }
+
+        /* ===== PLATFORM SWITCHER ===== */
+        .platform-switcher {
+            position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+            z-index: 9999; display: flex; gap: 2px;
+            background: rgba(30,35,41,0.95); padding: 4px;
+            border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(240,185,11,0.15);
+            border-top: none;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+        }
+        .platform-btn {
+            padding: 10px 28px; border: none; background: transparent;
+            color: var(--text-secondary); border-radius: var(--radius-md);
+            cursor: pointer; font-family: var(--font-stack); font-size: 13px;
+            font-weight: 500; transition: var(--transition); white-space: nowrap;
+        }
+        .platform-btn:hover { color: var(--gold); background: var(--gold-dim); }
+        .platform-btn.active {
+            background: var(--gold); color: var(--bg-deep);
+            font-weight: 700; box-shadow: 0 2px 8px rgba(240,185,11,0.25);
+        }
+
+        /* ===== VIEW CONTAINERS ===== */
+        .view-container { display: none; padding-top: 56px; min-height: 100vh; }
+        .view-container.active { display: block; animation: fadeView 0.3s ease; }
+        @keyframes fadeView { from { opacity: 0; } to { opacity: 1; } }
+
+        /* ============================== */
+        /* ===== WEB DESKTOP VIEW ===== */
+        /* ============================== */
+        .web-view { max-width: 1400px; margin: 0 auto; padding: 56px 24px 40px; }
+
+        /* Ticker Bar */
+        .web-ticker {
+            display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+            background: var(--bg-card); padding: 14px 20px;
+            border-radius: var(--radius-lg); margin-bottom: 16px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .web-ticker-pair { display: flex; align-items: center; gap: 10px; }
+        .web-ticker-icon {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: linear-gradient(135deg, #F7931A, #E8A638);
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 15px; color: #fff;
+        }
+        .web-ticker-name { font-size: 18px; font-weight: 700; color: var(--text-primary); }
+        .web-ticker-price {
+            font-family: var(--font-mono); font-size: 22px; font-weight: 700;
+            color: var(--text-primary);
+        }
+        .web-ticker-change {
+            font-family: var(--font-mono); font-size: 14px; font-weight: 600;
+            padding: 3px 10px; border-radius: var(--radius-sm);
+        }
+        .web-ticker-change.negative { color: var(--red); background: var(--red-dim); }
+        .web-ticker-change.positive { color: var(--green); background: var(--green-dim); }
+        .web-ticker-funding {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 13px; color: var(--text-secondary);
+        }
+        .web-ticker-funding span { font-family: var(--font-mono); color: var(--green); font-weight: 600; }
+        .web-ticker-sep {
+            width: 1px; height: 28px; background: rgba(255,255,255,0.08);
+        }
+
+        /* Search */
+        .web-search-wrap { position: relative; margin-bottom: 14px; }
+        .web-search-wrap svg {
+            position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+            width: 16px; height: 16px; color: var(--text-tertiary);
+        }
+        .web-search {
+            width: 100%; padding: 11px 14px 11px 40px;
+            background: var(--bg-card); border: 1px solid rgba(255,255,255,0.06);
+            border-radius: var(--radius-md); color: var(--text-primary);
+            font-family: var(--font-stack); font-size: 14px; transition: var(--transition);
+        }
+        .web-search::placeholder { color: var(--text-tertiary); }
+        .web-search:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 2px rgba(240,185,11,0.08); }
+
+        /* Category Tabs */
+        .web-category-tabs {
+            display: flex; gap: 2px; margin-bottom: 10px;
+            background: var(--bg-card); padding: 4px;
+            border-radius: var(--radius-md);
+        }
+        .web-cat-tab {
+            padding: 9px 20px; border: none; background: transparent;
+            color: var(--text-secondary); border-radius: var(--radius-sm);
+            cursor: pointer; font-family: var(--font-stack); font-size: 14px;
+            font-weight: 500; transition: var(--transition);
+        }
+        .web-cat-tab:hover { color: var(--text-primary); background: rgba(255,255,255,0.04); }
+        .web-cat-tab.active { background: var(--gold); color: var(--bg-deep); font-weight: 700; }
+
+        /* Filter Chips */
+        .web-filter-row { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+        .web-filter-chip {
+            padding: 6px 14px; background: var(--bg-card);
+            border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-xl);
+            color: var(--text-secondary); cursor: pointer; font-size: 13px;
+            font-weight: 500; transition: var(--transition);
+        }
+        .web-filter-chip:hover { border-color: var(--gold-hover); color: var(--gold); }
+        .web-filter-chip.active { background: var(--gold-dim); border-color: var(--gold); color: var(--gold); }
+
+        /* Subcategory Chips */
+        .web-sub-row {
+            display: flex; gap: 8px; margin-bottom: 14px;
+            overflow-x: auto; padding-bottom: 4px;
+        }
+        .web-sub-row::-webkit-scrollbar { height: 0; }
+        .web-sub-chip {
+            padding: 5px 12px; background: var(--bg-elevated);
+            border: 1px solid rgba(255,255,255,0.04); border-radius: var(--radius-xl);
+            color: var(--text-secondary); cursor: pointer; font-size: 12px;
+            font-weight: 500; white-space: nowrap; transition: var(--transition);
+        }
+        .web-sub-chip:hover { border-color: var(--gold-hover); color: var(--gold); }
+        .web-sub-chip.active { background: var(--gold-dim); border-color: var(--gold); color: var(--gold); }
+
+        /* Table */
+        .web-table {
+            background: var(--bg-card); border-radius: var(--radius-lg);
+            overflow: hidden; border: 1px solid rgba(255,255,255,0.05);
+        }
+        .web-thead {
+            display: grid; grid-template-columns: 40px 2.4fr 1.2fr 1fr 1.1fr 1fr;
+            padding: 11px 16px; background: var(--bg-elevated);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            font-size: 12px; color: var(--text-tertiary); font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.3px;
+        }
+        .web-thead .sortable { cursor: pointer; user-select: none; display: flex; align-items: center; gap: 4px; }
+        .web-thead .sortable:hover { color: var(--gold); }
+        .web-thead .sort-arrow { font-size: 10px; opacity: 0.4; transition: var(--transition); }
+        .web-thead .sort-arrow.active { opacity: 1; color: var(--gold); }
+
+        .web-trow {
+            display: grid; grid-template-columns: 40px 2.4fr 1.2fr 1fr 1.1fr 1fr;
+            padding: 12px 16px; align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            transition: var(--transition); cursor: pointer;
+        }
+        .web-trow:hover { background: rgba(240,185,11,0.03); }
+        .web-trow:last-child { border-bottom: none; }
+        .web-trow.closed { opacity: 0.5; }
+        .web-trow.closed:hover { opacity: 0.65; }
+
+        .web-star {
+            font-size: 16px; color: var(--text-tertiary); cursor: pointer;
+            transition: var(--transition); text-align: center; line-height: 1;
+        }
+        .web-star:hover { transform: scale(1.25); color: var(--gold); }
+        .web-star.active { color: var(--gold); }
+
+        .web-pair-cell { display: flex; align-items: center; gap: 10px; }
+        .web-coin-icon {
+            width: 32px; height: 32px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 13px; color: #fff; flex-shrink: 0;
+        }
+        .web-pair-main { display: flex; flex-direction: column; gap: 3px; }
+        .web-pair-symbol { font-weight: 600; font-size: 14px; color: var(--text-primary); }
+        .web-pair-tags { display: flex; gap: 4px; flex-wrap: wrap; }
+
+        /* Tags */
+        .tag {
+            padding: 2px 6px; border-radius: var(--radius-sm); font-size: 10px;
+            font-weight: 700; letter-spacing: 0.2px; line-height: 1.4;
+            display: inline-block;
+        }
+        .tag-0fee { background: rgba(14,203,129,0.15); color: #0ECB81; }
+        .tag-hot { background: rgba(240,185,11,0.15); color: #F0B90B; }
+        .tag-new { background: rgba(0,180,216,0.15); color: #00B4D8; }
+        .tag-preipo { background: rgba(224,64,251,0.15); color: #E040FB; }
+        .tag-highrisk { background: rgba(246,70,93,0.15); color: #F6465D; }
+        .tag-closed {
+            background: var(--red-dim); color: var(--red);
+            font-family: var(--font-mono); font-size: 11px; padding: 2px 8px;
+            border-radius: var(--radius-sm); font-weight: 600;
+        }
+
+        .web-price { font-family: var(--font-mono); font-size: 14px; font-weight: 500; }
+        .web-chg { font-family: var(--font-mono); font-size: 14px; font-weight: 600; }
+        .web-chg.up { color: var(--green); }
+        .web-chg.down { color: var(--red); }
+        .web-vol { font-family: var(--font-mono); font-size: 13px; color: var(--text-secondary); }
+        .web-funding { font-family: var(--font-mono); font-size: 13px; color: var(--green); }
+        .web-funding.na { color: var(--text-tertiary); }
+
+        .web-empty {
+            padding: 60px 20px; text-align: center;
+            color: var(--text-tertiary); font-size: 14px;
+        }
+
+        /* ============================== */
+        /* ===== APP MOBILE VIEW ===== */
+        /* ============================== */
+        .app-view {
+            max-width: 375px; margin: 0 auto; padding: 56px 0 40px;
+            min-height: 100vh; background: var(--bg-deep);
+        }
+        .app-frame {
+            border: 2px solid rgba(240,185,11,0.12);
+            border-radius: 24px; overflow: hidden;
+            max-height: calc(100vh - 72px); overflow-y: auto;
+            background: var(--bg-deep);
+        }
+        .app-nav {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 16px; background: var(--bg-card);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            position: sticky; top: 0; z-index: 10;
+        }
+        .app-nav-back { font-size: 20px; color: var(--text-primary); cursor: pointer; padding: 4px 8px; }
+        .app-nav-title { font-size: 17px; font-weight: 600; }
+        .app-nav-placeholder { width: 32px; }
+
+        .app-search-wrap { padding: 10px 16px; position: relative; }
+        .app-search-wrap svg {
+            position: absolute; left: 28px; top: 50%; transform: translateY(-50%);
+            width: 16px; height: 16px; color: var(--text-tertiary);
+        }
+        .app-search {
+            width: 100%; padding: 10px 14px 10px 38px;
+            background: var(--bg-card); border: 1px solid rgba(255,255,255,0.06);
+            border-radius: var(--radius-md); color: var(--text-primary);
+            font-family: var(--font-stack); font-size: 14px;
+        }
+        .app-search::placeholder { color: var(--text-tertiary); }
+        .app-search:focus { outline: none; border-color: var(--gold); }
+
+        .app-tabs-scroll {
+            display: flex; gap: 8px; padding: 0 16px 10px;
+            overflow-x: auto; -webkit-overflow-scrolling: touch;
+        }
+        .app-tabs-scroll::-webkit-scrollbar { display: none; }
+        .app-tab {
+            padding: 7px 16px; background: var(--bg-card);
+            border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-xl);
+            color: var(--text-secondary); cursor: pointer; font-size: 13px;
+            font-weight: 500; white-space: nowrap; transition: var(--transition);
+        }
+        .app-tab:hover { border-color: var(--gold-hover); color: var(--gold); }
+        .app-tab.active { background: var(--gold); color: var(--bg-deep); border-color: var(--gold); font-weight: 700; }
+
+        .app-chips-scroll {
+            display: flex; gap: 8px; padding: 0 16px 10px;
+            overflow-x: auto; -webkit-overflow-scrolling: touch;
+        }
+        .app-chips-scroll::-webkit-scrollbar { display: none; }
+        .app-chip {
+            padding: 5px 12px; background: var(--bg-card);
+            border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-xl);
+            color: var(--text-secondary); cursor: pointer; font-size: 12px;
+            font-weight: 500; white-space: nowrap; transition: var(--transition);
+        }
+        .app-chip.active { background: var(--gold-dim); border-color: var(--gold); color: var(--gold); }
+
+        .app-card-list { padding: 0 16px 20px; display: flex; flex-direction: column; gap: 8px; }
+        .app-card {
+            background: var(--bg-card); padding: 14px 14px;
+            border-radius: var(--radius-md); cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.04);
+            transition: var(--transition);
+        }
+        .app-card:hover { border-color: rgba(240,185,11,0.12); }
+        .app-card.closed { opacity: 0.5; }
+        .app-card-top {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        .app-card-left { display: flex; align-items: center; gap: 10px; }
+        .app-card-icon {
+            width: 34px; height: 34px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 13px; color: #fff; flex-shrink: 0;
+        }
+        .app-card-info { display: flex; flex-direction: column; gap: 3px; }
+        .app-card-name { font-weight: 600; font-size: 14px; }
+        .app-card-name .quote { color: var(--text-tertiary); font-weight: 400; font-size: 12px; }
+        .app-card-tags { display: flex; gap: 4px; flex-wrap: wrap; }
+        .app-card-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+        .app-card-price {
+            font-family: var(--font-mono); font-size: 15px; font-weight: 600;
+        }
+        .app-card-chg {
+            font-family: var(--font-mono); font-size: 12px; font-weight: 600;
+            padding: 3px 10px; border-radius: var(--radius-sm);
+            display: inline-block;
+        }
+        .app-card-chg.up { color: var(--green); background: var(--green-dim); }
+        .app-card-chg.down { color: var(--red); background: var(--red-dim); }
+        .app-card-bottom {
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .app-card-vol {
+            font-family: var(--font-mono); font-size: 11px; color: var(--text-tertiary);
+        }
+        .app-card-countdown {
+            font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+            padding: 2px 8px; border-radius: var(--radius-sm);
+            background: var(--red-dim); color: var(--red);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        /* ============================== */
+        /* ===== H5 TELEGRAM VIEW ===== */
+        /* ============================== */
+        .h5-view {
+            max-width: 375px; margin: 0 auto; padding: 56px 0 40px;
+            min-height: 100vh; background: var(--bg-deep);
+        }
+        .h5-frame {
+            border: 2px solid rgba(240,185,11,0.12);
+            border-radius: 24px; overflow: hidden;
+            max-height: calc(100vh - 72px); overflow-y: auto;
+            background: var(--bg-deep);
+        }
+        .h5-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 14px; background: var(--bg-card);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            position: sticky; top: 0; z-index: 10;
+        }
+        .h5-header-title { font-size: 15px; font-weight: 600; }
+        .h5-header-close {
+            width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+            background: var(--bg-elevated); border-radius: 50%;
+            color: var(--text-secondary); cursor: pointer; font-size: 18px;
+            transition: var(--transition); border: none;
+        }
+        .h5-header-close:hover { color: var(--text-primary); }
+
+        .h5-search-wrap { padding: 8px 14px; position: relative; }
+        .h5-search-wrap svg {
+            position: absolute; left: 24px; top: 50%; transform: translateY(-50%);
+            width: 14px; height: 14px; color: var(--text-tertiary);
+        }
+        .h5-search {
+            width: 100%; padding: 6px 12px 6px 32px; height: 32px;
+            background: var(--bg-card); border: 1px solid rgba(255,255,255,0.06);
+            border-radius: var(--radius-sm); color: var(--text-primary);
+            font-family: var(--font-stack); font-size: 13px;
+        }
+        .h5-search::placeholder { color: var(--text-tertiary); }
+        .h5-search:focus { outline: none; border-color: var(--gold); }
+
+        .h5-cat-grid {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 6px; padding: 8px 14px;
+        }
+        .h5-cat-btn {
+            padding: 10px 8px; background: var(--bg-card);
+            border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-md);
+            color: var(--text-secondary); cursor: pointer; font-size: 13px;
+            font-weight: 500; text-align: center; transition: var(--transition);
+        }
+        .h5-cat-btn:hover { border-color: var(--gold-hover); color: var(--gold); }
+        .h5-cat-btn.active {
+            background: var(--gold-dim); border-color: var(--gold);
+            color: var(--gold); font-weight: 700;
+        }
+
+        .h5-filter-row { display: flex; gap: 8px; padding: 0 14px 8px; }
+        .h5-filter-btn {
+            flex: 1; padding: 6px 0; background: var(--bg-card);
+            border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-sm);
+            color: var(--text-secondary); cursor: pointer; font-size: 12px;
+            font-weight: 500; text-align: center; transition: var(--transition);
+        }
+        .h5-filter-btn.active { background: var(--gold-dim); border-color: var(--gold); color: var(--gold); }
+
+        .h5-list { padding: 0 14px 20px; }
+        .h5-item {
+            display: grid; grid-template-columns: 1fr auto auto;
+            gap: 10px; align-items: center;
+            padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+            cursor: pointer; transition: var(--transition);
+        }
+        .h5-item:last-child { border-bottom: none; }
+        .h5-item.closed { opacity: 0.4; }
+        .h5-item-left { display: flex; align-items: center; gap: 8px; }
+        .h5-item-icon {
+            width: 24px; height: 24px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 10px; color: #fff; flex-shrink: 0;
+        }
+        .h5-item-name { font-size: 13px; font-weight: 600; }
+        .h5-item-hot {
+            display: inline-block; width: 6px; height: 6px;
+            background: var(--gold); border-radius: 50%; margin-left: 3px;
+            vertical-align: middle;
+        }
+        .h5-item-price {
+            font-family: var(--font-mono); font-size: 13px; font-weight: 500;
+            text-align: right;
+        }
+        .h5-item-chg {
+            font-family: var(--font-mono); font-size: 12px; font-weight: 600;
+            min-width: 58px; text-align: right;
+        }
+        .h5-item-chg.up { color: var(--green); }
+        .h5-item-chg.down { color: var(--red); }
+
+        /* ===== ANIMATIONS ===== */
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .countdown { animation: pulse 2s ease-in-out infinite; }
+
+        /* ===== DATA FONT HELPER ===== */
+        .df { font-family: var(--font-mono); }
+    </style>
+</head>
+<body>
+
+<!-- ===== PLATFORM SWITCHER ===== -->
+<div class="platform-switcher">
+    <button class="platform-btn active" onclick="switchView('web')">&#9635; Web 桌面端</button>
+    <button class="platform-btn" onclick="switchView('app')">&#9743; App 移动端</button>
+    <button class="platform-btn" onclick="switchView('h5')">&#9993; H5 Telegram</button>
+</div>
+
+<!-- ===== WEB DESKTOP VIEW ===== -->
+<div id="web-view" class="view-container active">
+    <div class="web-view">
+        <!-- Ticker Bar -->
+        <div class="web-ticker" id="web-ticker">
+            <div class="web-ticker-pair">
+                <div class="web-ticker-icon" id="ticker-icon">B</div>
+                <span class="web-ticker-name" id="ticker-name">BTC/USDT</span>
+            </div>
+            <div class="web-ticker-sep"></div>
+            <span class="web-ticker-price df" id="ticker-price">63,610.38</span>
+            <span class="web-ticker-change negative df" id="ticker-change">-1.63%</span>
+            <div class="web-ticker-sep"></div>
+            <div class="web-ticker-funding">
+                资金费率 <span id="ticker-funding">0.0087%</span>
+            </div>
+        </div>
+
+        <!-- Search -->
+        <div class="web-search-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="text" class="web-search" id="web-search" placeholder="搜索交易对名称..." oninput="filterWeb()">
+        </div>
+
+        <!-- Category Tabs -->
+        <div class="web-category-tabs" id="web-cat-tabs"></div>
+
+        <!-- Filter Chips -->
+        <div class="web-filter-row" id="web-filter-chips"></div>
+
+        <!-- Subcategory Chips -->
+        <div class="web-sub-row" id="web-sub-chips"></div>
+
+        <!-- Table -->
+        <div class="web-table">
+            <div class="web-thead">
+                <div></div>
+                <div>交易对</div>
+                <div class="sortable" onclick="sortWeb('price')">
+                    最新价格 <span class="sort-arrow" id="sort-price">&#9650;&#9660;</span>
+                </div>
+                <div class="sortable" onclick="sortWeb('change')">
+                    Chg% <span class="sort-arrow" id="sort-change">&#9650;&#9660;</span>
+                </div>
+                <div class="sortable" onclick="sortWeb('volume')">
+                    24H成交额 <span class="sort-arrow" id="sort-volume">&#9650;&#9660;</span>
+                </div>
+                <div>资金费率</div>
+            </div>
+            <div id="web-table-body"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== APP MOBILE VIEW ===== -->
+<div id="app-view" class="view-container">
+    <div class="app-view">
+        <div class="app-frame">
+            <div class="app-nav">
+                <span class="app-nav-back">&larr;</span>
+                <span class="app-nav-title">选择交易对</span>
+                <span class="app-nav-placeholder"></span>
+            </div>
+            <div class="app-search-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                <input type="text" class="app-search" id="app-search" placeholder="搜索交易对..." oninput="filterApp()">
+            </div>
+            <div class="app-tabs-scroll" id="app-cat-tabs"></div>
+            <div class="app-chips-scroll" id="app-filter-chips"></div>
+            <div class="app-card-list" id="app-card-list"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== H5 TELEGRAM VIEW ===== -->
+<div id="h5-view" class="view-container">
+    <div class="h5-view">
+        <div class="h5-frame">
+            <div class="h5-header">
+                <span class="h5-header-title">选择交易对</span>
+                <button class="h5-header-close">&times;</button>
+            </div>
+            <div class="h5-search-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                <input type="text" class="h5-search" id="h5-search" placeholder="搜索..." oninput="filterH5()">
+            </div>
+            <div class="h5-cat-grid" id="h5-cat-grid"></div>
+            <div class="h5-filter-row" id="h5-filter-row"></div>
+            <div class="h5-list" id="h5-list"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ===== TRADING PAIR DATA (as specified) =====
+const tradingPairs = [
+    { symbol:'BTC/USDT', base:'BTC', quote:'USDT', price:63610.38, change:-1.63, volume:2800000000, funding:0.0087, category:'crypto', sub:'mainstream', tags:['0fee','hot'], favorited:false, closed:false, icon:'B', color:'#F7931A' },
+    { symbol:'ETH/USDT', base:'ETH', quote:'USDT', price:1856.67, change:-3.54, volume:1500000000, funding:0.0065, category:'crypto', sub:'mainstream', tags:['0fee'], favorited:false, closed:false, icon:'E', color:'#627EEA' },
+    { symbol:'SOL/USDT', base:'SOL', quote:'USDT', price:75.31, change:-2.18, volume:890000000, funding:0.0043, category:'crypto', sub:'layer1', tags:['0fee'], favorited:false, closed:false, icon:'S', color:'#9945FF' },
+    { symbol:'PEPE/USDT', base:'PEPE', quote:'USDT', price:0.00001234, change:15.32, volume:450000000, funding:0.0120, category:'crypto', sub:'meme', tags:['0fee','hot'], favorited:false, closed:false, icon:'P', color:'#4CAF50' },
+    { symbol:'DOGE/USDT', base:'DOGE', quote:'USDT', price:0.1234, change:5.67, volume:320000000, funding:0.0055, category:'crypto', sub:'meme', tags:['0fee'], favorited:false, closed:false, icon:'D', color:'#C2A633' },
+    { symbol:'LINK/USDT', base:'LINK', quote:'USDT', price:12.56, change:-1.23, volume:180000000, funding:0.0032, category:'crypto', sub:'defi', tags:[], favorited:false, closed:false, icon:'L', color:'#2A5ADA' },
+    { symbol:'SUI/USDT', base:'SUI', quote:'USDT', price:1.89, change:8.45, volume:150000000, funding:0.0078, category:'crypto', sub:'layer1', tags:['new'], favorited:false, closed:false, icon:'S', color:'#4DA2FF' },
+    { symbol:'XAU/USD', base:'XAU', quote:'USD', price:2345.67, change:0.45, volume:120000000, funding:null, category:'tradfi', sub:'commodity', tags:[], favorited:false, closed:false, icon:'G', color:'#FFD700' },
+    { symbol:'CL/USD', base:'CL', quote:'USD', price:78.34, change:-1.12, volume:80000000, funding:null, category:'tradfi', sub:'commodity', tags:[], favorited:false, closed:false, icon:'O', color:'#1E3A5F' },
+    { symbol:'AAPL/USD', base:'AAPL', quote:'USD', price:198.45, change:2.34, volume:200000000, funding:null, category:'stock', sub:'tech', tags:['hot'], favorited:false, closed:false, icon:'A', color:'#555555' },
+    { symbol:'NVDA/USD', base:'NVDA', quote:'USD', price:875.23, change:4.56, volume:350000000, funding:null, category:'stock', sub:'semiconductor', tags:['hot','0fee'], favorited:false, closed:false, icon:'N', color:'#76B900' },
+    { symbol:'TSLA/USD', base:'TSLA', quote:'USD', price:245.67, change:-0.89, volume:180000000, funding:null, category:'stock', sub:'tech', tags:[], favorited:false, closed:false, icon:'T', color:'#CC0000' },
+    { symbol:'BTC/USD', base:'BTC', quote:'USD', price:63610.38, change:-1.63, volume:0, funding:null, category:'crypto', sub:'mainstream', tags:[], favorited:false, closed:true, closeTime:'05h25m', icon:'B', color:'#F7931A' },
+    { symbol:'ETH/USD', base:'ETH', quote:'USD', price:1856.67, change:-3.54, volume:0, funding:null, category:'crypto', sub:'mainstream', tags:[], favorited:false, closed:true, closeTime:'12h15m', icon:'E', color:'#627EEA' },
+];
+
+// ===== CATEGORY & FILTER DEFINITIONS =====
+const categories = [
+    { key:'all', label:'全部' },
+    { key:'crypto', label:'数字货币' },
+    { key:'tradfi', label:'传统金融' },
+    { key:'stock', label:'股票' },
+];
+
+const filters = [
+    { key:'all', label:'全部' },
+    { key:'hot', label:'热门' },
+    { key:'0fee', label:'0 Fees' },
+    { key:'tradable', label:'可交易' },
+    { key:'closed', label:'已关闭' },
+];
+
+const subCategories = {
+    all: [
+        { key:'all', label:'全部' },
+    ],
+    crypto: [
+        { key:'all', label:'全部' },
+        { key:'mainstream', label:'主流币' },
+        { key:'meme', label:'Meme' },
+        { key:'defi', label:'DeFi' },
+        { key:'layer1', label:'Layer1' },
+        { key:'layer2', label:'Layer2' },
+        { key:'ai', label:'AI' },
+        { key:'gamefi', label:'GameFi' },
+    ],
+    tradfi: [
+        { key:'all', label:'全部' },
+        { key:'commodity', label:'大宗商品' },
+        { key:'forex', label:'外汇' },
+        { key:'index', label:'指数' },
+    ],
+    stock: [
+        { key:'all', label:'全部' },
+        { key:'tech', label:'科技股' },
+        { key:'semiconductor', label:'半导体' },
+        { key:'finance', label:'金融股' },
+        { key:'consumer', label:'消费股' },
+    ],
+};
+
+// ===== STATE =====
+let state = {
+    currentView: 'web',
+    web: { category:'all', filter:'all', sub:'all', sortKey:null, sortDir:'asc', search:'' },
+    app: { category:'all', filter:'all', search:'' },
+    h5:  { category:'all', filter:'all', search:'' },
+};
+
+// ===== UTILS =====
+function formatPrice(p) {
+    if (p >= 1000) return p.toLocaleString('en-US', { minimumFractionDigits:2, maximumFractionDigits:2 });
+    if (p >= 1) return p.toFixed(2);
+    if (p >= 0.001) return p.toFixed(4);
+    return p.toFixed(8);
+}
+function formatVolume(v) {
+    if (v >= 1e9) return (v/1e9).toFixed(1) + 'B';
+    if (v >= 1e6) return (v/1e6).toFixed(0) + 'M';
+    if (v >= 1e3) return (v/1e3).toFixed(0) + 'K';
+    return v.toString();
+}
+function formatChange(c) { return (c >= 0 ? '+' : '') + c.toFixed(2) + '%'; }
+function formatFunding(f) { return f !== null ? f.toFixed(4) + '%' : '-'; }
+
+function renderTagHtml(tag) {
+    switch(tag) {
+        case '0fee': return '<span class="tag tag-0fee">0 Fees</span>';
+        case 'hot': return '<span class="tag tag-hot">热门</span>';
+        case 'new': return '<span class="tag tag-new">新币</span>';
+        case 'preipo': return '<span class="tag tag-preipo">Pre-IPO</span>';
+        case 'highrisk': return '<span class="tag tag-highrisk">高风险</span>';
+        default: return '';
+    }
+}
+
+// ===== VIEW SWITCHING =====
+function switchView(view) {
+    state.currentView = view;
+    document.querySelectorAll('.platform-btn').forEach((btn, i) => {
+        btn.classList.toggle('active', ['web','app','h5'][i] === view);
+    });
+    document.querySelectorAll('.view-container').forEach(vc => vc.classList.remove('active'));
+    document.getElementById(view + '-view').classList.add('active');
+}
+
+// ===== WEB RENDERING =====
+function renderWebCats() {
+    const el = document.getElementById('web-cat-tabs');
+    el.innerHTML = categories.map(c =>
+        '<button class="web-cat-tab' + (state.web.category===c.key?' active':'') + '" onclick="setWebCat(\'' + c.key + '\')">' + c.label + '</button>'
+    ).join('');
+}
+function renderWebFilters() {
+    const el = document.getElementById('web-filter-chips');
+    el.innerHTML = filters.map(f =>
+        '<button class="web-filter-chip' + (state.web.filter===f.key?' active':'') + '" onclick="setWebFilter(\'' + f.key + '\')">' + f.label + '</button>'
+    ).join('');
+}
+function renderWebSubs() {
+    const el = document.getElementById('web-sub-chips');
+    const cat = state.web.category;
+    const subs = subCategories[cat] || subCategories['all'];
+    el.innerHTML = subs.map(s =>
+        '<button class="web-sub-chip' + (state.web.sub===s.key?' active':'') + '" onclick="setWebSub(\'' + s.key + '\')">' + s.label + '</button>'
+    ).join('');
+}
+function setWebCat(key) { state.web.category = key; state.web.sub = 'all'; renderWebCats(); renderWebSubs(); renderWebTable(); }
+function setWebFilter(key) { state.web.filter = key; renderWebFilters(); renderWebTable(); }
+function setWebSub(key) { state.web.sub = key; renderWebSubs(); renderWebTable(); }
+
+function getFilteredWebData() {
+    let data = tradingPairs.slice();
+    const { category, filter, sub, search } = state.web;
+    if (category !== 'all') data = data.filter(d => d.category === category);
+    if (sub !== 'all') data = data.filter(d => d.sub === sub);
+    if (filter === 'hot') data = data.filter(d => d.tags.includes('hot'));
+    else if (filter === '0fee') data = data.filter(d => d.tags.includes('0fee'));
+    else if (filter === 'tradable') data = data.filter(d => !d.closed);
+    else if (filter === 'closed') data = data.filter(d => d.closed);
+    if (search) {
+        const q = search.toLowerCase();
+        data = data.filter(d => d.symbol.toLowerCase().includes(q) || d.base.toLowerCase().includes(q));
+    }
+    // Sort
+    const { sortKey, sortDir } = state.web;
+    if (sortKey) {
+        const dir = sortDir === 'asc' ? 1 : -1;
+        data.sort((a, b) => {
+            if (sortKey === 'price') return (a.price - b.price) * dir;
+            if (sortKey === 'change') return (a.change - b.change) * dir;
+            if (sortKey === 'volume') return (a.volume - b.volume) * dir;
+            return 0;
+        });
+    }
+    // Favorites first
+    data.sort((a, b) => (b.favorited ? 1 : 0) - (a.favorited ? 1 : 0));
+    return data;
+}
+
+function updateTicker() {
+    // Show first favorited pair, or default BTC/USDT
+    const fav = tradingPairs.find(d => d.favorited && !d.closed);
+    const target = fav || tradingPairs[0];
+    document.getElementById('ticker-icon').textContent = target.icon;
+    document.getElementById('ticker-icon').style.background = 'linear-gradient(135deg,' + target.color + ',' + target.color + 'cc)';
+    document.getElementById('ticker-name').textContent = target.symbol;
+    document.getElementById('ticker-price').textContent = formatPrice(target.price);
+    const chgEl = document.getElementById('ticker-change');
+    chgEl.textContent = formatChange(target.change);
+    chgEl.className = 'web-ticker-change df ' + (target.change >= 0 ? 'positive' : 'negative');
+    const fundingEl = document.getElementById('ticker-funding');
+    fundingEl.textContent = formatFunding(target.funding);
+    fundingEl.style.color = target.funding !== null ? 'var(--green)' : 'var(--text-tertiary)';
+}
+
+function renderWebTable() {
+    const data = getFilteredWebData();
+    const body = document.getElementById('web-table-body');
+    if (data.length === 0) {
+        body.innerHTML = '<div class="web-empty">暂无匹配的交易对</div>';
+        return;
+    }
+    body.innerHTML = data.map(d => {
+        const chgClass = d.change >= 0 ? 'up' : 'down';
+        const tagsHtml = d.tags.map(t => renderTagHtml(t)).join('');
+        const closedHtml = d.closed ? '<span class="tag-closed countdown">' + d.closeTime + '</span>' : '';
+        const fundingClass = d.funding !== null ? 'web-funding' : 'web-funding na';
+        return '<div class="web-trow' + (d.closed ? ' closed' : '') + '">' +
+            '<div class="web-star' + (d.favorited ? ' active' : '') + '" onclick="event.stopPropagation();toggleFav(' + tradingPairs.indexOf(d) + ')">&#9733;</div>' +
+            '<div class="web-pair-cell">' +
+                '<div class="web-coin-icon" style="background:' + d.color + '">' + d.icon + '</div>' +
+                '<div class="web-pair-main">' +
+                    '<span class="web-pair-symbol">' + d.symbol + '</span>' +
+                    '<div class="web-pair-tags">' + tagsHtml + closedHtml + '</div>' +
+                '</div>' +
+            '</div>' +
+            '<div class="web-price df">' + formatPrice(d.price) + '</div>' +
+            '<div class="web-chg df ' + chgClass + '">' + formatChange(d.change) + '</div>' +
+            '<div class="web-vol df">$' + formatVolume(d.volume) + '</div>' +
+            '<div class="' + fundingClass + ' df">' + formatFunding(d.funding) + '</div>' +
+        '</div>';
+    }).join('');
+
+    // Update sort arrows
+    ['price','change','volume'].forEach(k => {
+        const el = document.getElementById('sort-' + k);
+        if (state.web.sortKey === k) {
+            el.classList.add('active');
+            el.innerHTML = state.web.sortDir === 'asc' ? '&#9650;' : '&#9660;';
+        } else {
+            el.classList.remove('active');
+            el.innerHTML = '&#9650;&#9660;';
+        }
+    });
+    updateTicker();
+}
+
+function sortWeb(key) {
+    if (state.web.sortKey === key) {
+        state.web.sortDir = state.web.sortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+        state.web.sortKey = key;
+        state.web.sortDir = 'desc';
+    }
+    renderWebTable();
+}
+
+function toggleFav(idx) {
+    tradingPairs[idx].favorited = !tradingPairs[idx].favorited;
+    renderWebTable();
+    renderAppCards();
+    renderH5List();
+}
+
+function filterWeb() {
+    state.web.search = document.getElementById('web-search').value;
+    renderWebTable();
+}
+
+// ===== APP RENDERING =====
+const appFilters = [
+    { key:'all', label:'全部' },
+    { key:'hot', label:'热门' },
+    { key:'0fee', label:'0 Fees' },
+    { key:'tradable', label:'可交易' },
+];
+
+function renderAppCats() {
+    const el = document.getElementById('app-cat-tabs');
+    el.innerHTML = categories.map(c =>
+        '<button class="app-tab' + (state.app.category===c.key?' active':'') + '" onclick="setAppCat(\'' + c.key + '\')">' + c.label + '</button>'
+    ).join('');
+}
+function renderAppFilters() {
+    const el = document.getElementById('app-filter-chips');
+    el.innerHTML = appFilters.map(f =>
+        '<button class="app-chip' + (state.app.filter===f.key?' active':'') + '" onclick="setAppFilter(\'' + f.key + '\')">' + f.label + '</button>'
+    ).join('');
+}
+function setAppCat(key) { state.app.category = key; renderAppCats(); renderAppCards(); }
+function setAppFilter(key) { state.app.filter = key; renderAppFilters(); renderAppCards(); }
+
+function getFilteredAppData() {
+    let data = tradingPairs.slice();
+    const { category, filter, search } = state.app;
+    if (category !== 'all') data = data.filter(d => d.category === category);
+    if (filter === 'hot') data = data.filter(d => d.tags.includes('hot'));
+    else if (filter === '0fee') data = data.filter(d => d.tags.includes('0fee'));
+    else if (filter === 'tradable') data = data.filter(d => !d.closed);
+    if (search) {
+        const q = search.toLowerCase();
+        data = data.filter(d => d.symbol.toLowerCase().includes(q) || d.base.toLowerCase().includes(q));
+    }
+    data.sort((a, b) => (b.favorited ? 1 : 0) - (a.favorited ? 1 : 0));
+    return data;
+}
+
+function renderAppCards() {
+    const data = getFilteredAppData();
+    const el = document.getElementById('app-card-list');
+    if (data.length === 0) {
+        el.innerHTML = '<div class="web-empty">暂无匹配的交易对</div>';
+        return;
+    }
+    el.innerHTML = data.map(d => {
+        const chgClass = d.change >= 0 ? 'up' : 'down';
+        const tagsHtml = d.tags.map(t => renderTagHtml(t)).join('');
+        const countdownHtml = d.closed ? '<span class="app-card-countdown">' + d.closeTime + '</span>' : '';
+        return '<div class="app-card' + (d.closed ? ' closed' : '') + '">' +
+            '<div class="app-card-top">' +
+                '<div class="app-card-left">' +
+                    '<div class="app-card-icon" style="background:' + d.color + '">' + d.icon + '</div>' +
+                    '<div class="app-card-info">' +
+                        '<span class="app-card-name">' + d.base + '<span class="quote">/' + d.quote + '</span></span>' +
+                        '<div class="app-card-tags">' + tagsHtml + countdownHtml + '</div>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="app-card-right">' +
+                    '<div class="app-card-price df">' + formatPrice(d.price) + '</div>' +
+                    '<div class="app-card-chg df ' + chgClass + '">' + formatChange(d.change) + '</div>' +
+                '</div>' +
+            '</div>' +
+            '<div class="app-card-bottom">' +
+                '<span class="app-card-vol">Vol $' + formatVolume(d.volume) + '</span>' +
+            '</div>' +
+        '</div>';
+    }).join('');
+}
+
+function filterApp() {
+    state.app.search = document.getElementById('app-search').value;
+    renderAppCards();
+}
+
+// ===== H5 RENDERING =====
+const h5Cats = [
+    { key:'all', label:'全部' },
+    { key:'crypto', label:'数字货币' },
+    { key:'tradfi', label:'传统金融' },
+    { key:'stock', label:'股票' },
+];
+const h5Filters = [
+    { key:'all', label:'全部' },
+    { key:'hot', label:'热门' },
+];
+
+function renderH5Cats() {
+    const el = document.getElementById('h5-cat-grid');
+    el.innerHTML = h5Cats.map(c =>
+        '<button class="h5-cat-btn' + (state.h5.category===c.key?' active':'') + '" onclick="setH5Cat(\'' + c.key + '\')">' + c.label + '</button>'
+    ).join('');
+}
+function renderH5Filters() {
+    const el = document.getElementById('h5-filter-row');
+    el.innerHTML = h5Filters.map(f =>
+        '<button class="h5-filter-btn' + (state.h5.filter===f.key?' active':'') + '" onclick="setH5Filter(\'' + f.key + '\')">' + f.label + '</button>'
+    ).join('');
+}
+function setH5Cat(key) { state.h5.category = key; renderH5Cats(); renderH5List(); }
+function setH5Filter(key) { state.h5.filter = key; renderH5Filters(); renderH5List(); }
+
+function getFilteredH5Data() {
+    let data = tradingPairs.slice();
+    const { category, filter, search } = state.h5;
+    if (category !== 'all') data = data.filter(d => d.category === category);
+    if (filter === 'hot') data = data.filter(d => d.tags.includes('hot'));
+    if (search) {
+        const q = search.toLowerCase();
+        data = data.filter(d => d.symbol.toLowerCase().includes(q) || d.base.toLowerCase().includes(q));
+    }
+    data.sort((a, b) => (b.favorited ? 1 : 0) - (a.favorited ? 1 : 0));
+    return data;
+}
+
+function renderH5List() {
+    const data = getFilteredH5Data();
+    const el = document.getElementById('h5-list');
+    if (data.length === 0) {
+        el.innerHTML = '<div class="web-empty" style="padding:30px 10px">暂无匹配的交易对</div>';
+        return;
+    }
+    el.innerHTML = data.map(d => {
+        const chgClass = d.change >= 0 ? 'up' : 'down';
+        const hotDot = d.tags.includes('hot') ? '<span class="h5-item-hot"></span>' : '';
+        return '<div class="h5-item' + (d.closed ? ' closed' : '') + '">' +
+            '<div class="h5-item-left">' +
+                '<div class="h5-item-icon" style="background:' + d.color + '">' + d.icon + '</div>' +
+                '<span class="h5-item-name">' + d.base + '/' + d.quote + hotDot + '</span>' +
+            '</div>' +
+            '<span class="h5-item-price df">' + formatPrice(d.price) + '</span>' +
+            '<span class="h5-item-chg df ' + chgClass + '">' + formatChange(d.change) + '</span>' +
+        '</div>';
+    }).join('');
+}
+
+function filterH5() {
+    state.h5.search = document.getElementById('h5-search').value;
+    renderH5List();
+}
+
+// ===== INIT =====
+function init() {
+    renderWebCats();
+    renderWebFilters();
+    renderWebSubs();
+    renderWebTable();
+    renderAppCats();
+    renderAppFilters();
+    renderAppCards();
+    renderH5Cats();
+    renderH5Filters();
+    renderH5List();
+}
+init();
+</script>
+</body>
+</html>

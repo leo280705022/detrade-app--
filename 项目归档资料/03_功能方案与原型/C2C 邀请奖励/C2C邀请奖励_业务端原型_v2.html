@@ -1,0 +1,2029 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>C2C Invite Rewards - Business Prototype v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ========== CSS VARIABLES ========== */
+:root {
+  --bg-primary: #0A0A0A;
+  --bg-secondary: #111111;
+  --bg-card: #1A1A1A;
+  --bg-card-hover: #222222;
+  --gold-primary: #D4A853;
+  --gold-light: #F0C674;
+  --gold-dark: #B8923F;
+  --gold-glow: rgba(212, 168, 83, 0.15);
+  --gold-glow-strong: rgba(212, 168, 83, 0.3);
+  --text-primary: #FFFFFF;
+  --text-secondary: #A0A0A0;
+  --text-muted: #666666;
+  --border-default: rgba(255, 255, 255, 0.08);
+  --border-gold: rgba(212, 168, 83, 0.3);
+  --success: #2ECC71;
+  --warning: #F39C12;
+  --error: #E74C3C;
+  --info: #3498DB;
+  --font-mono: 'Fira Code', monospace;
+  --font-ui: 'Fira Sans', sans-serif;
+  --radius: 12px;
+  --spacing: 16px;
+  --transition: 0.3s ease;
+}
+
+/* ========== RESET & BASE ========== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font-ui);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+button { cursor: pointer; border: none; background: none; font-family: inherit; color: inherit; }
+input { font-family: inherit; }
+
+/* ========== CONTROL BAR ========== */
+.control-bar {
+  position: fixed; top: 0; left: 0; right: 0;
+  z-index: 9999;
+  background: rgba(10, 10, 10, 0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-default);
+  padding: 10px 24px;
+  display: flex; align-items: center; justify-content: center;
+  gap: 24px; flex-wrap: wrap;
+}
+.control-group {
+  display: flex; align-items: center; gap: 8px;
+}
+.control-label {
+  font-size: 11px; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 1px;
+  font-weight: 600; margin-right: 4px;
+}
+.control-btn {
+  padding: 6px 14px; border-radius: 6px;
+  font-size: 12px; font-weight: 500;
+  background: var(--bg-card); color: var(--text-secondary);
+  border: 1px solid var(--border-default);
+  transition: var(--transition);
+}
+.control-btn:hover { border-color: var(--border-gold); color: var(--text-primary); }
+.control-btn.active {
+  background: var(--gold-primary); color: #000;
+  border-color: var(--gold-primary); font-weight: 600;
+}
+
+/* ========== DEVICE FRAME ========== */
+.device-wrapper {
+  padding-top: 60px;
+  min-height: 100vh;
+  display: flex; justify-content: center;
+}
+.device-frame {
+  transition: var(--transition);
+}
+.device-frame.web {
+  width: 100%; max-width: 1200px;
+  padding: 0 24px;
+}
+.device-frame.h5 {
+  width: 375px; min-height: 100vh;
+  border: 3px solid #333;
+  border-radius: 40px;
+  padding: 20px 16px;
+  margin: 20px auto;
+  position: relative;
+  background: var(--bg-primary);
+  box-shadow: 0 0 40px rgba(0,0,0,0.5);
+}
+.device-frame.h5::before {
+  content: ''; position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
+  width: 80px; height: 6px; background: #333; border-radius: 3px;
+}
+.device-frame.app {
+  width: 390px; min-height: 100vh;
+  border: 3px solid #333;
+  border-radius: 44px;
+  padding: 0 16px;
+  margin: 20px auto;
+  position: relative;
+  background: var(--bg-primary);
+  box-shadow: 0 0 40px rgba(0,0,0,0.5);
+  overflow: hidden;
+}
+/* APP Status Bar */
+.app-status-bar {
+  display: none;
+  justify-content: space-between; align-items: center;
+  padding: 12px 8px 8px;
+  font-size: 14px; font-weight: 600;
+  color: var(--text-primary);
+}
+.device-frame.app .app-status-bar { display: flex; }
+.status-bar-left { font-weight: 700; font-size: 15px; }
+.status-bar-right { display: flex; gap: 6px; align-items: center; }
+.status-bar-right svg { width: 16px; height: 16px; fill: var(--text-primary); }
+
+/* ========== PAGE CONTENT ========== */
+.page-content { padding-bottom: 60px; }
+.page-content.hidden { display: none; }
+
+/* ========== HERO SECTION ========== */
+.hero {
+  position: relative; text-align: center;
+  padding: 80px 20px 60px;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute; top: -100px; left: 50%; transform: translateX(-50%);
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, var(--gold-glow) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero::after {
+  content: '';
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(var(--border-default) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border-default) 1px, transparent 1px);
+  background-size: 40px 40px;
+  opacity: 0.3; pointer-events: none;
+  mask-image: radial-gradient(ellipse at center, black 20%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse at center, black 20%, transparent 70%);
+}
+.hero-content { position: relative; z-index: 1; }
+.hero-title {
+  font-size: 28px; font-weight: 700;
+  line-height: 1.3; margin-bottom: 16px;
+}
+.hero-title .gold-text {
+  background: linear-gradient(135deg, var(--gold-light), var(--gold-primary), var(--gold-dark));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.hero-subtitle {
+  font-size: 16px; color: var(--text-secondary);
+  margin-bottom: 32px; max-width: 500px; margin-left: auto; margin-right: auto;
+}
+.cta-btn {
+  display: inline-block;
+  padding: 14px 36px; border-radius: 8px;
+  background: linear-gradient(135deg, var(--gold-light), var(--gold-primary));
+  color: #000; font-size: 16px; font-weight: 700;
+  position: relative; overflow: hidden;
+  transition: var(--transition);
+}
+.cta-btn::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  transform: translateX(-100%);
+  transition: 0.6s ease;
+}
+.cta-btn:hover::before { transform: translateX(100%); }
+.cta-btn:hover {
+  box-shadow: 0 0 30px var(--gold-glow-strong), 0 0 60px var(--gold-glow);
+  transform: translateY(-1px);
+}
+.hero-terms {
+  margin-top: 16px; font-size: 12px; color: var(--text-muted);
+}
+
+/* ========== SECTION COMMON ========== */
+.section { padding: 40px 20px; }
+.section-title {
+  font-size: 22px; font-weight: 700;
+  text-align: center; margin-bottom: 32px;
+  position: relative;
+}
+.section-title::after {
+  content: ''; display: block;
+  width: 40px; height: 2px;
+  background: var(--gold-primary);
+  margin: 12px auto 0;
+  border-radius: 1px;
+}
+
+/* ========== TIER GRID ========== */
+.tier-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing);
+  max-width: 800px; margin: 0 auto;
+}
+.tier-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius);
+  padding: 24px 16px;
+  text-align: center;
+  transition: var(--transition);
+  opacity: 0; transform: translateY(20px);
+  animation: fadeInUp 0.5s ease forwards;
+}
+.tier-card:nth-child(1) { animation-delay: 0.05s; }
+.tier-card:nth-child(2) { animation-delay: 0.15s; }
+.tier-card:nth-child(3) { animation-delay: 0.25s; }
+.tier-card:nth-child(4) { animation-delay: 0.35s; }
+.tier-card:nth-child(5) { animation-delay: 0.45s; }
+.tier-card:nth-child(6) { animation-delay: 0.55s; }
+@keyframes fadeInUp {
+  to { opacity: 1; transform: translateY(0); }
+}
+.tier-card:hover {
+  border-color: var(--border-gold);
+  background: var(--bg-card-hover);
+  box-shadow: 0 8px 24px var(--gold-glow);
+}
+.tier-icon {
+  width: 40px; height: 40px; margin: 0 auto 12px;
+}
+.tier-label {
+  font-size: 12px; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+.tier-amount {
+  font-family: var(--font-mono);
+  font-size: 32px; font-weight: 700;
+  color: var(--gold-primary);
+  margin-bottom: 4px;
+}
+.tier-amount .unit { font-size: 16px; color: var(--gold-dark); }
+.tier-req {
+  font-size: 13px; color: var(--text-secondary);
+}
+
+/* H5/APP tier scroll */
+.tier-scroll {
+  display: none;
+  overflow-x: auto; gap: 12px;
+  padding: 0 4px 12px;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+.tier-scroll::-webkit-scrollbar { height: 4px; }
+.tier-scroll::-webkit-scrollbar-track { background: var(--bg-secondary); border-radius: 2px; }
+.tier-scroll::-webkit-scrollbar-thumb { background: var(--gold-dark); border-radius: 2px; }
+.tier-scroll .tier-card {
+  min-width: 140px; flex-shrink: 0;
+  scroll-snap-align: start;
+}
+
+/* ========== STEPS SECTION ========== */
+.steps-row {
+  display: flex; justify-content: center;
+  align-items: flex-start; gap: 12px;
+  max-width: 700px; margin: 0 auto;
+  flex-wrap: wrap;
+}
+.step-item { text-align: center; flex: 0 0 160px; }
+.step-icon-wrap {
+  width: 72px; height: 72px;
+  border: 2px solid var(--gold-primary);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 12px;
+  transition: var(--transition);
+}
+.step-icon-wrap:hover {
+  box-shadow: 0 0 20px var(--gold-glow-strong);
+}
+.step-icon-wrap svg { width: 32px; height: 32px; stroke: var(--gold-primary); fill: none; stroke-width: 1.5; }
+.step-num {
+  font-size: 11px; color: var(--gold-primary);
+  font-weight: 600; letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+.step-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+.step-desc { font-size: 12px; color: var(--text-secondary); }
+.step-arrow {
+  display: flex; align-items: center; padding-top: 28px;
+  color: var(--gold-primary); font-size: 20px;
+}
+.step-arrow svg { width: 28px; height: 28px; stroke: var(--gold-primary); fill: none; stroke-width: 2; }
+
+/* ========== REWARD EXAMPLE ========== */
+.reward-example {
+  max-width: 600px; margin: 0 auto;
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius);
+  padding: 28px 24px;
+}
+.reward-header {
+  display: flex; justify-content: space-between;
+  align-items: center; margin-bottom: 20px;
+}
+.reward-header-text { font-size: 14px; color: var(--text-secondary); }
+.reward-header-text strong { color: var(--gold-primary); font-size: 16px; }
+.reward-total {
+  font-family: var(--font-mono);
+  font-size: 22px; font-weight: 700;
+  color: var(--gold-primary);
+}
+.reward-cards {
+  display: flex; gap: 12px; margin-bottom: 20px;
+  justify-content: center; flex-wrap: wrap;
+}
+.reward-mini-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-gold);
+  border-radius: 8px;
+  padding: 14px 18px;
+  text-align: center; min-width: 90px;
+}
+.reward-mini-card .amount {
+  font-family: var(--font-mono);
+  font-size: 18px; font-weight: 700;
+  color: var(--gold-primary);
+}
+.reward-mini-card .check { color: var(--success); font-size: 16px; margin-top: 4px; }
+.reward-progress-wrap { margin-top: 8px; }
+.reward-progress-label {
+  display: flex; justify-content: space-between;
+  font-size: 12px; color: var(--text-muted); margin-bottom: 6px;
+}
+.reward-progress-bar {
+  height: 6px; background: var(--bg-secondary);
+  border-radius: 3px; overflow: hidden;
+}
+.reward-progress-fill {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--gold-primary), var(--gold-light));
+  border-radius: 3px;
+  transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ========== BOTTOM CTA ========== */
+.bottom-cta {
+  text-align: center; padding: 48px 20px;
+  position: relative;
+}
+.bottom-cta::before {
+  content: ''; position: absolute;
+  bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 500px; height: 300px;
+  background: radial-gradient(circle, var(--gold-glow) 0%, transparent 70%);
+  pointer-events: none;
+}
+.bottom-cta-text {
+  font-size: 18px; font-weight: 600;
+  margin-bottom: 24px; position: relative; z-index: 1;
+}
+
+/* ========== COLLAPSIBLE RULES ========== */
+.rules-section {
+  max-width: 800px; margin: 0 auto;
+  padding: 0 20px 40px;
+}
+.rules-toggle {
+  width: 100%; padding: 16px 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius);
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 15px; font-weight: 600;
+  transition: var(--transition);
+}
+.rules-toggle:hover { border-color: var(--border-gold); }
+.rules-toggle .arrow {
+  transition: transform var(--transition);
+  color: var(--gold-primary);
+}
+.rules-toggle.open .arrow { transform: rotate(180deg); }
+.rules-content {
+  max-height: 0; overflow: hidden;
+  transition: max-height 0.4s ease;
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-top: none;
+  border-radius: 0 0 var(--radius) var(--radius);
+}
+.rules-content.open { max-height: 600px; }
+.rules-inner {
+  padding: 20px;
+  font-size: 13px; color: var(--text-secondary);
+  line-height: 1.8;
+}
+.rules-inner ol { padding-left: 20px; }
+.rules-inner li { margin-bottom: 8px; }
+
+/* ========== LOGGED IN - NAV BAR ========== */
+.logged-nav {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border-default);
+  margin-bottom: 20px;
+}
+.logged-nav .back-btn {
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 8px; transition: var(--transition);
+}
+.logged-nav .back-btn:hover { background: var(--bg-card); }
+.logged-nav .back-btn svg { width: 20px; height: 20px; stroke: var(--text-primary); fill: none; stroke-width: 2; }
+.logged-nav .nav-title { font-size: 18px; font-weight: 600; }
+.logged-nav .info-btn {
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 8px; transition: var(--transition);
+  font-size: 18px; color: var(--text-secondary);
+}
+.logged-nav .info-btn:hover { background: var(--bg-card); color: var(--gold-primary); }
+
+/* ========== USER OVERVIEW CARD ========== */
+.overview-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius);
+  padding: 28px 24px;
+  position: relative; overflow: hidden;
+  margin-bottom: 24px;
+}
+.overview-card::before {
+  content: ''; position: absolute;
+  top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--gold-dark), var(--gold-light), var(--gold-dark));
+}
+.overview-card::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, var(--gold-glow) 0%, transparent 50%);
+  pointer-events: none;
+}
+.overview-label {
+  font-size: 13px; color: var(--text-secondary);
+  margin-bottom: 8px; position: relative; z-index: 1;
+}
+.overview-amount {
+  font-family: var(--font-mono);
+  font-size: 36px; font-weight: 700;
+  color: var(--gold-primary);
+  margin-bottom: 4px; position: relative; z-index: 1;
+}
+.overview-sub {
+  font-size: 13px; color: var(--text-secondary);
+  position: relative; z-index: 1;
+}
+.overview-sub span { color: var(--gold-light); font-weight: 600; }
+.overview-claim-btn {
+  position: absolute; right: 24px; top: 50%; transform: translateY(-50%);
+  padding: 10px 20px; border-radius: 8px;
+  background: transparent; border: 1px solid var(--border-gold);
+  color: var(--gold-primary); font-size: 13px; font-weight: 600;
+  transition: var(--transition); z-index: 1;
+}
+.overview-claim-btn:hover {
+  background: var(--gold-glow);
+  border-color: var(--gold-primary);
+}
+
+/* ========== PROGRESS SECTION ========== */
+.progress-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius);
+  padding: 24px; margin-bottom: 24px;
+}
+.progress-header {
+  display: flex; justify-content: space-between;
+  align-items: center; margin-bottom: 12px;
+}
+.progress-count {
+  font-family: var(--font-mono);
+  font-size: 16px; font-weight: 600;
+}
+.progress-count .current { color: var(--gold-primary); }
+.progress-count .total { color: var(--text-muted); }
+.progress-next {
+  font-size: 13px; color: var(--text-secondary);
+}
+.progress-next span { color: var(--gold-light); font-weight: 600; }
+.progress-bar-wrap {
+  height: 8px; background: var(--bg-secondary);
+  border-radius: 4px; overflow: hidden;
+  position: relative; margin-bottom: 12px;
+}
+.progress-bar-fill {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--gold-primary), var(--gold-light));
+  border-radius: 4px;
+  position: relative;
+  transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.progress-bar-fill::after {
+  content: ''; position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  animation: shimmer 2s infinite;
+}
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+.progress-bar-glow {
+  position: absolute; right: -4px; top: -4px;
+  width: 16px; height: 16px;
+  background: var(--gold-light);
+  border-radius: 50%;
+  box-shadow: 0 0 12px var(--gold-primary), 0 0 24px var(--gold-glow);
+  opacity: 0;
+  transition: opacity 0.5s ease 1.5s;
+}
+.progress-bar-fill.animated + .progress-bar-glow,
+.progress-bar-fill.animated ~ .progress-bar-glow { opacity: 1; }
+.progress-hint {
+  font-size: 13px; color: var(--text-secondary);
+  text-align: center;
+}
+.progress-hint strong { color: var(--gold-primary); }
+
+/* ========== LOGGED IN TIER CARDS ========== */
+.logged-tier-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px; margin-bottom: 24px;
+}
+.logged-tier-card {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 18px 14px;
+  text-align: center;
+  transition: var(--transition);
+  position: relative;
+}
+.logged-tier-card.unlocked {
+  border: 1px solid var(--border-gold);
+  background: linear-gradient(135deg, rgba(212,168,83,0.08), var(--bg-card));
+}
+.logged-tier-card.unlocked .tier-status-icon { color: var(--success); }
+.logged-tier-card.current {
+  border: 2px solid var(--gold-primary);
+  animation: pulseBorder 1.5s ease-in-out infinite;
+}
+@keyframes pulseBorder {
+  0%, 100% { border-color: var(--gold-primary); box-shadow: 0 0 0 var(--gold-glow); }
+  50% { border-color: var(--gold-light); box-shadow: 0 0 20px var(--gold-glow); }
+}
+.logged-tier-card.current .current-tag {
+  position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+  background: var(--gold-primary); color: #000;
+  font-size: 10px; font-weight: 700; letter-spacing: 1px;
+  padding: 2px 10px; border-radius: 10px;
+  text-transform: uppercase;
+}
+.logged-tier-card.locked {
+  border: 1px solid var(--border-default);
+  opacity: 0.5;
+}
+.logged-tier-card.locked .tier-status-icon { color: var(--text-muted); }
+.tier-status-icon { font-size: 20px; margin-bottom: 6px; }
+.logged-tier-card .tier-amount { font-size: 22px; }
+.logged-tier-card .tier-req { font-size: 11px; }
+
+/* H5/APP logged tier scroll */
+.logged-tier-scroll {
+  display: none;
+  overflow-x: auto; gap: 12px;
+  padding: 0 4px 12px; margin-bottom: 24px;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+.logged-tier-scroll::-webkit-scrollbar { height: 4px; }
+.logged-tier-scroll::-webkit-scrollbar-track { background: var(--bg-secondary); border-radius: 2px; }
+.logged-tier-scroll::-webkit-scrollbar-thumb { background: var(--gold-dark); border-radius: 2px; }
+.logged-tier-scroll .logged-tier-card {
+  min-width: 130px; flex-shrink: 0;
+  scroll-snap-align: start;
+}
+
+/* ========== INVITE ACTIONS ========== */
+.invite-actions {
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius);
+  padding: 24px; margin-bottom: 24px;
+}
+.invite-link-row {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 16px;
+}
+.invite-link-input {
+  flex: 1; padding: 10px 14px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  color: var(--text-secondary); font-size: 13px;
+  font-family: var(--font-mono);
+  outline: none;
+}
+.copy-btn {
+  padding: 10px 18px; border-radius: 8px;
+  background: var(--gold-primary); color: #000;
+  font-size: 13px; font-weight: 600;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+.copy-btn:hover { box-shadow: 0 0 16px var(--gold-glow); }
+.copy-btn.copied { background: var(--success); color: #fff; }
+.invite-code-row {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 20px;
+}
+.invite-code-label { font-size: 13px; color: var(--text-muted); }
+.invite-code {
+  font-family: var(--font-mono);
+  font-size: 20px; font-weight: 700;
+  color: var(--gold-primary);
+  letter-spacing: 3px;
+}
+.share-btns {
+  display: flex; gap: 10px; flex-wrap: wrap;
+}
+.share-btn {
+  flex: 1; min-width: 100px;
+  padding: 10px 16px; border-radius: 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  font-size: 13px; font-weight: 500;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: var(--transition);
+}
+.share-btn:hover {
+  border-color: var(--border-gold);
+  color: var(--gold-primary);
+}
+.share-btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+/* ========== QR MODAL ========== */
+.modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 10000;
+  align-items: center; justify-content: center;
+  backdrop-filter: blur(4px);
+}
+.modal-overlay.show { display: flex; }
+.modal-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: 16px;
+  padding: 32px;
+  text-align: center;
+  max-width: 340px; width: 90%;
+  transform: scale(0.9); opacity: 0;
+  transition: all 0.25s ease;
+  position: relative;
+}
+.modal-overlay.show .modal-box {
+  transform: scale(1); opacity: 1;
+}
+.modal-close {
+  position: absolute; top: 12px; right: 12px;
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg-secondary);
+  font-size: 18px; color: var(--text-muted);
+  transition: var(--transition);
+}
+.modal-close:hover { color: var(--text-primary); background: var(--bg-card-hover); }
+.modal-title {
+  font-size: 18px; font-weight: 600; margin-bottom: 20px;
+}
+.qr-code {
+  width: 180px; height: 180px;
+  margin: 0 auto 20px;
+  background: #fff; border-radius: 8px;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: repeat(15, 1fr);
+  grid-template-rows: repeat(15, 1fr);
+  gap: 1px;
+}
+.qr-cell { border-radius: 1px; }
+.qr-cell.black { background: #000; }
+.qr-cell.white { background: #fff; }
+.modal-link {
+  font-family: var(--font-mono);
+  font-size: 11px; color: var(--text-muted);
+  margin-bottom: 16px; word-break: break-all;
+}
+.modal-save-btn {
+  padding: 12px 28px; border-radius: 8px;
+  background: var(--gold-primary); color: #000;
+  font-size: 14px; font-weight: 600;
+  transition: var(--transition);
+}
+.modal-save-btn:hover { box-shadow: 0 0 16px var(--gold-glow); }
+
+/* ========== TABS ========== */
+.tabs-section { margin-bottom: 24px; }
+.tab-header {
+  display: flex; border-bottom: 1px solid var(--border-default);
+  position: relative; margin-bottom: 16px;
+}
+.tab-btn {
+  padding: 12px 20px;
+  font-size: 14px; font-weight: 500;
+  color: var(--text-muted);
+  position: relative;
+  transition: var(--transition);
+}
+.tab-btn:hover { color: var(--text-secondary); }
+.tab-btn.active { color: var(--gold-primary); font-weight: 600; }
+.tab-indicator {
+  position: absolute; bottom: -1px; left: 0;
+  height: 2px; background: var(--gold-primary);
+  transition: var(--transition);
+  border-radius: 1px;
+}
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ========== TABLE (WEB) ========== */
+.data-table {
+  width: 100%; border-collapse: collapse;
+  font-size: 13px;
+}
+.data-table th {
+  text-align: left; padding: 10px 12px;
+  color: var(--text-muted); font-weight: 500;
+  font-size: 12px; text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border-default);
+}
+.data-table td {
+  padding: 12px; border-bottom: 1px solid var(--border-default);
+  color: var(--text-secondary);
+}
+.data-table tr:hover td { background: rgba(255,255,255,0.02); }
+.data-table .mono { font-family: var(--font-mono); font-size: 12px; }
+.status-badge {
+  display: inline-block;
+  padding: 3px 10px; border-radius: 12px;
+  font-size: 11px; font-weight: 600;
+}
+.status-badge.valid { background: rgba(46,204,113,0.15); color: var(--success); }
+.status-badge.progress { background: rgba(212,168,83,0.15); color: var(--gold-primary); }
+.status-badge.invalid { background: rgba(231,76,60,0.15); color: var(--error); }
+.status-badge.distributed { background: rgba(46,204,113,0.15); color: var(--success); }
+.check-icon { color: var(--success); }
+.pending-icon { color: var(--warning); }
+
+/* ========== CARD LIST (H5/APP) ========== */
+.record-cards { display: none; }
+.record-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius);
+  padding: 16px; margin-bottom: 10px;
+}
+.record-card-header {
+  display: flex; justify-content: space-between;
+  align-items: center; margin-bottom: 12px;
+}
+.record-card-user {
+  font-family: var(--font-mono);
+  font-size: 13px; color: var(--text-primary);
+}
+.record-card-steps {
+  display: flex; gap: 8px;
+}
+.record-step {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 11px; color: var(--text-secondary);
+}
+.record-step .icon { font-size: 13px; }
+
+/* ========== REWARD DETAIL MODAL ========== */
+.reward-detail-modal .modal-box { max-width: 400px; text-align: left; }
+.reward-detail-item {
+  display: flex; justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-default);
+  font-size: 14px;
+}
+.reward-detail-item:last-child { border-bottom: none; }
+.reward-detail-item .label { color: var(--text-secondary); }
+.reward-detail-item .value {
+  font-family: var(--font-mono);
+  font-weight: 600; color: var(--gold-primary);
+}
+
+/* ========== BANNER GLOW SWEEP ========== */
+.banner-sweep {
+  position: relative; overflow: hidden;
+}
+.banner-sweep::before {
+  content: ''; position: absolute;
+  top: 0; left: -100%; width: 60%; height: 100%;
+  background: linear-gradient(90deg, transparent, var(--gold-glow), transparent);
+  animation: sweepGlow 4s ease-in-out infinite;
+  pointer-events: none; z-index: 0;
+}
+@keyframes sweepGlow {
+  0% { left: -60%; }
+  100% { left: 120%; }
+}
+
+/* ========== NO ACTIVITY EMPTY STATE ========== */
+.empty-state {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 120px 24px 80px;
+  min-height: 60vh;
+}
+.empty-state.visible { display: flex; }
+.empty-icon {
+  width: 100px; height: 100px;
+  margin-bottom: 32px;
+  opacity: 0.6;
+}
+.empty-icon svg { width: 100%; height: 100%; }
+.empty-title {
+  font-size: 20px; font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+.empty-desc {
+  font-size: 14px; color: var(--text-secondary);
+  margin-bottom: 32px; max-width: 360px;
+  line-height: 1.6;
+}
+.empty-refresh-btn {
+  padding: 12px 32px; border-radius: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-gold);
+  color: var(--gold-primary);
+  font-size: 14px; font-weight: 600;
+  transition: var(--transition);
+  display: flex; align-items: center; gap: 8px;
+}
+.empty-refresh-btn:hover {
+  background: var(--gold-glow);
+  border-color: var(--gold-primary);
+}
+.empty-refresh-btn svg {
+  width: 16px; height: 16px;
+  stroke: var(--gold-primary); fill: none; stroke-width: 2;
+}
+
+/* ========== ACTIVITY TIME BADGE ========== */
+.hero-time {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 16px; border-radius: 20px;
+  background: rgba(212,168,83,0.1);
+  border: 1px solid var(--border-gold);
+  font-size: 12px; color: var(--gold-light);
+  font-family: var(--font-mono);
+  margin-bottom: 20px;
+}
+.hero-time svg {
+  width: 14px; height: 14px;
+  stroke: var(--gold-primary); fill: none; stroke-width: 2;
+}
+
+/* ========== INVALID REASON ========== */
+.invalid-reason {
+  font-size: 11px; color: var(--error);
+  margin-top: 2px; opacity: 0.85;
+}
+
+/* ========== RESPONSIVE ========== */
+/* Web: show grid/table, hide scroll/cards */
+.device-frame.web .tier-grid { display: grid; }
+.device-frame.web .tier-scroll { display: none; }
+.device-frame.web .logged-tier-grid { display: grid; }
+.device-frame.web .logged-tier-scroll { display: none; }
+.device-frame.web .data-table { display: table; }
+.device-frame.web .record-cards { display: none; }
+
+/* H5 & APP: hide grid/table, show scroll/cards */
+.device-frame.h5 .tier-grid,
+.device-frame.app .tier-grid { display: none; }
+.device-frame.h5 .tier-scroll,
+.device-frame.app .tier-scroll { display: flex; }
+.device-frame.h5 .logged-tier-grid,
+.device-frame.app .logged-tier-grid { display: none; }
+.device-frame.h5 .logged-tier-scroll,
+.device-frame.app .logged-tier-scroll { display: flex; }
+.device-frame.h5 .data-table,
+.device-frame.app .data-table { display: none; }
+.device-frame.h5 .record-cards,
+.device-frame.app .record-cards { display: block; }
+
+/* H5/APP specific adjustments */
+.device-frame.h5 .hero { padding: 50px 12px 40px; }
+.device-frame.h5 .hero-title { font-size: 22px; }
+.device-frame.h5 .overview-amount { font-size: 28px; }
+.device-frame.h5 .overview-claim-btn {
+  position: relative; right: auto; top: auto; transform: none;
+  margin-top: 12px; display: inline-block;
+}
+.device-frame.app .hero { padding: 50px 12px 40px; }
+.device-frame.app .hero-title { font-size: 22px; }
+.device-frame.app .overview-amount { font-size: 28px; }
+.device-frame.app .overview-claim-btn {
+  position: relative; right: auto; top: auto; transform: none;
+  margin-top: 12px; display: inline-block;
+}
+.device-frame.h5 .steps-row,
+.device-frame.app .steps-row {
+  flex-direction: column; align-items: center;
+}
+.device-frame.h5 .step-arrow,
+.device-frame.app .step-arrow {
+  transform: rotate(90deg); padding-top: 0;
+}
+.device-frame.h5 .share-btns,
+.device-frame.app .share-btns {
+  flex-direction: column;
+}
+.device-frame.h5 .invite-link-row,
+.device-frame.app .invite-link-row {
+  flex-direction: column; align-items: stretch;
+}
+</style>
+</head>
+<body>
+
+<!-- ========== CONTROL BAR ========== -->
+<div class="control-bar">
+  <div class="control-group">
+    <span class="control-label">Auth</span>
+    <button class="control-btn" data-auth="loggedin" onclick="setAuth('loggedin')">Logged In</button>
+    <button class="control-btn active" data-auth="notloggedin" onclick="setAuth('notloggedin')">Not Logged In</button>
+  </div>
+  <div class="control-group">
+    <span class="control-label">Device</span>
+    <button class="control-btn active" data-device="web" onclick="setDevice('web')">Web</button>
+    <button class="control-btn" data-device="h5" onclick="setDevice('h5')">H5</button>
+    <button class="control-btn" data-device="app" onclick="setDevice('app')">APP</button>
+  </div>
+  <div class="control-group">
+    <span class="control-label">Activity</span>
+    <button class="control-btn active" data-activity="active" onclick="setActivity('active')">有活动</button>
+    <button class="control-btn" data-activity="none" onclick="setActivity('none')">无活动</button>
+  </div>
+  <div class="control-group">
+    <span class="control-label">Lang</span>
+    <button class="control-btn active" data-lang="en" onclick="setLang('en')">EN</button>
+    <button class="control-btn" data-lang="zh" onclick="setLang('zh')">中</button>
+  </div>
+</div>
+
+<!-- ========== DEVICE WRAPPER ========== -->
+<div class="device-wrapper">
+<div class="device-frame web" id="deviceFrame">
+
+<!-- ========================================== -->
+<!-- NO ACTIVITY STATE                          -->
+<!-- ========================================== -->
+<div class="empty-state" id="noActivityState">
+  <div class="empty-icon">
+    <svg viewBox="0 0 100 100" fill="none" stroke="#D4A853" stroke-width="1.5">
+      <rect x="15" y="25" width="70" height="50" rx="6" stroke-dasharray="4 3"/>
+      <path d="M15 40h70"/>
+      <circle cx="50" cy="55" r="10" stroke-dasharray="3 2"/>
+      <path d="M46 55l3 3 6-6"/>
+      <path d="M35 85h30" stroke-dasharray="2 3"/>
+      <path d="M40 90h20" stroke-dasharray="2 3"/>
+    </svg>
+  </div>
+  <div class="empty-title" data-i18n="empty_title">No Active Event</div>
+  <div class="empty-desc" data-i18n="empty_desc">No active event at the moment. Stay tuned for upcoming events and rewards!</div>
+  <button class="empty-refresh-btn" onclick="refreshActivity()">
+    <svg viewBox="0 0 16 16"><path d="M1 1v5h5"/><path d="M3.5 10a5.5 5.5 0 1 0 1-7.5L1 6"/></svg>
+    <span data-i18n="empty_refresh">Refresh</span>
+  </button>
+</div>
+
+<!-- ========================================== -->
+<!-- NOT LOGGED IN STATE                        -->
+<!-- ========================================== -->
+<div class="page-content" id="notLoggedIn">
+
+  <!-- HERO -->
+  <section class="hero banner-sweep">
+    <div class="hero-content">
+      <div class="hero-time">
+        <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5"/><path d="M8 4.5V8l2.5 1.5"/></svg>
+        <span data-i18n="hero_time">2026-07-01 ~ 2026-09-30</span>
+      </div>
+      <h1 class="hero-title">
+        <span data-i18n="hero_title_1">Invite Friends, Earn up to </span><span class="gold-text" data-i18n="hero_title_2">770 USDT</span>
+      </h1>
+      <p class="hero-subtitle" data-i18n="hero_subtitle">Complete deposit & trading to unlock tiered rewards</p>
+      <button class="cta-btn" data-i18n="hero_cta">Sign Up & Start Earning</button>
+      <p class="hero-terms" data-i18n="hero_terms">T&C apply. Rewards distributed automatically.</p>
+    </div>
+  </section>
+
+  <!-- TIERED REWARDS -->
+  <section class="section">
+    <h2 class="section-title" data-i18n="tiered_title">Tiered Rewards</h2>
+    <!-- Web Grid -->
+    <div class="tier-grid" id="tierGrid">
+      <div class="tier-card">
+        <div class="tier-icon"><svg viewBox="0 0 40 40"><rect x="8" y="16" width="24" height="18" rx="3" stroke="#D4A853" fill="none" stroke-width="1.5"/><path d="M20 16V10m0 0c-2-3-6-3-6 0s6 6 6 6m0-6c2-3 6-3 6 0s-6 6-6 6" stroke="#D4A853" fill="none" stroke-width="1.5"/></svg></div>
+        <div class="tier-label" data-i18n="tier_label_1">Tier 1</div>
+        <div class="tier-amount">5 <span class="unit">USDT</span></div>
+        <div class="tier-req" data-i18n="tier_1_req">1 Friend</div>
+      </div>
+      <div class="tier-card">
+        <div class="tier-icon"><svg viewBox="0 0 40 40"><rect x="8" y="16" width="24" height="18" rx="3" stroke="#D4A853" fill="none" stroke-width="1.5"/><path d="M20 16V10m0 0c-2-3-6-3-6 0s6 6 6 6m0-6c2-3 6-3 6 0s-6 6-6 6" stroke="#D4A853" fill="none" stroke-width="1.5"/></svg></div>
+        <div class="tier-label" data-i18n="tier_label_2">Tier 2</div>
+        <div class="tier-amount">15 <span class="unit">USDT</span></div>
+        <div class="tier-req" data-i18n="tier_2_req">3 Friends</div>
+      </div>
+      <div class="tier-card">
+        <div class="tier-icon"><svg viewBox="0 0 40 40"><rect x="8" y="16" width="24" height="18" rx="3" stroke="#D4A853" fill="none" stroke-width="1.5"/><path d="M20 16V10m0 0c-2-3-6-3-6 0s6 6 6 6m0-6c2-3 6-3 6 0s-6 6-6 6" stroke="#D4A853" fill="none" stroke-width="1.5"/></svg></div>
+        <div class="tier-label" data-i18n="tier_label_3">Tier 3</div>
+        <div class="tier-amount">30 <span class="unit">USDT</span></div>
+        <div class="tier-req" data-i18n="tier_3_req">5 Friends</div>
+      </div>
+      <div class="tier-card">
+        <div class="tier-icon"><svg viewBox="0 0 40 40"><rect x="8" y="16" width="24" height="18" rx="3" stroke="#D4A853" fill="none" stroke-width="1.5"/><path d="M20 16V10m0 0c-2-3-6-3-6 0s6 6 6 6m0-6c2-3 6-3 6 0s-6 6-6 6" stroke="#D4A853" fill="none" stroke-width="1.5"/></svg></div>
+        <div class="tier-label" data-i18n="tier_label_4">Tier 4</div>
+        <div class="tier-amount">70 <span class="unit">USDT</span></div>
+        <div class="tier-req" data-i18n="tier_4_req">10 Friends</div>
+      </div>
+      <div class="tier-card">
+        <div class="tier-icon"><svg viewBox="0 0 40 40"><rect x="8" y="16" width="24" height="18" rx="3" stroke="#D4A853" fill="none" stroke-width="1.5"/><path d="M20 16V10m0 0c-2-3-6-3-6 0s6 6 6 6m0-6c2-3 6-3 6 0s-6 6-6 6" stroke="#D4A853" fill="none" stroke-width="1.5"/></svg></div>
+        <div class="tier-label" data-i18n="tier_label_5">Tier 5</div>
+        <div class="tier-amount">150 <span class="unit">USDT</span></div>
+        <div class="tier-req" data-i18n="tier_5_req">20 Friends</div>
+      </div>
+      <div class="tier-card">
+        <div class="tier-icon"><svg viewBox="0 0 40 40"><rect x="8" y="16" width="24" height="18" rx="3" stroke="#D4A853" fill="none" stroke-width="1.5"/><path d="M20 16V10m0 0c-2-3-6-3-6 0s6 6 6 6m0-6c2-3 6-3 6 0s-6 6-6 6" stroke="#D4A853" fill="none" stroke-width="1.5"/></svg></div>
+        <div class="tier-label" data-i18n="tier_label_6">Tier 6</div>
+        <div class="tier-amount">500 <span class="unit">USDT</span></div>
+        <div class="tier-req" data-i18n="tier_6_req">50 Friends</div>
+      </div>
+    </div>
+    <!-- H5/APP Scroll -->
+    <div class="tier-scroll" id="tierScroll"></div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="section">
+    <h2 class="section-title" data-i18n="how_title">How It Works</h2>
+    <div class="steps-row">
+      <div class="step-item">
+        <div class="step-icon-wrap">
+          <svg viewBox="0 0 32 32"><circle cx="16" cy="10" r="5"/><path d="M8 28c0-4.4 3.6-8 8-8s8 3.6 8 8"/><line x1="24" y1="10" x2="24" y2="18"/><line x1="20" y1="14" x2="28" y2="14"/></svg>
+        </div>
+        <div class="step-num" data-i18n="step_1_num">STEP 1</div>
+        <div class="step-title" data-i18n="step_1_title">Sign Up</div>
+        <div class="step-desc" data-i18n="step_1_desc">Create your account in minutes</div>
+      </div>
+      <div class="step-arrow"><svg viewBox="0 0 28 28"><path d="M6 14h16m0 0l-6-6m6 6l-6 6"/></svg></div>
+      <div class="step-item">
+        <div class="step-icon-wrap">
+          <svg viewBox="0 0 32 32"><rect x="4" y="8" width="24" height="18" rx="3"/><path d="M4 14h24"/><circle cx="22" cy="20" r="2"/></svg>
+        </div>
+        <div class="step-num" data-i18n="step_2_num">STEP 2</div>
+        <div class="step-title" data-i18n="step_2_title">Deposit &ge; 20 USDT</div>
+        <div class="step-desc" data-i18n="step_2_desc">Fund your trading account</div>
+      </div>
+      <div class="step-arrow"><svg viewBox="0 0 28 28"><path d="M6 14h16m0 0l-6-6m6 6l-6 6"/></svg></div>
+      <div class="step-item">
+        <div class="step-icon-wrap">
+          <svg viewBox="0 0 32 32"><polyline points="4 24 10 16 16 20 22 10 28 14"/><line x1="4" y1="28" x2="28" y2="28"/></svg>
+        </div>
+        <div class="step-num" data-i18n="step_3_num">STEP 3</div>
+        <div class="step-title" data-i18n="step_3_title">Trade &ge; 200 USDT</div>
+        <div class="step-desc" data-i18n="step_3_desc">Complete trade transactions</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- REWARD EXAMPLE -->
+  <section class="section">
+    <h2 class="section-title" data-i18n="example_title">Reward Example</h2>
+    <div class="reward-example">
+      <div class="reward-header">
+        <div class="reward-header-text">
+          <span data-i18n="example_invite">Invite </span><strong>5</strong><span data-i18n="example_friends"> friends = Unlocked</span>
+        </div>
+        <div class="reward-total">= 50 USDT</div>
+      </div>
+      <div class="reward-cards">
+        <div class="reward-mini-card">
+          <div class="amount">5U</div>
+          <div class="check">&#10003;</div>
+        </div>
+        <div class="reward-mini-card">
+          <div class="amount">15U</div>
+          <div class="check">&#10003;</div>
+        </div>
+        <div class="reward-mini-card">
+          <div class="amount">30U</div>
+          <div class="check">&#10003;</div>
+        </div>
+      </div>
+      <div class="reward-progress-wrap">
+        <div class="reward-progress-label">
+          <span data-i18n="example_progress_label">Progress</span>
+          <span>3/6 <span data-i18n="example_tiers">Tiers</span></span>
+        </div>
+        <div class="reward-progress-bar">
+          <div class="reward-progress-fill" data-width="50"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BOTTOM CTA -->
+  <section class="bottom-cta">
+    <p class="bottom-cta-text" data-i18n="bottom_cta_text">Start inviting now and earn up to 770 USDT!</p>
+    <button class="cta-btn" data-i18n="bottom_cta_btn">Create Account</button>
+    <p class="hero-terms" data-i18n="hero_terms2">T&C apply. Rewards distributed automatically.</p>
+  </section>
+
+  <!-- RULES (COLLAPSIBLE) -->
+  <div class="rules-section">
+    <button class="rules-toggle" onclick="toggleRules(this)">
+      <span data-i18n="rules_title">Activity Rules</span>
+      <span class="arrow">&#9660;</span>
+    </button>
+    <div class="rules-content">
+      <div class="rules-inner" data-i18n="rules_content">
+        <ol>
+          <li>Invite friends to register. Each friend must complete a first deposit of 20 USDT and trading volume of 200 USDT to count as a valid invite.</li>
+          <li>Rewards are automatically distributed to your balance upon reaching each tier threshold.</li>
+          <li>Rewards are cumulative — inviting 5 friends unlocks Tier 1 (5U) + Tier 2 (15U) + Tier 3 (30U) = 50 USDT total.</li>
+          <li>Each tier reward can only be claimed once.</li>
+          <li>Detrade reserves the right to modify or terminate this campaign at any time.</li>
+          <li>Self-referral or abuse of the referral system will result in disqualification.</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /notLoggedIn -->
+
+<!-- ========================================== -->
+<!-- LOGGED IN STATE                            -->
+<!-- ========================================== -->
+<div class="page-content hidden" id="loggedIn">
+
+  <!-- NAV BAR -->
+  <nav class="logged-nav">
+    <button class="back-btn">
+      <svg viewBox="0 0 20 20"><path d="M13 4l-6 6 6 6"/></svg>
+    </button>
+    <span class="nav-title" data-i18n="nav_title">Invite & Earn</span>
+    <button class="info-btn" onclick="openRulesModal()">&#9432;</button>
+  </nav>
+
+  <!-- ACTIVITY TIME -->
+  <div style="text-align:center;margin-bottom:16px;">
+    <div class="hero-time" style="margin:0 auto;">
+      <svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5"/><path d="M8 4.5V8l2.5 1.5"/></svg>
+      <span data-i18n="hero_time">2026-07-01 ~ 2026-09-30</span>
+    </div>
+  </div>
+
+  <!-- USER OVERVIEW -->
+  <div class="overview-card banner-sweep">
+    <div class="overview-label" data-i18n="overview_label">Your Total Rewards</div>
+    <div class="overview-amount">50 <span style="font-size:20px;">USDT</span></div>
+    <div class="overview-sub"><span data-i18n="overview_tiers">3 tiers unlocked</span></div>
+    <button class="overview-claim-btn" onclick="openRewardDetail()" data-i18n="overview_claim">Reward Details</button>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="progress-section">
+    <div class="progress-header">
+      <div class="progress-count">
+        <span class="current">5</span><span class="total"> / 10</span>
+      </div>
+      <div class="progress-next" data-i18n="progress_next">
+        Next: <span>70 USDT</span>
+      </div>
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="mainProgressBar" data-width="50"></div>
+      <div class="progress-bar-glow" id="progressGlow"></div>
+    </div>
+    <p class="progress-hint" data-i18n="progress_hint">Only <strong>5</strong> more friends to unlock <strong>70 USDT</strong> Bonus.</p>
+  </div>
+
+  <!-- TIER CARDS -->
+  <div class="logged-tier-grid" id="loggedTierGrid">
+    <div class="logged-tier-card unlocked">
+      <div class="tier-status-icon">&#10003;</div>
+      <div class="tier-label" data-i18n="tier_label_1">Tier 1</div>
+      <div class="tier-amount">5 <span class="unit">USDT</span></div>
+      <div class="tier-req" data-i18n="tier_1_req">1 Friend</div>
+    </div>
+    <div class="logged-tier-card unlocked">
+      <div class="tier-status-icon">&#10003;</div>
+      <div class="tier-label" data-i18n="tier_label_2">Tier 2</div>
+      <div class="tier-amount">15 <span class="unit">USDT</span></div>
+      <div class="tier-req" data-i18n="tier_2_req">3 Friends</div>
+    </div>
+    <div class="logged-tier-card unlocked">
+      <div class="tier-status-icon">&#10003;</div>
+      <div class="tier-label" data-i18n="tier_label_3">Tier 3</div>
+      <div class="tier-amount">30 <span class="unit">USDT</span></div>
+      <div class="tier-req" data-i18n="tier_3_req">5 Friends</div>
+    </div>
+    <div class="logged-tier-card current">
+      <span class="current-tag" data-i18n="current_tag">CURRENT</span>
+      <div class="tier-status-icon">&#127919;</div>
+      <div class="tier-label" data-i18n="tier_label_4">Tier 4</div>
+      <div class="tier-amount">70 <span class="unit">USDT</span></div>
+      <div class="tier-req" data-i18n="tier_4_req">10 Friends</div>
+    </div>
+    <div class="logged-tier-card locked">
+      <div class="tier-status-icon">&#128274;</div>
+      <div class="tier-label" data-i18n="tier_label_5">Tier 5</div>
+      <div class="tier-amount">150 <span class="unit">USDT</span></div>
+      <div class="tier-req" data-i18n="tier_5_req">20 Friends</div>
+    </div>
+    <div class="logged-tier-card locked">
+      <div class="tier-status-icon">&#128274;</div>
+      <div class="tier-label" data-i18n="tier_label_6">Tier 6</div>
+      <div class="tier-amount">500 <span class="unit">USDT</span></div>
+      <div class="tier-req" data-i18n="tier_6_req">50 Friends</div>
+    </div>
+  </div>
+  <!-- H5/APP scroll -->
+  <div class="logged-tier-scroll" id="loggedTierScroll"></div>
+
+  <!-- INVITE ACTIONS -->
+  <div class="invite-actions">
+    <div class="invite-link-row">
+      <input class="invite-link-input" type="text" value="https://detrade.com/ref/ABC123" readonly id="inviteLinkInput">
+      <button class="copy-btn" onclick="copyLink(this)" data-i18n="copy_link">Copy Link</button>
+    </div>
+    <div class="invite-code-row">
+      <span class="invite-code-label" data-i18n="invite_code_label">Referral Code:</span>
+      <span class="invite-code">ABC123</span>
+    </div>
+    <div class="share-btns">
+      <button class="share-btn" onclick="copyLink(this)">
+        <svg viewBox="0 0 16 16"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M3 11V3h8"/></svg>
+        <span data-i18n="share_copy">Copy Link</span>
+      </button>
+      <button class="share-btn" onclick="shareNative()">
+        <svg viewBox="0 0 16 16"><circle cx="8" cy="4" r="2.5"/><path d="M3 14c0-2.8 2.2-5 5-5s5 2.2 5 5"/></svg>
+        <span data-i18n="share_btn">Share</span>
+      </button>
+      <button class="share-btn" onclick="openQR()">
+        <svg viewBox="0 0 16 16"><rect x="2" y="2" width="5" height="5" rx="0.5"/><rect x="9" y="2" width="5" height="5" rx="0.5"/><rect x="2" y="9" width="5" height="5" rx="0.5"/><rect x="10" y="10" width="3" height="3"/></svg>
+        <span data-i18n="share_qr">QR Code</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- TABS: INVITE RECORDS / REWARD HISTORY -->
+  <div class="tabs-section">
+    <div class="tab-header" id="tabHeader">
+      <button class="tab-btn active" data-tab="invite" onclick="switchTab('invite')" data-i18n="tab_invite">Invite Records</button>
+      <button class="tab-btn" data-tab="reward" onclick="switchTab('reward')" data-i18n="tab_reward">Reward History</button>
+      <div class="tab-indicator" id="tabIndicator"></div>
+    </div>
+
+    <!-- INVITE RECORDS PANEL -->
+    <div class="tab-panel active" id="panelInvite">
+      <!-- Web Table -->
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th data-i18n="th_friend">Friend</th>
+            <th data-i18n="th_register">Register</th>
+            <th data-i18n="th_deposit">Deposit</th>
+            <th data-i18n="th_trade">Trade</th>
+            <th data-i18n="th_status">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mono">user***@gmail.com</td>
+            <td><span class="check-icon">&#10003;</span></td>
+            <td><span class="check-icon">&#10003;</span> <span class="mono">$25</span></td>
+            <td><span class="check-icon">&#10003;</span> <span class="mono">$350</span></td>
+            <td><span class="status-badge valid" data-i18n="status_valid">Valid</span></td>
+          </tr>
+          <tr>
+            <td class="mono">138****5678</td>
+            <td><span class="check-icon">&#10003;</span></td>
+            <td><span class="check-icon">&#10003;</span> <span class="mono">$30</span></td>
+            <td><span class="pending-icon">&#9203;</span> <span class="mono">$120</span></td>
+            <td><span class="status-badge progress" data-i18n="status_progress">In Progress</span></td>
+          </tr>
+          <tr>
+            <td class="mono">crypto***@outlook.com</td>
+            <td><span class="check-icon">&#10003;</span></td>
+            <td><span class="check-icon">&#10003;</span> <span class="mono">$50</span></td>
+            <td><span class="check-icon">&#10003;</span> <span class="mono">$500</span></td>
+            <td><span class="status-badge valid" data-i18n="status_valid">Valid</span></td>
+          </tr>
+          <tr>
+            <td class="mono">186****9012</td>
+            <td><span class="check-icon">&#10003;</span></td>
+            <td><span class="pending-icon">&#9203;</span> <span data-i18n="status_pending">Pending</span></td>
+            <td>-</td>
+            <td><span class="status-badge progress" data-i18n="status_progress">In Progress</span></td>
+          </tr>
+          <tr>
+            <td class="mono">tra***@yahoo.com</td>
+            <td><span class="check-icon">&#10003;</span></td>
+            <td><span class="check-icon">&#10003;</span> <span class="mono">$20</span></td>
+            <td><span class="check-icon">&#10003;</span> <span class="mono">$210</span></td>
+            <td><span class="status-badge valid" data-i18n="status_valid">Valid</span></td>
+          </tr>
+          <tr>
+            <td class="mono">
+              test***@gmail.com
+              <div class="invalid-reason" data-i18n="reason_same_ip">Same IP address</div>
+            </td>
+            <td><span class="check-icon">&#10003;</span></td>
+            <td><span class="check-icon">&#10003;</span> <span class="mono">$25</span></td>
+            <td><span class="check-icon">&#10003;</span> <span class="mono">$300</span></td>
+            <td><span class="status-badge invalid" data-i18n="status_invalid">Invalid</span></td>
+          </tr>
+          <tr>
+            <td class="mono">
+              155****3456
+              <div class="invalid-reason" data-i18n="reason_same_wallet">Same deposit wallet</div>
+            </td>
+            <td><span class="check-icon">&#10003;</span></td>
+            <td><span class="check-icon">&#10003;</span> <span class="mono">$40</span></td>
+            <td><span class="check-icon">&#10003;</span> <span class="mono">$450</span></td>
+            <td><span class="status-badge invalid" data-i18n="status_invalid">Invalid</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <!-- H5/APP Cards -->
+      <div class="record-cards">
+        <div class="record-card">
+          <div class="record-card-header">
+            <span class="record-card-user">user***@gmail.com</span>
+            <span class="status-badge valid" data-i18n="status_valid">Valid</span>
+          </div>
+          <div class="record-card-steps">
+            <span class="record-step"><span class="icon check-icon">&#10003;</span> <span data-i18n="step_reg">Reg</span></span>
+            <span class="record-step"><span class="icon check-icon">&#10003;</span> $25</span>
+            <span class="record-step"><span class="icon check-icon">&#10003;</span> $350</span>
+          </div>
+        </div>
+        <div class="record-card">
+          <div class="record-card-header">
+            <span class="record-card-user">138****5678</span>
+            <span class="status-badge progress" data-i18n="status_progress">In Progress</span>
+          </div>
+          <div class="record-card-steps">
+            <span class="record-step"><span class="icon check-icon">&#10003;</span> <span data-i18n="step_reg">Reg</span></span>
+            <span class="record-step"><span class="icon check-icon">&#10003;</span> $30</span>
+            <span class="record-step"><span class="icon pending-icon">&#9203;</span> $120</span>
+          </div>
+        </div>
+        <div class="record-card">
+          <div class="record-card-header">
+            <span class="record-card-user">crypto***@outlook.com</span>
+            <span class="status-badge valid" data-i18n="status_valid">Valid</span>
+          </div>
+          <div class="record-card-steps">
+            <span class="record-step"><span class="icon check-icon">&#10003;</span> <span data-i18n="step_reg">Reg</span></span>
+            <span class="record-step"><span class="icon check-icon">&#10003;</span> $50</span>
+            <span class="record-step"><span class="icon check-icon">&#10003;</span> $500</span>
+          </div>
+        </div>
+        <div class="record-card">
+          <div class="record-card-header">
+            <span class="record-card-user">186****9012</span>
+            <span class="status-badge progress" data-i18n="status_progress">In Progress</span>
+          </div>
+          <div class="record-card-steps">
+            <span class="record-step"><span class="icon check-icon">&#10003;</span> <span data-i18n="step_reg">Reg</span></span>
+            <span class="record-step"><span class="icon pending-icon">&#9203;</span> <span data-i18n="status_pending">Pending</span></span>
+            <span class="record-step">-</span>
+          </div>
+        </div>
+        <div class="record-card">
+          <div class="record-card-header">
+            <span class="record-card-user">tra***@yahoo.com</span>
+            <span class="status-badge valid" data-i18n="status_valid">Valid</span>
+          </div>
+          <div class="record-card-steps">
+            <span class="record-step"><span class="icon check-icon">&#10003;</span> <span data-i18n="step_reg">Reg</span></span>
+            <span class="record-step"><span class="icon check-icon">&#10003;</span> $20</span>
+            <span class="record-step"><span class="icon check-icon">&#10003;</span> $210</span>
+          </div>
+        </div>
+        <div class="record-card" style="border-color:rgba(231,76,60,0.2);">
+          <div class="record-card-header">
+            <span class="record-card-user">test***@gmail.com</span>
+            <span class="status-badge invalid" data-i18n="status_invalid">Invalid</span>
+          </div>
+          <div class="record-card-steps">
+            <span class="record-step"><span class="icon check-icon">&#10003;</span> <span data-i18n="step_reg">Reg</span></span>
+            <span class="record-step"><span class="icon check-icon">&#10003;</span> $25</span>
+            <span class="record-step"><span class="icon check-icon">&#10003;</span> $300</span>
+          </div>
+          <div class="invalid-reason" data-i18n="reason_same_ip">Same IP address</div>
+        </div>
+        <div class="record-card" style="border-color:rgba(231,76,60,0.2);">
+          <div class="record-card-header">
+            <span class="record-card-user">155****3456</span>
+            <span class="status-badge invalid" data-i18n="status_invalid">Invalid</span>
+          </div>
+          <div class="record-card-steps">
+            <span class="record-step"><span class="icon check-icon">&#10003;</span> <span data-i18n="step_reg">Reg</span></span>
+            <span class="record-step"><span class="icon check-icon">&#10003;</span> $40</span>
+            <span class="record-step"><span class="icon check-icon">&#10003;</span> $450</span>
+          </div>
+          <div class="invalid-reason" data-i18n="reason_same_wallet">Same deposit wallet</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REWARD HISTORY PANEL -->
+    <div class="tab-panel" id="panelReward">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th data-i18n="th_tier">Tier</th>
+            <th data-i18n="th_reward">Reward</th>
+            <th data-i18n="th_date">Date</th>
+            <th data-i18n="th_rstatus">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td data-i18n="rh_t1">Tier 1 - 1 friend</td>
+            <td class="mono" style="color:var(--gold-primary)">+5 USDT</td>
+            <td class="mono">2026-07-16</td>
+            <td><span class="status-badge distributed" data-i18n="status_distributed">Distributed</span></td>
+          </tr>
+          <tr>
+            <td data-i18n="rh_t2">Tier 2 - 3 friends</td>
+            <td class="mono" style="color:var(--gold-primary)">+15 USDT</td>
+            <td class="mono">2026-07-18</td>
+            <td><span class="status-badge distributed" data-i18n="status_distributed">Distributed</span></td>
+          </tr>
+          <tr>
+            <td data-i18n="rh_t3">Tier 3 - 5 friends</td>
+            <td class="mono" style="color:var(--gold-primary)">+30 USDT</td>
+            <td class="mono">2026-07-20</td>
+            <td><span class="status-badge distributed" data-i18n="status_distributed">Distributed</span></td>
+          </tr>
+        </tbody>
+      </table>
+      <!-- H5/APP cards for reward -->
+      <div class="record-cards">
+        <div class="record-card">
+          <div class="record-card-header">
+            <span class="record-card-user" data-i18n="rh_t1">Tier 1 - 1 friend</span>
+            <span class="status-badge distributed" data-i18n="status_distributed">Distributed</span>
+          </div>
+          <div class="record-card-steps">
+            <span class="record-step" style="color:var(--gold-primary);font-family:var(--font-mono)">+5 USDT</span>
+            <span class="record-step" style="margin-left:auto;font-family:var(--font-mono)">2026-07-16</span>
+          </div>
+        </div>
+        <div class="record-card">
+          <div class="record-card-header">
+            <span class="record-card-user" data-i18n="rh_t2">Tier 2 - 3 friends</span>
+            <span class="status-badge distributed" data-i18n="status_distributed">Distributed</span>
+          </div>
+          <div class="record-card-steps">
+            <span class="record-step" style="color:var(--gold-primary);font-family:var(--font-mono)">+15 USDT</span>
+            <span class="record-step" style="margin-left:auto;font-family:var(--font-mono)">2026-07-18</span>
+          </div>
+        </div>
+        <div class="record-card">
+          <div class="record-card-header">
+            <span class="record-card-user" data-i18n="rh_t3">Tier 3 - 5 friends</span>
+            <span class="status-badge distributed" data-i18n="status_distributed">Distributed</span>
+          </div>
+          <div class="record-card-steps">
+            <span class="record-step" style="color:var(--gold-primary);font-family:var(--font-mono)">+30 USDT</span>
+            <span class="record-step" style="margin-left:auto;font-family:var(--font-mono)">2026-07-20</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RULES (COLLAPSIBLE) -->
+  <div class="rules-section">
+    <button class="rules-toggle" onclick="toggleRules(this)">
+      <span data-i18n="rules_title">Activity Rules</span>
+      <span class="arrow">&#9660;</span>
+    </button>
+    <div class="rules-content">
+      <div class="rules-inner" data-i18n="rules_content_logged">
+        <ol>
+          <li>Invite friends to register. Each friend must complete a first deposit of 20 USDT and trading volume of 200 USDT to count as a valid invite.</li>
+          <li>Rewards are automatically distributed to your balance upon reaching each tier threshold.</li>
+          <li>Rewards are cumulative — inviting 5 friends unlocks Tier 1 (5U) + Tier 2 (15U) + Tier 3 (30U) = 50 USDT total.</li>
+          <li>Each tier reward can only be claimed once.</li>
+          <li>Detrade reserves the right to modify or terminate this campaign at any time.</li>
+          <li>Self-referral or abuse of the referral system will result in disqualification.</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /loggedIn -->
+
+</div><!-- /device-frame -->
+</div><!-- /device-wrapper -->
+
+<!-- ========== QR MODAL ========== -->
+<div class="modal-overlay" id="qrModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeQR()">&times;</button>
+    <div class="modal-title" data-i18n="qr_title">Invite Friends</div>
+    <div class="qr-code" id="qrCode"></div>
+    <div class="modal-link">https://detrade.com/ref/ABC123</div>
+    <button class="modal-save-btn" data-i18n="qr_save">Save Image</button>
+  </div>
+</div>
+
+<!-- ========== REWARD DETAIL MODAL ========== -->
+<div class="modal-overlay reward-detail-modal" id="rewardDetailModal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeRewardDetail()">&times;</button>
+    <div class="modal-title" data-i18n="reward_detail_title">Reward Breakdown</div>
+    <div class="reward-detail-item">
+      <span class="label"><span data-i18n="tier_label_1">Tier 1</span> <span data-i18n="tier_1_req">1 Friend</span></span>
+      <span class="value">+5 USDT</span>
+    </div>
+    <div class="reward-detail-item">
+      <span class="label"><span data-i18n="tier_label_2">Tier 2</span> <span data-i18n="tier_2_req">3 Friends</span></span>
+      <span class="value">+15 USDT</span>
+    </div>
+    <div class="reward-detail-item">
+      <span class="label"><span data-i18n="tier_label_3">Tier 3</span> <span data-i18n="tier_3_req">5 Friends</span></span>
+      <span class="value">+30 USDT</span>
+    </div>
+    <div class="reward-detail-item" style="border-top:1px solid var(--border-gold);padding-top:16px;margin-top:4px;">
+      <span class="label" style="font-weight:600;color:var(--text-primary)" data-i18n="total_label">Total Earned</span>
+      <span class="value" style="font-size:20px;">50 USDT</span>
+    </div>
+  </div>
+</div>
+
+<!-- ========== RULES MODAL ========== -->
+<div class="modal-overlay" id="rulesModal">
+  <div class="modal-box" style="text-align:left;max-width:420px;">
+    <button class="modal-close" onclick="closeRulesModal()">&times;</button>
+    <div class="modal-title" data-i18n="rules_title">Activity Rules</div>
+    <div style="font-size:13px;color:var(--text-secondary);line-height:1.8;">
+      <ol style="padding-left:18px;">
+        <li data-i18n="rule_1">Invite friends to register. Each friend must complete a first deposit of 20 USDT and trading volume of 200 USDT to count as a valid invite.</li>
+        <li data-i18n="rule_2">Rewards are automatically distributed to your balance upon reaching each tier threshold.</li>
+        <li data-i18n="rule_3">Rewards are cumulative — inviting 5 friends unlocks Tier 1 (5U) + Tier 2 (15U) + Tier 3 (30U) = 50 USDT total.</li>
+        <li data-i18n="rule_4">Each tier reward can only be claimed once.</li>
+        <li data-i18n="rule_5">Detrade reserves the right to modify or terminate this campaign at any time.</li>
+        <li data-i18n="rule_6">Self-referral or abuse of the referral system will result in disqualification.</li>
+      </ol>
+    </div>
+  </div>
+</div>
+
+
+<script>
+/* ========== STATE ========== */
+let currentAuth = 'notloggedin';
+let currentDevice = 'web';
+let currentLang = 'en';
+let currentActivity = 'active'; // 'active' | 'none'
+
+/* ========== MOCK ACTIVITY CONFIG (from backend API) ========== */
+const mockActivityConfig = {
+  hasActivity: true,
+  activity: {
+    id: 1001,
+    name: 'Invite & Earn Q3',
+    startTime: '2026-07-01',
+    endTime: '2026-09-30',
+    tiers: [
+      { tier: 1, inviteCount: 1, reward: 5 },
+      { tier: 2, inviteCount: 3, reward: 15 },
+      { tier: 3, inviteCount: 5, reward: 30 },
+      { tier: 4, inviteCount: 10, reward: 70 },
+      { tier: 5, inviteCount: 20, reward: 150 },
+      { tier: 6, inviteCount: 50, reward: 500 }
+    ],
+    conditions: {
+      depositThreshold: 20,
+      tradeThreshold: 200,
+      kycRequired: 'KYC1'
+    },
+    customRules: '', // 非空时覆盖自动生成规则
+    totalRewardCap: 770
+  }
+};
+
+/* ========== AUTO-GENERATE RULES ========== */
+function generateRules(config, lang) {
+  // 优先使用自定义规则
+  if (config.customRules && config.customRules.trim()) {
+    return config.customRules;
+  }
+  // 自动生成模板
+  const deposit = config.conditions.depositThreshold;
+  const trade = config.conditions.tradeThreshold;
+  if (lang === 'zh') {
+    return `<ol><li>邀请好友注册，每位好友需完成首次充值 ${deposit} USDT 且交易额达到 ${trade} USDT 方计为有效邀请。</li><li>达到阶梯条件后奖励自动发放至账户余额。</li><li>奖励可叠加——邀请 5 位好友可解锁阶梯 1 (5U) + 阶梯 2 (15U) + 阶梯 3 (30U) = 共计 50 USDT。</li><li>每个阶梯奖励仅可领取一次。</li><li>Detrade 有权随时修改或终止本活动。</li><li>自我邀请或滥用邀请系统将被取消资格。</li></ol>`;
+  }
+  return `<ol><li>Invite friends to register. Each friend must complete a first deposit of ${deposit} USDT and trading volume of ${trade} USDT to count as a valid invite.</li><li>Rewards are automatically distributed to your balance upon reaching each tier threshold.</li><li>Rewards are cumulative — inviting 5 friends unlocks Tier 1 (5U) + Tier 2 (15U) + Tier 3 (30U) = 50 USDT total.</li><li>Each tier reward can only be claimed once.</li><li>Detrade reserves the right to modify or terminate this campaign at any time.</li><li>Self-referral or abuse of the referral system will result in disqualification.</li></ol>`;
+}
+
+/* ========== I18N ========== */
+const i18n = {
+  en: {
+    hero_title_1: 'Invite Friends, Earn up to ',
+    hero_title_2: '770 USDT',
+    hero_subtitle: 'Complete deposit & trading to unlock tiered rewards',
+    hero_time: '2026-07-01 ~ 2026-09-30',
+    hero_cta: 'Sign Up & Start Earning',
+    hero_terms: 'T&C apply. Rewards distributed automatically.',
+    hero_terms2: 'T&C apply. Rewards distributed automatically.',
+    empty_title: 'No Active Event',
+    empty_desc: 'No active event at the moment. Stay tuned for upcoming events and rewards!',
+    empty_refresh: 'Refresh',
+    reason_same_ip: 'Same IP address',
+    reason_same_wallet: 'Same deposit wallet',
+    reason_same_device: 'Same device',
+    reason_hedging: 'Suspicious trading behavior',
+    tiered_title: 'Tiered Rewards',
+    tier_1_req: '1 Friend',
+    tier_2_req: '3 Friends',
+    tier_3_req: '5 Friends',
+    tier_4_req: '10 Friends',
+    tier_5_req: '20 Friends',
+    tier_6_req: '50 Friends',
+    how_title: 'How It Works',
+    step_1_num: 'STEP 1', step_1_title: 'Sign Up', step_1_desc: 'Create your account in minutes',
+    step_2_num: 'STEP 2', step_2_title: 'Deposit \u2265 20 USDT', step_2_desc: 'Fund your trading account',
+    step_3_num: 'STEP 3', step_3_title: 'Trade \u2265 200 USDT', step_3_desc: 'Complete trade transactions',
+    example_title: 'Reward Example',
+    example_invite: 'Invite ',
+    example_friends: ' friends = Unlocked',
+    example_progress_label: 'Progress',
+    example_tiers: 'Tiers',
+    bottom_cta_text: 'Start inviting now and earn up to 770 USDT!',
+    bottom_cta_btn: 'Create Account',
+    rules_title: 'Activity Rules',
+    rules_content: '<ol><li>Invite friends to register. Each friend must complete a first deposit of 20 USDT and trading volume of 200 USDT to count as a valid invite.</li><li>Rewards are automatically distributed to your balance upon reaching each tier threshold.</li><li>Rewards are cumulative — inviting 5 friends unlocks Tier 1 (5U) + Tier 2 (15U) + Tier 3 (30U) = 50 USDT total.</li><li>Each tier reward can only be claimed once.</li><li>Detrade reserves the right to modify or terminate this campaign at any time.</li><li>Self-referral or abuse of the referral system will result in disqualification.</li></ol>',
+    rules_content_logged: '<ol><li>Invite friends to register. Each friend must complete a first deposit of 20 USDT and trading volume of 200 USDT to count as a valid invite.</li><li>Rewards are automatically distributed to your balance upon reaching each tier threshold.</li><li>Rewards are cumulative — inviting 5 friends unlocks Tier 1 (5U) + Tier 2 (15U) + Tier 3 (30U) = 50 USDT total.</li><li>Each tier reward can only be claimed once.</li><li>Detrade reserves the right to modify or terminate this campaign at any time.</li><li>Self-referral or abuse of the referral system will result in disqualification.</li></ol>',
+    nav_title: 'Invite & Earn',
+    overview_label: 'Your Total Rewards',
+    overview_tiers: '3 tiers unlocked',
+    overview_claim: 'Reward Details',
+    progress_next: 'Next: <span>70 USDT</span>',
+    progress_hint: 'Only <strong>5</strong> more friends to unlock <strong>70 USDT</strong> Bonus.',
+    copy_link: 'Copy Link',
+    invite_code_label: 'Referral Code:',
+    share_copy: 'Copy Link',
+    share_btn: 'Share',
+    share_qr: 'QR Code',
+    tab_invite: 'Invite Records',
+    tab_reward: 'Reward History',
+    th_friend: 'Friend', th_register: 'Register', th_deposit: 'Deposit', th_trade: 'Trade', th_status: 'Status',
+    th_tier: 'Tier', th_reward: 'Reward', th_date: 'Date', th_rstatus: 'Status',
+    rh_t1: 'Tier 1 - 1 friend', rh_t2: 'Tier 2 - 3 friends', rh_t3: 'Tier 3 - 5 friends',
+    qr_title: 'Invite Friends',
+    qr_save: 'Save Image',
+    reward_detail_title: 'Reward Breakdown',
+    total_label: 'Total Earned',
+    rule_1: 'Invite friends to register. Each friend must complete a first deposit of 20 USDT and trading volume of 200 USDT to count as a valid invite.',
+    rule_2: 'Rewards are automatically distributed to your balance upon reaching each tier threshold.',
+    rule_3: 'Rewards are cumulative — inviting 5 friends unlocks Tier 1 (5U) + Tier 2 (15U) + Tier 3 (30U) = 50 USDT total.',
+    rule_4: 'Each tier reward can only be claimed once.',
+    rule_5: 'Detrade reserves the right to modify or terminate this campaign at any time.',
+    rule_6: 'Self-referral or abuse of the referral system will result in disqualification.',
+    tier_label_1: 'Tier 1', tier_label_2: 'Tier 2', tier_label_3: 'Tier 3',
+    tier_label_4: 'Tier 4', tier_label_5: 'Tier 5', tier_label_6: 'Tier 6',
+    current_tag: 'CURRENT',
+    status_valid: 'Valid', status_progress: 'In Progress', status_invalid: 'Invalid', status_distributed: 'Distributed', status_pending: 'Pending',
+    step_reg: 'Reg'
+  },
+  zh: {
+    hero_title_1: '邀请好友，最高赚取 ',
+    hero_title_2: '770 USDT',
+    hero_subtitle: '完成充值和交易即可解锁阶梯奖励',
+    hero_time: '2026-07-01 ~ 2026-09-30',
+    hero_cta: '\u7acb\u5373\u6ce8\u518c\uff0c\u5f00\u59cb\u8d5a\u53d6',
+    hero_terms: '\u9002\u7528\u6761\u6b3e\u3002\u5956\u52b1\u81ea\u52a8\u53d1\u653e\u3002',
+    hero_terms2: '\u9002\u7528\u6761\u6b3e\u3002\u5956\u52b1\u81ea\u52a8\u53d1\u653e\u3002',
+    empty_title: '暂无活动',
+    empty_desc: '当前暂无进行中的活动，敬请期待后续精彩活动！',
+    empty_refresh: '刷新',
+    reason_same_ip: '相同 IP 地址',
+    reason_same_wallet: '相同充值钱包',
+    reason_same_device: '相同设备',
+    reason_hedging: '可疑交易行为',
+    tiered_title: '\u9636\u68af\u5956\u52b1',
+    tier_1_req: '1 \u4f4d\u597d\u53cb',
+    tier_2_req: '3 \u4f4d\u597d\u53cb',
+    tier_3_req: '5 \u4f4d\u597d\u53cb',
+    tier_4_req: '10 \u4f4d\u597d\u53cb',
+    tier_5_req: '20 \u4f4d\u597d\u53cb',
+    tier_6_req: '50 \u4f4d\u597d\u53cb',
+    how_title: '\u53c2\u4e0e\u65b9\u5f0f',
+    step_1_num: '\u6b65\u9aa4 1', step_1_title: '\u6ce8\u518c\u8d26\u6237', step_1_desc: '\u5feb\u901f\u521b\u5efa\u60a8\u7684\u8d26\u6237',
+    step_2_num: '\u6b65\u9aa4 2', step_2_title: '\u5145\u503c \u2265 20 USDT', step_2_desc: '\u4e3a\u4ea4\u6613\u8d26\u6237\u5145\u8d44',
+    step_3_num: '\u6b65\u9aa4 3', step_3_title: '\u4ea4\u6613 \u2265 200 USDT', step_3_desc: '\u5b8c\u6210 trade \u4ea4\u6613',
+    example_title: '\u5956\u52b1\u793a\u4f8b',
+    example_invite: '\u9080\u8bf7 ',
+    example_friends: ' \u4f4d\u597d\u53cb = \u5df2\u89e3\u9501',
+    example_progress_label: '\u8fdb\u5ea6',
+    example_tiers: '\u4e2a\u9636\u68af',
+    bottom_cta_text: '\u7acb\u5373\u5f00\u59cb\u9080\u8bf7\uff0c\u8d5a\u53d6\u9ad8\u8fbe 770 USDT\uff01',
+    bottom_cta_btn: '\u521b\u5efa\u8d26\u6237',
+    rules_title: '\u6d3b\u52a8\u89c4\u5219',
+    rules_content: '<ol><li>邀请好友注册，每位好友需完成首次充值 20 USDT 且交易额达到 200 USDT 方计为有效邀请。</li><li>达到阶梯条件后奖励自动发放至账户余额。</li><li>奖励可叠加——邀请 5 位好友可解锁阶梯 1 (5U) + 阶梯 2 (15U) + 阶梯 3 (30U) = 共计 50 USDT。</li><li>每个阶梯奖励仅可领取一次。</li><li>Detrade 有权随时修改或终止本活动。</li><li>自我邀请或滥用邀请系统将被取消资格。</li></ol>',
+    rules_content_logged: '<ol><li>邀请好友注册，每位好友需完成首次充值 20 USDT 且交易额达到 200 USDT 方计为有效邀请。</li><li>达到阶梯条件后奖励自动发放至账户余额。</li><li>奖励可叠加——邀请 5 位好友可解锁阶梯 1 (5U) + 阶梯 2 (15U) + 阶梯 3 (30U) = 共计 50 USDT。</li><li>每个阶梯奖励仅可领取一次。</li><li>Detrade 有权随时修改或终止本活动。</li><li>自我邀请或滥用邀请系统将被取消资格。</li></ol>',
+    nav_title: '\u9080\u8bf7\u8d5a\u5e01',
+    overview_label: '\u60a8\u7684\u603b\u5956\u52b1',
+    overview_tiers: '\u5df2\u89e3\u9501 3 \u4e2a\u9636\u68af',
+    overview_claim: '\u5956\u52b1\u660e\u7ec6',
+    progress_next: '\u4e0b\u4e00\u76ee\u6807\uff1a<span>70 USDT</span>',
+    progress_hint: '\u518d\u9080\u8bf7 <strong>5</strong> \u4f4d\u597d\u53cb\u5373\u53ef\u89e3\u9501 <strong>70 USDT</strong> \u5956\u52b1\u3002',
+    copy_link: '\u590d\u5236\u94fe\u63a5',
+    invite_code_label: '\u9080\u8bf7\u7801\uff1a',
+    share_copy: '\u590d\u5236\u94fe\u63a5',
+    share_btn: '\u5206\u4eab',
+    share_qr: '\u4e8c\u7ef4\u7801',
+    tab_invite: '\u9080\u8bf7\u8bb0\u5f55',
+    tab_reward: '\u5956\u52b1\u8bb0\u5f55',
+    th_friend: '\u597d\u53cb', th_register: '\u6ce8\u518c', th_deposit: '\u5145\u503c', th_trade: '\u4ea4\u6613', th_status: '\u72b6\u6001',
+    th_tier: '\u9636\u68af', th_reward: '\u5956\u52b1', th_date: '\u65e5\u671f', th_rstatus: '\u72b6\u6001',
+    rh_t1: '\u9636\u68af 1 - 1 \u4f4d\u597d\u53cb', rh_t2: '\u9636\u68af 2 - 3 \u4f4d\u597d\u53cb', rh_t3: '\u9636\u68af 3 - 5 \u4f4d\u597d\u53cb',
+    qr_title: '\u9080\u8bf7\u597d\u53cb',
+    qr_save: '\u4fdd\u5b58\u56fe\u7247',
+    reward_detail_title: '\u5956\u52b1\u660e\u7ec6',
+    total_label: '\u7d2f\u8ba1\u5df2\u8d5a\u53d6',
+    rule_1: '邀请好友注册，每位好友需完成首次充值 20 USDT 且交易额达到 200 USDT 方计为有效邀请。',
+    rule_2: '达到阶梯条件后奖励自动发放至账户余额。',
+    rule_3: '奖励可叠加——邀请 5 位好友可解锁阶梯 1 (5U) + 阶梯 2 (15U) + 阶梯 3 (30U) = 共计 50 USDT。',
+    rule_4: '每个阶梯奖励仅可领取一次。',
+    rule_5: 'Detrade 有权随时修改或终止本活动。',
+    rule_6: '自我邀请或滥用邀请系统将被取消资格。',
+    tier_label_1: '阶梯 1', tier_label_2: '阶梯 2', tier_label_3: '阶梯 3',
+    tier_label_4: '阶梯 4', tier_label_5: '阶梯 5', tier_label_6: '阶梯 6',
+    current_tag: '当前',
+    status_valid: '有效', status_progress: '进行中', status_invalid: '无效', status_distributed: '已发放', status_pending: '待处理',
+    step_reg: '注册'
+  }
+};
+
+/* ========== SET ACTIVITY ========== */
+function setActivity(state) {
+  currentActivity = state;
+  document.querySelectorAll('[data-activity]').forEach(b => b.classList.toggle('active', b.dataset.activity === state));
+  const emptyState = document.getElementById('noActivityState');
+  const notLoggedIn = document.getElementById('notLoggedIn');
+  const loggedIn = document.getElementById('loggedIn');
+
+  if (state === 'none') {
+    // Hide all page content, show empty state
+    emptyState.classList.add('visible');
+    notLoggedIn.classList.add('hidden');
+    loggedIn.classList.add('hidden');
+  } else {
+    // Show content based on auth state
+    emptyState.classList.remove('visible');
+    if (currentAuth === 'loggedin') {
+      notLoggedIn.classList.add('hidden');
+      loggedIn.classList.remove('hidden');
+    } else {
+      notLoggedIn.classList.remove('hidden');
+      loggedIn.classList.add('hidden');
+    }
+  }
+}
+
+/* ========== REFRESH ACTIVITY ========== */
+function refreshActivity() {
+  const btn = document.querySelector('.empty-refresh-btn svg');
+  if (btn) {
+    btn.style.transition = 'transform 0.6s ease';
+    btn.style.transform = 'rotate(360deg)';
+    setTimeout(() => { btn.style.transform = 'rotate(0deg)'; }, 600);
+  }
+  // Simulate: after refresh, activity is back
+  setTimeout(() => {
+    setActivity('active');
+  }, 800);
+}
+
+/* ========== SET AUTH ========== */
+function setAuth(state) {
+  currentAuth = state;
+  document.querySelectorAll('[data-auth]').forEach(b => b.classList.toggle('active', b.dataset.auth === state));
+  if (currentActivity === 'active') {
+    document.getElementById('notLoggedIn').classList.toggle('hidden', state === 'loggedin');
+    document.getElementById('loggedIn').classList.toggle('hidden', state === 'notloggedin');
+    if (state === 'loggedin') animateProgress();
+  }
+}
+
+/* ========== SET DEVICE ========== */
+function setDevice(device) {
+  currentDevice = device;
+  document.querySelectorAll('[data-device]').forEach(b => b.classList.toggle('active', b.dataset.device === device));
+  const frame = document.getElementById('deviceFrame');
+  frame.className = 'device-frame ' + device;
+}
+
+/* ========== SET LANG ========== */
+function setLang(lang) {
+  currentLang = lang;
+  document.querySelectorAll('[data-lang]').forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
+  const dict = i18n[lang];
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    // 规则内容使用动态生成（支持自定义规则覆盖）
+    if (key === 'rules_content' || key === 'rules_content_logged') {
+      el.innerHTML = generateRules(mockActivityConfig.activity, lang);
+      return;
+    }
+    if (dict[key] !== undefined) {
+      if (dict[key].includes('<')) {
+        el.innerHTML = dict[key];
+      } else {
+        el.textContent = dict[key];
+      }
+    }
+  });
+}
+
+/* ========== TOGGLE RULES ========== */
+function toggleRules(btn) {
+  btn.classList.toggle('open');
+  const content = btn.nextElementSibling;
+  content.classList.toggle('open');
+}
+
+/* ========== COPY LINK ========== */
+function copyLink(btn) {
+  const input = document.getElementById('inviteLinkInput');
+  if (input) {
+    navigator.clipboard.writeText(input.value).catch(() => {});
+  }
+  const origText = btn.textContent;
+  btn.classList.add('copied');
+  btn.textContent = currentLang === 'zh' ? '\u5df2\u590d\u5236!' : 'Copied!';
+  setTimeout(() => {
+    btn.classList.remove('copied');
+    btn.textContent = origText;
+  }, 1500);
+}
+
+/* ========== SHARE NATIVE ========== */
+function shareNative() {
+  const link = document.getElementById('inviteLinkInput')?.value || 'https://detrade.com/ref/ABC123';
+  if (navigator.share) {
+    navigator.share({ title: 'Detrade Invite', text: 'Join Detrade and earn rewards!', url: link }).catch(() => {});
+  } else {
+    copyLink(document.querySelector('.copy-btn'));
+  }
+}
+
+/* ========== QR MODAL ========== */
+function openQR() {
+  document.getElementById('qrModal').classList.add('show');
+}
+function closeQR() {
+  document.getElementById('qrModal').classList.remove('show');
+}
+
+/* ========== REWARD DETAIL MODAL ========== */
+function openRewardDetail() {
+  document.getElementById('rewardDetailModal').classList.add('show');
+}
+function closeRewardDetail() {
+  document.getElementById('rewardDetailModal').classList.remove('show');
+}
+
+/* ========== RULES MODAL ========== */
+function openRulesModal() {
+  document.getElementById('rulesModal').classList.add('show');
+}
+function closeRulesModal() {
+  document.getElementById('rulesModal').classList.remove('show');
+}
+
+/* ========== TABS ========== */
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.getElementById('panelInvite').classList.toggle('active', tab === 'invite');
+  document.getElementById('panelReward').classList.toggle('active', tab === 'reward');
+  updateTabIndicator();
+}
+function updateTabIndicator() {
+  const activeBtn = document.querySelector('.tab-btn.active');
+  const indicator = document.getElementById('tabIndicator');
+  if (activeBtn && indicator) {
+    const header = document.getElementById('tabHeader');
+    const headerRect = header.getBoundingClientRect();
+    const btnRect = activeBtn.getBoundingClientRect();
+    indicator.style.width = btnRect.width + 'px';
+    indicator.style.left = (btnRect.left - headerRect.left) + 'px';
+  }
+}
+
+/* ========== ANIMATE PROGRESS ========== */
+function animateProgress() {
+  setTimeout(() => {
+    document.querySelectorAll('.progress-bar-fill, .reward-progress-fill').forEach(bar => {
+      const w = bar.dataset.width || 50;
+      bar.style.width = w + '%';
+      bar.classList.add('animated');
+    });
+    const glow = document.getElementById('progressGlow');
+    if (glow) glow.style.opacity = '1';
+  }, 300);
+}
+
+/* ========== GENERATE QR CODE ========== */
+function generateQR() {
+  const qr = document.getElementById('qrCode');
+  // Simulated QR pattern
+  const pattern = [
+    1,1,1,1,1,1,1,0,1,0,1,0,1,1,1,
+    1,0,0,0,0,0,1,0,0,1,0,1,1,0,1,
+    1,0,1,1,1,0,1,0,1,0,1,0,1,0,1,
+    1,0,1,1,1,0,1,0,0,1,1,0,1,0,1,
+    1,0,1,1,1,0,1,0,1,0,0,1,0,0,1,
+    1,0,0,0,0,0,1,0,0,1,0,0,1,0,1,
+    1,1,1,1,1,1,1,0,1,0,1,0,1,1,1,
+    0,0,0,0,0,0,0,0,1,1,0,1,0,0,0,
+    1,0,1,1,1,0,1,1,0,0,1,0,1,0,1,
+    0,1,0,0,1,1,0,0,1,0,1,1,0,1,0,
+    1,0,1,1,0,0,1,0,1,1,0,0,1,0,1,
+    0,1,0,0,1,0,0,1,0,1,1,0,0,1,0,
+    1,1,1,1,1,1,1,0,1,0,0,1,1,0,1,
+    1,0,0,0,0,0,1,0,0,1,0,0,1,0,0,
+    1,0,1,1,1,0,1,0,1,1,0,1,0,1,1
+  ];
+  qr.innerHTML = '';
+  pattern.forEach(v => {
+    const cell = document.createElement('div');
+    cell.className = 'qr-cell ' + (v ? 'black' : 'white');
+    qr.appendChild(cell);
+  });
+}
+
+/* ========== CLONE TIERS FOR SCROLL ========== */
+function cloneTiersForScroll() {
+  const grid = document.getElementById('tierGrid');
+  const scroll = document.getElementById('tierScroll');
+  if (grid && scroll) {
+    scroll.innerHTML = grid.innerHTML;
+  }
+  const loggedGrid = document.getElementById('loggedTierGrid');
+  const loggedScroll = document.getElementById('loggedTierScroll');
+  if (loggedGrid && loggedScroll) {
+    loggedScroll.innerHTML = loggedGrid.innerHTML;
+  }
+}
+
+/* ========== CLOSE MODALS ON OVERLAY CLICK ========== */
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) {
+      overlay.classList.remove('show');
+    }
+  });
+});
+
+/* ========== INIT ========== */
+window.addEventListener('DOMContentLoaded', () => {
+  generateQR();
+  cloneTiersForScroll();
+  updateTabIndicator();
+  // Animate not-logged-in progress bar
+  setTimeout(() => {
+    document.querySelectorAll('.reward-progress-fill').forEach(bar => {
+      const w = bar.dataset.width || 50;
+      bar.style.width = w + '%';
+    });
+  }, 500);
+});
+window.addEventListener('resize', updateTabIndicator);
+</script>
+</body>
+</html>

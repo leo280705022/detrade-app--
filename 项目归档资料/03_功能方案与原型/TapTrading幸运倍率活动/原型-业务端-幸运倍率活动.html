@@ -1,0 +1,1821 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TapTrading 幸运倍率活动 - 业务端原型</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  :root {
+    --bg: #0b0e11;
+    --bg2: #1e2329;
+    --bg3: #2b3139;
+    --text: #eaecef;
+    --muted: #848e9c;
+    --gold: #f0b90b;
+    --gold-light: #fcd535;
+    --green: #0ecb81;
+    --red: #f6465d;
+    --purple: #a855f7;
+    --purple-light: #c084fc;
+    --blue: #1e90ff;
+    --border: #2b3139;
+    --radius: 8px;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* Top Bar */
+  .topbar {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .logo {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--gold);
+  }
+  .proto-label {
+    font-size: 12px;
+    color: var(--muted);
+    background: var(--bg3);
+    padding: 4px 10px;
+    border-radius: 4px;
+  }
+  .lang-switcher {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--bg3);
+    border-radius: 6px;
+    padding: 3px;
+    margin-right: 12px;
+  }
+  .lang-btn {
+    padding: 5px 12px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-size: 12px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+    font-weight: 500;
+  }
+  .lang-btn.active {
+    background: var(--gold);
+    color: #000;
+    font-weight: 600;
+  }
+  .lang-btn:hover:not(.active) {
+    color: var(--text);
+  }
+  .device-switcher {
+    display: flex;
+    gap: 4px;
+    background: var(--bg3);
+    border-radius: 6px;
+    padding: 3px;
+  }
+  .device-btn {
+    padding: 6px 16px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-size: 13px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+  }
+  .device-btn.active {
+    background: var(--gold);
+    color: #000;
+    font-weight: 600;
+  }
+  .device-btn:hover:not(.active) {
+    color: var(--text);
+  }
+
+  /* Main Layout */
+  .main-container {
+    display: flex;
+    height: calc(100vh - 53px);
+  }
+
+  /* Game Area */
+  .game-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* Activity Banner */
+  .activity-banner {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .activity-banner::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(240,185,11,0.05) 0%, transparent 60%);
+    animation: bannerGlow 4s ease-in-out infinite;
+  }
+  @keyframes bannerGlow {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(10%, 10%); }
+  }
+  .banner-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    z-index: 1;
+  }
+  .banner-icon {
+    font-size: 28px;
+  }
+  .banner-title {
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .banner-subtitle {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .banner-lucky {
+    color: var(--gold);
+    font-weight: 700;
+    font-size: 18px;
+  }
+  .banner-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 1;
+  }
+  .banner-badge {
+    background: var(--purple);
+    color: #fff;
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+  .banner-arrow {
+    color: var(--muted);
+    font-size: 18px;
+  }
+
+  /* Chart Area */
+  .chart-area {
+    flex: 1;
+    position: relative;
+    background: var(--bg);
+    overflow: hidden;
+  }
+  .chart-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+  }
+  .chart-pair {
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .chart-price {
+    font-size: 15px;
+    color: var(--green);
+    font-weight: 600;
+  }
+  .round-info {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  /* K-line Canvas */
+  .kline-container {
+    position: relative;
+    height: calc(100% - 110px);
+    padding: 10px;
+  }
+  .kline-canvas {
+    width: 100%;
+    height: 100%;
+    position: relative;
+  }
+  .kline-svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Multiplier Grid */
+  .multiplier-grid {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    bottom: 10px;
+    width: 140px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(6, 1fr);
+    gap: 3px;
+  }
+  .mult-cell {
+    background: rgba(30, 35, 41, 0.85);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .mult-cell:hover {
+    border-color: var(--gold);
+    background: rgba(240, 185, 11, 0.1);
+  }
+  .mult-cell .mult-value {
+    font-weight: 600;
+    font-size: 12px;
+  }
+  .mult-cell .mult-payout {
+    font-size: 9px;
+    color: var(--muted);
+  }
+  .mult-cell.lucky {
+    border: 2px solid var(--gold);
+    background: rgba(240, 185, 11, 0.15);
+    animation: luckyPulse 2s ease-in-out infinite;
+  }
+  .mult-cell.lucky .mult-value {
+    color: var(--gold);
+  }
+  .mult-cell.lucky::after {
+    content: 'LUCKY';
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    font-size: 7px;
+    background: var(--gold);
+    color: #000;
+    padding: 1px 3px;
+    border-radius: 2px;
+    font-weight: 700;
+  }
+  @keyframes luckyPulse {
+    0%, 100% { box-shadow: 0 0 5px rgba(240,185,11,0.3); }
+    50% { box-shadow: 0 0 15px rgba(240,185,11,0.6); }
+  }
+  .mult-cell.hidden {
+    border: 2px solid var(--purple);
+    background: rgba(168, 85, 247, 0.1);
+  }
+  .mult-cell.hidden .mult-value {
+    color: var(--purple-light);
+  }
+  .mult-cell.hidden::after {
+    content: '?';
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    font-size: 8px;
+    background: var(--purple);
+    color: #fff;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+  }
+  .mult-cell.hit {
+    background: rgba(14, 203, 129, 0.3);
+    border-color: var(--green);
+  }
+
+  /* Bet Panel */
+  .bet-panel {
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .bet-amount-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .bet-label {
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .bet-input {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 12px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    width: 120px;
+    outline: none;
+  }
+  .bet-input:focus {
+    border-color: var(--gold);
+  }
+  .bet-presets {
+    display: flex;
+    gap: 6px;
+  }
+  .bet-preset-btn {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 14px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .bet-preset-btn:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+  .bet-submit {
+    margin-left: auto;
+    background: var(--green);
+    color: #fff;
+    border: none;
+    padding: 10px 32px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .bet-submit:hover {
+    background: #0db875;
+    transform: translateY(-1px);
+  }
+
+  /* Side Panel - Trade History */
+  .side-panel {
+    width: 280px;
+    background: var(--bg2);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .side-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+  }
+  .side-tab {
+    flex: 1;
+    padding: 10px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+  }
+  .side-tab.active {
+    color: var(--text);
+    border-bottom-color: var(--gold);
+  }
+  .trade-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+  }
+  .trade-item {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    border-radius: 6px;
+    margin-bottom: 4px;
+    background: var(--bg3);
+    font-size: 12px;
+    gap: 8px;
+  }
+  .trade-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+  }
+  .trade-info {
+    flex: 1;
+  }
+  .trade-user {
+    font-weight: 600;
+    font-size: 11px;
+  }
+  .trade-detail {
+    color: var(--muted);
+    font-size: 10px;
+  }
+  .trade-amount {
+    font-weight: 600;
+    font-size: 12px;
+    text-align: right;
+  }
+  .trade-amount.win { color: var(--green); }
+
+  /* Activity Info Bar */
+  .activity-info-bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 6px 16px;
+    background: rgba(240, 185, 11, 0.05);
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+  }
+  .info-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .info-label {
+    color: var(--muted);
+  }
+  .info-value {
+    font-weight: 600;
+  }
+  .info-value.lucky-val { color: var(--gold); }
+  .info-value.hidden-val { color: var(--purple); }
+
+  /* Modal Overlay */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s;
+  }
+  .modal-overlay.show {
+    display: flex;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* Win Modal */
+  .win-modal {
+    background: var(--bg2);
+    border-radius: 16px;
+    padding: 32px;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    position: relative;
+    animation: modalPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  @keyframes modalPop {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .win-modal.lucky-win {
+    border: 2px solid var(--gold);
+    box-shadow: 0 0 40px rgba(240,185,11,0.3);
+  }
+  .win-modal.hidden-win {
+    border: 2px solid var(--purple);
+    box-shadow: 0 0 40px rgba(168,85,247,0.3);
+  }
+  .win-emoji {
+    font-size: 48px;
+    margin-bottom: 12px;
+  }
+  .win-title {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .win-modal.lucky-win .win-title { color: var(--gold); }
+  .win-modal.hidden-win .win-title { color: var(--purple-light); }
+  .win-desc {
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+  .win-reward {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--green);
+    margin-bottom: 20px;
+  }
+  .win-btn {
+    background: var(--gold);
+    color: #000;
+    border: none;
+    padding: 12px 40px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .win-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(240,185,11,0.4);
+  }
+  .win-close {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 20px;
+    cursor: pointer;
+  }
+
+  /* Rules Panel */
+  .rules-panel {
+    display: none;
+    position: fixed;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 380px;
+    background: var(--bg2);
+    border-left: 1px solid var(--border);
+    z-index: 150;
+    overflow-y: auto;
+    animation: slideIn 0.3s;
+  }
+  .rules-panel.show {
+    display: block;
+  }
+  @keyframes slideIn {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+  }
+  .rules-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--bg2);
+    z-index: 1;
+  }
+  .rules-header h3 {
+    font-size: 16px;
+  }
+  .rules-close {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 20px;
+    cursor: pointer;
+  }
+  .rules-content {
+    padding: 20px;
+  }
+  .rules-section {
+    margin-bottom: 24px;
+  }
+  .rules-section h4 {
+    font-size: 14px;
+    color: var(--gold);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .rules-section p, .rules-section li {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  .rules-section ul {
+    padding-left: 16px;
+    margin-top: 4px;
+  }
+  .rules-section li {
+    margin-bottom: 4px;
+  }
+
+  /* Activity Detail Modal */
+  .activity-detail-modal {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .activity-detail-modal.show {
+    display: flex;
+  }
+  .activity-detail-content {
+    background: var(--bg2);
+    border-radius: 16px;
+    max-width: 500px;
+    width: 90%;
+    overflow: hidden;
+    animation: modalPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  .ad-header {
+    background: linear-gradient(135deg, #1a1a2e, #0f3460);
+    padding: 24px;
+    text-align: center;
+  }
+  .ad-header h2 {
+    font-size: 20px;
+    margin-bottom: 4px;
+  }
+  .ad-header p {
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .ad-body {
+    padding: 20px 24px;
+  }
+  .ad-rule-card {
+    background: var(--bg3);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .ad-rule-card h4 {
+    font-size: 14px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .ad-rule-card p {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  .ad-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 12px;
+  }
+  .ad-btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    border: none;
+    transition: all 0.2s;
+  }
+  .ad-btn.primary {
+    background: var(--gold);
+    color: #000;
+  }
+  .ad-btn.secondary {
+    background: var(--bg3);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  /* Pulse glow for hidden win background */
+  @keyframes pulseGlow {
+    0%, 100% { opacity: 0.5; transform: translate(-50%,-50%) scale(1); }
+    50% { opacity: 1; transform: translate(-50%,-50%) scale(1.1); }
+  }
+  @keyframes bounceIn {
+    0% { transform: scale(0); opacity: 0; }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  /* Particles for hidden win */
+  .particles {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    z-index: 250;
+    display: none;
+  }
+  .particles.show {
+    display: block;
+  }
+  .particle {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    animation: particleFall 2s ease-out forwards;
+  }
+  @keyframes particleFall {
+    0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+  }
+
+  /* H5/App specific styles */
+  .h5-frame, .app-frame {
+    display: none;
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+  }
+  .h5-frame.active, .app-frame.active {
+    display: flex;
+  }
+  .web-frame {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+  }
+  .web-frame.hidden { display: none; }
+
+  /* H5 Styles */
+  .h5-topbar {
+    background: var(--bg2);
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+  .h5-back {
+    font-size: 18px;
+    cursor: pointer;
+  }
+  .h5-title {
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .h5-banner {
+    background: linear-gradient(135deg, #1a1a2e, #0f3460);
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+  }
+  .h5-lucky-display {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .h5-lucky-val {
+    color: var(--gold);
+    font-weight: 700;
+    font-size: 16px;
+  }
+  .h5-chart {
+    flex: 1;
+    position: relative;
+    background: var(--bg);
+  }
+  .h5-mult-grid {
+    position: absolute;
+    right: 6px;
+    top: 6px;
+    bottom: 6px;
+    width: 90px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(6, 1fr);
+    gap: 2px;
+  }
+  .h5-mult-cell {
+    background: rgba(30,35,41,0.9);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    cursor: pointer;
+  }
+  .h5-mult-cell.lucky {
+    border-color: var(--gold);
+    background: rgba(240,185,11,0.15);
+  }
+  .h5-mult-cell.lucky .mult-value { color: var(--gold); font-size: 11px; }
+  .h5-mult-cell.hidden {
+    border-color: var(--purple);
+    background: rgba(168,85,247,0.1);
+  }
+  .h5-bet-bar {
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .h5-bet-input {
+    flex: 1;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 14px;
+    outline: none;
+  }
+  .h5-bet-btn {
+    background: var(--green);
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  /* App Styles */
+  .app-statusbar {
+    background: var(--bg);
+    padding: 4px 16px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .app-nav {
+    background: var(--bg2);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+  .app-nav-title {
+    font-size: 16px;
+    font-weight: 600;
+  }
+  .app-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .app-bottom-nav {
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-around;
+    padding: 8px 0;
+  }
+  .app-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    font-size: 10px;
+    color: var(--muted);
+    cursor: pointer;
+  }
+  .app-nav-item.active {
+    color: var(--gold);
+  }
+  .app-nav-icon {
+    font-size: 18px;
+  }
+
+  /* Demo Controls */
+  .demo-controls {
+    position: fixed;
+    bottom: 16px;
+    left: 16px;
+    display: flex;
+    gap: 8px;
+    z-index: 300;
+  }
+  .demo-btn {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .demo-btn:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- Top Bar -->
+<div class="topbar">
+  <div class="topbar-left">
+    <span class="logo">DeTrade</span>
+    <span class="proto-label">TapTrading 幸运倍率活动 - 业务端原型</span>
+  </div>
+  <div style="display:flex;align-items:center;">
+    <div class="lang-switcher">
+      <button class="lang-btn active" id="langEn" onclick="switchLang('en')">EN</button>
+      <button class="lang-btn" id="langZh" onclick="switchLang('zh')">中文</button>
+    </div>
+    <div class="device-switcher">
+      <button class="device-btn active" onclick="switchDevice('web')">Web</button>
+      <button class="device-btn" onclick="switchDevice('h5')">H5 (TG Mini App)</button>
+      <button class="device-btn" onclick="switchDevice('app')">App</button>
+    </div>
+  </div>
+</div>
+
+<!-- Web Frame -->
+<div class="main-container web-frame" id="webFrame">
+  <div class="game-area">
+    <!-- Activity Banner -->
+    <div class="activity-banner" onclick="showActivityDetail()">
+      <div class="banner-left">
+        <span class="banner-icon">🍀</span>
+        <div>
+          <div class="banner-title">Today's Lucky Multiplier: <span class="banner-lucky" id="luckyDisplay">188x</span></div>
+          <div class="banner-subtitle">Hit it to win 20U Bonus | Secret Multiplier also hidden today!</div>
+        </div>
+      </div>
+      <div class="banner-right">
+        <span class="banner-badge">ACTIVITY</span>
+        <span class="banner-arrow">›</span>
+      </div>
+    </div>
+
+    <!-- Activity Info Bar -->
+    <div class="activity-info-bar">
+      <div class="info-item">
+        <span class="info-label">Lucky:</span>
+        <span class="info-value lucky-val" id="infoLucky">188x</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Hidden:</span>
+        <span class="info-value hidden-val">???</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Hidden Slots:</span>
+        <span class="info-value" id="hiddenSlots">3/5 remaining</span>
+      </div>
+      <div class="info-item" style="margin-left:auto;">
+        <span class="info-label">Round ends in:</span>
+        <span class="info-value" id="roundTimer">14:57:01</span>
+      </div>
+      <div class="info-item">
+        <button class="demo-btn" onclick="showRules()" style="padding:4px 10px;font-size:11px;">Rules</button>
+      </div>
+    </div>
+
+    <!-- Chart Area -->
+    <div class="chart-area">
+      <div class="chart-header">
+        <div>
+          <span class="chart-pair">STONKS/USDT</span>
+          <span class="chart-price" style="margin-left:12px;">947.43</span>
+          <span style="color:var(--green);font-size:12px;margin-left:4px;">+3.82%</span>
+        </div>
+        <div class="round-info">Round ends in <span id="roundTimer2">14:57:01</span></div>
+      </div>
+
+      <div class="kline-container">
+        <div class="kline-canvas">
+          <svg class="kline-svg" viewBox="0 0 800 400" preserveAspectRatio="none">
+            <!-- Grid lines -->
+            <line x1="0" y1="80" x2="800" y2="80" stroke="#2b3139" stroke-width="0.5"/>
+            <line x1="0" y1="160" x2="800" y2="160" stroke="#2b3139" stroke-width="0.5"/>
+            <line x1="0" y1="240" x2="800" y2="240" stroke="#2b3139" stroke-width="0.5"/>
+            <line x1="0" y1="320" x2="800" y2="320" stroke="#2b3139" stroke-width="0.5"/>
+
+            <!-- K-line path -->
+            <polyline
+              points="0,300 30,290 60,310 90,280 120,260 150,270 180,240 210,250 240,220 270,200 300,210 330,180 360,190 390,160 420,170 450,140 480,130 510,150 540,120 570,100 600,110 630,90 660,80 690,100 720,85 750,70 780,60"
+              fill="none"
+              stroke="#f0b90b"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+
+            <!-- Lucky zone highlight -->
+            <rect x="620" y="60" width="50" height="40" fill="rgba(240,185,11,0.15)" stroke="var(--gold)" stroke-width="1.5" rx="4"/>
+            <text x="645" y="85" text-anchor="middle" fill="var(--gold)" font-size="11" font-weight="600">188x</text>
+
+            <!-- Hit point -->
+            <circle cx="645" cy="80" r="6" fill="var(--green)" opacity="0.8">
+              <animate attributeName="r" values="6;10;6" dur="2s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values="0.8;0.3;0.8" dur="2s" repeatCount="indefinite"/>
+            </circle>
+          </svg>
+
+          <!-- Multiplier Grid -->
+          <div class="multiplier-grid">
+            <div class="mult-cell" onclick="selectMult(this, '2x')"><span class="mult-value">2x</span><span class="mult-payout">1.9x</span></div>
+            <div class="mult-cell" onclick="selectMult(this, '3x')"><span class="mult-value">3x</span><span class="mult-payout">2.8x</span></div>
+            <div class="mult-cell" onclick="selectMult(this, '5x')"><span class="mult-value">5x</span><span class="mult-payout">4.7x</span></div>
+            <div class="mult-cell" onclick="selectMult(this, '10x')"><span class="mult-value">10x</span><span class="mult-payout">9.5x</span></div>
+            <div class="mult-cell" onclick="selectMult(this, '25x')"><span class="mult-value">25x</span><span class="mult-payout">23x</span></div>
+            <div class="mult-cell" onclick="selectMult(this, '50x')"><span class="mult-value">50x</span><span class="mult-payout">47x</span></div>
+            <div class="mult-cell" onclick="selectMult(this, '100x')"><span class="mult-value">100x</span><span class="mult-payout">95x</span></div>
+            <div class="mult-cell" onclick="selectMult(this, '188x')"><span class="mult-value">188x</span><span class="mult-payout">180x</span></div>
+            <div class="mult-cell hidden" onclick="selectMult(this, '???')"><span class="mult-value">???</span><span class="mult-payout">HIDDEN</span></div>
+            <div class="mult-cell" onclick="selectMult(this, '500x')"><span class="mult-value">500x</span><span class="mult-payout">475x</span></div>
+            <div class="mult-cell" onclick="selectMult(this, '999x')"><span class="mult-value">999x</span><span class="mult-payout">950x</span></div>
+            <div class="mult-cell" onclick="selectMult(this, '1314x')"><span class="mult-value">1314x</span><span class="mult-payout">1250x</span></div>
+            <div class="mult-cell" onclick="selectMult(this, '2888x')"><span class="mult-value">2888x</span><span class="mult-payout">2750x</span></div>
+            <div class="mult-cell" onclick="selectMult(this, '5000x')"><span class="mult-value">5000x</span><span class="mult-payout">4750x</span></div>
+            <div class="mult-cell" onclick="selectMult(this, '9999x')"><span class="mult-value">9999x</span><span class="mult-payout">9500x</span></div>
+            <div class="mult-cell lucky" onclick="selectMult(this, '188x')"><span class="mult-value">188x</span><span class="mult-payout">180x</span></div>
+            <div class="mult-cell" onclick="selectMult(this, '6666x')"><span class="mult-value">6666x</span><span class="mult-payout">6300x</span></div>
+            <div class="mult-cell" onclick="selectMult(this, '8888x')"><span class="mult-value">8888x</span><span class="mult-payout">8400x</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bet Panel -->
+    <div class="bet-panel">
+      <div class="bet-amount-group">
+        <span class="bet-label">Amount (USDT)</span>
+        <input type="number" class="bet-input" value="0.1" id="betAmount">
+      </div>
+      <div class="bet-presets">
+        <button class="bet-preset-btn" onclick="setBet(5)">$5</button>
+        <button class="bet-preset-btn" onclick="setBet(10)">$10</button>
+        <button class="bet-preset-btn" onclick="setBet(50)">$50</button>
+        <button class="bet-preset-btn" onclick="setBet(100)">$100</button>
+      </div>
+      <div class="bet-amount-group" style="margin-left:12px;">
+        <span class="bet-label">Selected Multiplier</span>
+        <div style="font-size:16px;font-weight:700;color:var(--gold);" id="selectedMult">188x</div>
+      </div>
+      <button class="bet-submit" onclick="placeBet()">Place Bet</button>
+    </div>
+  </div>
+
+  <!-- Side Panel -->
+  <div class="side-panel">
+    <div class="side-tabs">
+      <div class="side-tab active">Live Bets</div>
+      <div class="side-tab">My Bets</div>
+      <div class="side-tab">Winners</div>
+    </div>
+    <div class="trade-list" id="tradeList">
+      <div class="trade-item">
+        <div class="trade-avatar">🎯</div>
+        <div class="trade-info">
+          <div class="trade-user">***Byun8...</div>
+          <div class="trade-detail">1.86x · 0.11 USDT</div>
+        </div>
+        <div class="trade-amount">NDN 137.8$</div>
+      </div>
+      <div class="trade-item">
+        <div class="trade-avatar"></div>
+        <div class="trade-info">
+          <div class="trade-user">***Byun8...</div>
+          <div class="trade-detail">1.86x · 0.11 USDT</div>
+        </div>
+        <div class="trade-amount">NDN 137.8$</div>
+      </div>
+      <div class="trade-item">
+        <div class="trade-avatar">🎯</div>
+        <div class="trade-info">
+          <div class="trade-user">***Byun8...</div>
+          <div class="trade-detail">4.44x · 0.11 USDT</div>
+        </div>
+        <div class="trade-amount">NDN 137.8$</div>
+      </div>
+      <div class="trade-item">
+        <div class="trade-avatar"></div>
+        <div class="trade-info">
+          <div class="trade-user" style="color:var(--gold);">***Lucky77</div>
+          <div class="trade-detail">188x · 1.00 USDT · LUCKY HIT!</div>
+        </div>
+        <div class="trade-amount win">+20U</div>
+      </div>
+      <div class="trade-item">
+        <div class="trade-avatar">🎯</div>
+        <div class="trade-info">
+          <div class="trade-user">***Byun8...</div>
+          <div class="trade-detail">18.82x · 0.11 USDT</div>
+        </div>
+        <div class="trade-amount">NDN 137.8$</div>
+      </div>
+      <div class="trade-item">
+        <div class="trade-avatar">🔮</div>
+        <div class="trade-info">
+          <div class="trade-user" style="color:var(--purple);">***Secret9</div>
+          <div class="trade-detail">347x · 2.00 USDT · HIDDEN HIT!</div>
+        </div>
+        <div class="trade-amount win">+100U</div>
+      </div>
+      <div class="trade-item">
+        <div class="trade-avatar"></div>
+        <div class="trade-info">
+          <div class="trade-user">***Byun8...</div>
+          <div class="trade-detail">61.43x · 0.11 USDT</div>
+        </div>
+        <div class="trade-amount">NDN 137.8$</div>
+      </div>
+      <div class="trade-item">
+        <div class="trade-avatar">🎯</div>
+        <div class="trade-info">
+          <div class="trade-user">***Byun8...</div>
+          <div class="trade-detail">2.84x · 0.11 USDT</div>
+        </div>
+        <div class="trade-amount">NDN 137.8$</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- H5 Frame (Telegram Mini App) -->
+<div class="main-container h5-frame" id="h5Frame" style="background:var(--bg);max-width:420px;margin:0 auto;">
+  <!-- TG Mini App Header -->
+  <div style="background:var(--bg2);padding:8px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);">
+    <span style="font-size:18px;cursor:pointer;color:var(--muted);">‹</span>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="font-size:14px;font-weight:600;">TapTrading</span>
+      <span style="font-size:10px;background:var(--gold);color:#000;padding:2px 6px;border-radius:3px;font-weight:700;">ACTIVITY</span>
+    </div>
+    <span style="font-size:16px;cursor:pointer;color:var(--muted);" onclick="showRules()"></span>
+  </div>
+
+  <!-- Activity Info Strip -->
+  <div style="background:linear-gradient(135deg,#1a1a2e,#0f3460);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;" onclick="showActivityDetail()">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="font-size:20px;"></span>
+      <div>
+        <div style="font-size:10px;color:var(--muted);">Today's Lucky Multiplier</div>
+        <div style="color:var(--gold);font-weight:700;font-size:18px;">188x</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="text-align:center;">
+        <div style="font-size:9px;color:var(--muted);">Reward</div>
+        <div style="font-size:12px;color:var(--green);font-weight:600;">+20U</div>
+      </div>
+      <div style="width:1px;height:24px;background:var(--border);"></div>
+      <div style="text-align:center;">
+        <div style="font-size:9px;color:var(--muted);">Secret</div>
+        <div style="font-size:14px;color:var(--purple);font-weight:700;">???</div>
+      </div>
+      <span style="color:var(--muted);font-size:14px;">›</span>
+    </div>
+  </div>
+
+  <!-- Activity Stats Bar -->
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 14px;background:rgba(240,185,11,0.05);border-bottom:1px solid var(--border);font-size:11px;">
+    <div style="display:flex;gap:12px;">
+      <span><span style="color:var(--muted);">Lucky:</span> <span style="color:var(--gold);font-weight:600;">188x</span></span>
+      <span><span style="color:var(--muted);">Hidden:</span> <span style="color:var(--purple);font-weight:600;">???</span></span>
+    </div>
+    <span><span style="color:var(--muted);">Slots:</span> <span style="font-weight:600;">3/5</span></span>
+  </div>
+
+  <!-- Chart Area -->
+  <div style="flex:1;position:relative;background:var(--bg);">
+    <!-- Chart Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border-bottom:1px solid var(--border);background:var(--bg2);">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:13px;font-weight:600;">STONKS/USDT</span>
+        <span style="font-size:13px;color:var(--green);font-weight:600;">947.43</span>
+        <span style="font-size:10px;color:var(--green);">+3.82%</span>
+      </div>
+      <span style="font-size:10px;color:var(--muted);">14:57:01</span>
+    </div>
+
+    <!-- K-line -->
+    <svg viewBox="0 0 400 280" style="width:100%;height:calc(100% - 36px);" preserveAspectRatio="none">
+      <line x1="0" y1="56" x2="400" y2="56" stroke="#2b3139" stroke-width="0.5"/>
+      <line x1="0" y1="112" x2="400" y2="112" stroke="#2b3139" stroke-width="0.5"/>
+      <line x1="0" y1="168" x2="400" y2="168" stroke="#2b3139" stroke-width="0.5"/>
+      <line x1="0" y1="224" x2="400" y2="224" stroke="#2b3139" stroke-width="0.5"/>
+      <polyline points="0,210 20,200 40,220 60,190 80,170 100,180 120,150 140,160 160,130 180,110 200,120 220,90 240,100 260,70 280,80 300,55 320,60 340,45 360,50 380,35" fill="none" stroke="#f0b90b" stroke-width="2"/>
+      <rect x="290" y="35" width="40" height="30" fill="rgba(240,185,11,0.15)" stroke="var(--gold)" stroke-width="1.5" rx="3"/>
+      <text x="310" y="55" text-anchor="middle" fill="var(--gold)" font-size="10" font-weight="600">188x</text>
+      <circle cx="310" cy="50" r="5" fill="var(--green)" opacity="0.8">
+        <animate attributeName="r" values="5;8;5" dur="2s" repeatCount="indefinite"/>
+      </circle>
+    </svg>
+
+    <!-- Multiplier Grid (right side) -->
+    <div style="position:absolute;right:4px;top:4px;bottom:4px;width:80px;display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(6,1fr);gap:2px;">
+      <div class="h5-mult-cell"><span class="mult-value">2x</span></div>
+      <div class="h5-mult-cell"><span class="mult-value">5x</span></div>
+      <div class="h5-mult-cell"><span class="mult-value">10x</span></div>
+      <div class="h5-mult-cell"><span class="mult-value">25x</span></div>
+      <div class="h5-mult-cell"><span class="mult-value">50x</span></div>
+      <div class="h5-mult-cell lucky"><span class="mult-value">188x</span></div>
+      <div class="h5-mult-cell"><span class="mult-value">100x</span></div>
+      <div class="h5-mult-cell"><span class="mult-value">500x</span></div>
+      <div class="h5-mult-cell hidden"><span class="mult-value">???</span></div>
+      <div class="h5-mult-cell"><span class="mult-value">999x</span></div>
+      <div class="h5-mult-cell"><span class="mult-value">5000x</span></div>
+      <div class="h5-mult-cell"><span class="mult-value">9999x</span></div>
+    </div>
+  </div>
+
+  <!-- Bottom Bet Bar -->
+  <div style="background:var(--bg2);border-top:1px solid var(--border);padding:10px 14px;">
+    <!-- Quick Amount Buttons -->
+    <div style="display:flex;gap:6px;margin-bottom:8px;">
+      <button style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px;border-radius:4px;font-size:11px;cursor:pointer;">$1</button>
+      <button style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px;border-radius:4px;font-size:11px;cursor:pointer;">$5</button>
+      <button style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px;border-radius:4px;font-size:11px;cursor:pointer;">$10</button>
+      <button style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px;border-radius:4px;font-size:11px;cursor:pointer;">$50</button>
+      <button style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px;border-radius:4px;font-size:11px;cursor:pointer;">$100</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div style="flex:1;display:flex;align-items:center;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:0 10px;">
+        <span style="font-size:12px;color:var(--muted);">USDT</span>
+        <input type="number" value="0.1" style="flex:1;background:none;border:none;color:var(--text);padding:10px 6px;font-size:14px;outline:none;text-align:right;">
+      </div>
+      <button style="background:var(--green);color:#fff;border:none;padding:10px 24px;border-radius:6px;font-weight:600;font-size:14px;cursor:pointer;" onclick="placeBet()">Place Bet</button>
+    </div>
+  </div>
+</div>
+
+<!-- App Frame (Native App) -->
+<div class="main-container app-frame" id="appFrame" style="background:var(--bg);max-width:420px;margin:0 auto;border:1px solid var(--border);border-radius:24px;overflow:hidden;">
+  <!-- iOS Status Bar -->
+  <div style="background:var(--bg);padding:6px 20px;display:flex;justify-content:space-between;align-items:center;">
+    <span style="font-size:13px;font-weight:600;">9:41</span>
+    <div style="display:flex;align-items:center;gap:4px;">
+      <span style="font-size:11px;">📶</span>
+      <span style="font-size:11px;">🔋</span>
+    </div>
+  </div>
+
+  <!-- App Navigation Bar -->
+  <div style="background:var(--bg2);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);">
+    <span style="font-size:18px;cursor:pointer;color:var(--muted);">‹</span>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="font-size:16px;font-weight:600;">TapTrading</span>
+    </div>
+    <span style="font-size:16px;cursor:pointer;color:var(--muted);" onclick="showRules()"></span>
+  </div>
+
+  <!-- Activity Banner (App style - card) -->
+  <div style="margin:10px 12px;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);border-radius:12px;padding:14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;border:1px solid rgba(240,185,11,0.2);" onclick="showActivityDetail()">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div style="width:44px;height:44px;background:rgba(240,185,11,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:24px;"></div>
+      <div>
+        <div style="font-size:10px;color:var(--muted);">Today's Lucky Multiplier</div>
+        <div style="color:var(--gold);font-weight:700;font-size:22px;line-height:1.2;">188x</div>
+        <div style="font-size:10px;color:var(--green);margin-top:2px;">Hit to win 20U Bonus</div>
+      </div>
+    </div>
+    <div style="text-align:center;">
+      <div style="font-size:9px;color:var(--muted);margin-bottom:2px;">Secret</div>
+      <div style="width:40px;height:40px;background:rgba(168,85,247,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--purple);font-weight:700;border:1px solid rgba(168,85,247,0.3);">?</div>
+      <div style="font-size:9px;color:var(--purple-light);margin-top:2px;">3/5 left</div>
+    </div>
+  </div>
+
+  <!-- Chart Area -->
+  <div style="flex:1;position:relative;background:var(--bg);margin:0 12px;">
+    <!-- Chart Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;">
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="font-size:14px;font-weight:600;">STONKS/USDT</span>
+        <span style="font-size:14px;color:var(--green);font-weight:600;">947.43</span>
+        <span style="font-size:11px;color:var(--green);">+3.82%</span>
+      </div>
+      <span style="font-size:11px;color:var(--muted);">Round: 14:57:01</span>
+    </div>
+
+    <!-- K-line -->
+    <svg viewBox="0 0 380 260" style="width:100%;height:calc(100% - 32px);" preserveAspectRatio="none">
+      <line x1="0" y1="52" x2="380" y2="52" stroke="#2b3139" stroke-width="0.5"/>
+      <line x1="0" y1="104" x2="380" y2="104" stroke="#2b3139" stroke-width="0.5"/>
+      <line x1="0" y1="156" x2="380" y2="156" stroke="#2b3139" stroke-width="0.5"/>
+      <line x1="0" y1="208" x2="380" y2="208" stroke="#2b3139" stroke-width="0.5"/>
+      <polyline points="0,195 18,185 36,205 54,175 72,155 90,165 108,135 126,145 144,115 162,95 180,105 198,75 216,85 234,55 252,65 270,40 288,45 306,32 324,38 342,25 360,20" fill="none" stroke="#f0b90b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="260" y="20" width="38" height="32" fill="rgba(240,185,11,0.15)" stroke="var(--gold)" stroke-width="2" rx="4"/>
+      <text x="279" y="41" text-anchor="middle" fill="var(--gold)" font-size="11" font-weight="700">188x</text>
+      <circle cx="279" cy="36" r="5" fill="var(--green)">
+        <animate attributeName="r" values="5;9;5" dur="2s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.8;0.3;0.8" dur="2s" repeatCount="indefinite"/>
+      </circle>
+    </svg>
+
+    <!-- Multiplier Grid -->
+    <div style="position:absolute;right:0;top:32px;bottom:0;width:90px;display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(6,1fr);gap:2px;">
+      <div class="h5-mult-cell"><span class="mult-value">2x</span></div>
+      <div class="h5-mult-cell"><span class="mult-value">5x</span></div>
+      <div class="h5-mult-cell"><span class="mult-value">10x</span></div>
+      <div class="h5-mult-cell"><span class="mult-value">25x</span></div>
+      <div class="h5-mult-cell"><span class="mult-value">50x</span></div>
+      <div class="h5-mult-cell lucky"><span class="mult-value">188x</span></div>
+      <div class="h5-mult-cell"><span class="mult-value">100x</span></div>
+      <div class="h5-mult-cell"><span class="mult-value">500x</span></div>
+      <div class="h5-mult-cell hidden"><span class="mult-value">???</span></div>
+      <div class="h5-mult-cell"><span class="mult-value">999x</span></div>
+      <div class="h5-mult-cell"><span class="mult-value">5000x</span></div>
+      <div class="h5-mult-cell"><span class="mult-value">9999x</span></div>
+    </div>
+  </div>
+
+  <!-- Bottom Bet Panel -->
+  <div style="background:var(--bg2);border-top:1px solid var(--border);padding:10px 12px;margin:0 12px;">
+    <div style="display:flex;gap:6px;margin-bottom:8px;">
+      <button style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px;border-radius:4px;font-size:11px;cursor:pointer;">$1</button>
+      <button style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px;border-radius:4px;font-size:11px;cursor:pointer;">$5</button>
+      <button style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px;border-radius:4px;font-size:11px;cursor:pointer;">$10</button>
+      <button style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px;border-radius:4px;font-size:11px;cursor:pointer;">$50</button>
+      <button style="flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:6px;border-radius:4px;font-size:11px;cursor:pointer;">$100</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div style="flex:1;display:flex;align-items:center;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:0 10px;">
+        <span style="font-size:12px;color:var(--muted);">USDT</span>
+        <input type="number" value="0.1" style="flex:1;background:none;border:none;color:var(--text);padding:10px 6px;font-size:14px;outline:none;text-align:right;">
+      </div>
+      <button style="background:var(--green);color:#fff;border:none;padding:10px 20px;border-radius:6px;font-weight:600;font-size:14px;cursor:pointer;" onclick="placeBet()">Place Bet</button>
+    </div>
+  </div>
+
+  <!-- Bottom Tab Bar -->
+  <div style="background:var(--bg2);border-top:1px solid var(--border);display:flex;justify-content:space-around;padding:6px 0 12px;">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;color:var(--muted);cursor:pointer;">
+      <span style="font-size:18px;"></span><span>Markets</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;color:var(--muted);cursor:pointer;">
+      <span style="font-size:18px;">📈</span><span>Trade</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;color:var(--gold);cursor:pointer;">
+      <span style="font-size:18px;">🎮</span><span>TapTrade</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;color:var(--muted);cursor:pointer;">
+      <span style="font-size:18px;">👛</span><span>Wallet</span>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;color:var(--muted);cursor:pointer;">
+      <span style="font-size:18px;">👤</span><span>Profile</span>
+    </div>
+  </div>
+</div>
+
+<!-- Lucky Win Modal -->
+<div class="modal-overlay" id="luckyWinModal">
+  <div class="win-modal lucky-win">
+    <button class="win-close" onclick="closeModal('luckyWinModal')">&times;</button>
+    <!-- Top decoration bar -->
+    <div style="position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--gold),var(--gold-light),var(--gold));border-radius:16px 16px 0 0;"></div>
+    <div class="win-emoji"></div>
+    <div style="font-size:12px;color:var(--gold);font-weight:600;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;">LUCKY MULTIPLIER</div>
+    <div class="win-title">Lucky Multiplier Hit!</div>
+    <div class="win-desc">You hit today's Lucky Multiplier <strong style="color:var(--gold);font-size:18px;">188x</strong>!<br>Your K-line passed through the lucky zone!</div>
+    <div style="background:rgba(240,185,11,0.08);border:1px solid rgba(240,185,11,0.2);border-radius:10px;padding:12px;margin-bottom:16px;">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Reward</div>
+      <div class="win-reward" style="margin:0;">+20U Bonus</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:4px;">Bonus balance | 3x wagering required</div>
+    </div>
+    <button class="win-btn" onclick="closeModal('luckyWinModal')">Claim Reward</button>
+    <div style="font-size:11px;color:var(--muted);margin-top:12px;">Reward will be credited to your Bonus account</div>
+  </div>
+</div>
+
+<!-- Hidden Win Modal -->
+<div class="modal-overlay" id="hiddenWinModal">
+  <!-- Background glow effect -->
+  <div style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:500px;height:500px;background:radial-gradient(circle,rgba(168,85,247,0.2) 0%,transparent 70%);pointer-events:none;animation:pulseGlow 2s ease-in-out infinite;"></div>
+  <div class="win-modal hidden-win" style="padding:40px 32px;">
+    <button class="win-close" onclick="closeModal('hiddenWinModal')" style="color:var(--purple-light);">&times;</button>
+    <!-- Top decoration bar -->
+    <div style="position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--purple),var(--purple-light),#e879f9,var(--purple));border-radius:16px 16px 0 0;"></div>
+    <!-- Animated icon -->
+    <div style="font-size:56px;margin-bottom:8px;animation:bounceIn 0.6s cubic-bezier(0.175,0.885,0.32,1.275);"></div>
+    <div style="font-size:12px;color:var(--purple-light);font-weight:600;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;">SECRET DISCOVERED</div>
+    <div class="win-title" style="font-size:24px;">Secret Multiplier Hit!</div>
+    <div class="win-desc" style="margin-bottom:12px;">You discovered the hidden multiplier <strong style="color:var(--purple-light);font-size:20px;">347x</strong>!<br>You're one of the <strong style="color:#fff;">first 5</strong> winners today!</div>
+    <div style="background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.3);border-radius:10px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:11px;color:var(--purple-light);margin-bottom:4px;">JACKPOT REWARD</div>
+      <div class="win-reward" style="margin:0;font-size:32px;">+100U Bonus</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:4px;">Bonus balance | 3x wagering required</div>
+    </div>
+    <!-- Slot indicator -->
+    <div style="display:flex;justify-content:center;gap:6px;margin-bottom:16px;">
+      <div style="width:24px;height:24px;border-radius:50%;background:var(--purple);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:700;">1</div>
+      <div style="width:24px;height:24px;border-radius:50%;background:var(--purple);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:700;">2</div>
+      <div style="width:24px;height:24px;border-radius:50%;background:var(--purple);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:700;">3</div>
+      <div style="width:24px;height:24px;border-radius:50%;background:var(--purple);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:700;">4</div>
+      <div style="width:24px;height:24px;border-radius:50%;background:rgba(168,85,247,0.2);border:1px dashed var(--purple-light);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--purple-light);">5</div>
+    </div>
+    <div style="font-size:10px;color:var(--muted);margin-bottom:12px;">You are winner #4 of 5</div>
+    <button class="win-btn" style="background:var(--purple);color:#fff;width:100%;" onclick="closeModal('hiddenWinModal')">Incredible!</button>
+    <div style="font-size:11px;color:var(--muted);margin-top:12px;">Winner announcement will be posted on TG channel</div>
+  </div>
+</div>
+
+<!-- Activity Detail Modal -->
+<div class="activity-detail-modal" id="activityDetailModal">
+  <div class="activity-detail-content">
+    <div class="ad-header">
+      <h2>🍀 Lucky Multiplier Event</h2>
+      <p>Daily special multiplier rewards in TapTrading</p>
+    </div>
+    <div class="ad-body">
+      <div class="ad-rule-card">
+        <h4>🍀 Lucky Multiplier (Public)</h4>
+        <p>Every day a special multiplier is announced. If you bet on it and the K-line passes through, you win <strong style="color:var(--gold);">20U Bonus</strong>. No limit on winners!</p>
+        <p style="margin-top:8px;">Today's Lucky: <strong style="color:var(--gold);font-size:18px;">188x</strong></p>
+      </div>
+      <div class="ad-rule-card">
+        <h4>🔮 Hidden Multiplier (Secret)</h4>
+        <p>A secret multiplier is hidden each day. Only the <strong>first 5</strong> users who hit it win <strong style="color:var(--purple);">100U Bonus</strong>. If no one hits by noon, a fallback winner is selected.</p>
+      </div>
+      <div class="ad-rule-card">
+        <h4>📋 Rules</h4>
+        <p>• KYC required to participate<br>• Min bet: 0.1 USDT<br>• Max 1 Lucky + 1 Hidden reward per user per day<br>• Rewards are Bonus balance (3x wagering)<br>• Multi-account/abuse will be disqualified</p>
+      </div>
+    </div>
+    <div class="ad-footer">
+      <button class="ad-btn secondary" onclick="closeModal('activityDetailModal')">Close</button>
+      <button class="ad-btn primary" onclick="closeModal('activityDetailModal')">Play Now</button>
+    </div>
+  </div>
+</div>
+
+<!-- Rules Panel -->
+<div class="rules-panel" id="rulesPanel">
+  <div class="rules-header">
+    <h3>🍀 Activity Rules</h3>
+    <button class="rules-close" onclick="hideRules()">&times;</button>
+  </div>
+  <div class="rules-content">
+    <div class="rules-section">
+      <h4>🍀 Lucky Multiplier</h4>
+      <ul>
+        <li>Daily announced at 00:00 UTC</li>
+        <li>Bet on the announced multiplier</li>
+        <li>If K-line passes through, win 20U Bonus</li>
+        <li>No limit on number of winners</li>
+        <li>Today: <strong style="color:var(--gold);">188x</strong></li>
+      </ul>
+    </div>
+    <div class="rules-section">
+      <h4>🔮 Hidden Multiplier</h4>
+      <ul>
+        <li>System generates a random hidden multiplier daily</li>
+        <li>First 5 users to hit it win 100U Bonus</li>
+        <li>If no winner by 12:00 UTC, fallback mechanism activates</li>
+        <li>Results announced on TG channel</li>
+      </ul>
+    </div>
+    <div class="rules-section">
+      <h4>️ Important Notes</h4>
+      <ul>
+        <li>KYC verification required</li>
+        <li>Minimum bet: 0.1 USDT</li>
+        <li>Max 1 Lucky + 1 Hidden reward per day per user</li>
+        <li>Rewards are Bonus balance with 3x wagering requirement</li>
+        <li>Multi-account or abuse will result in disqualification</li>
+      </ul>
+    </div>
+    <div class="rules-section">
+      <h4>❓ FAQ</h4>
+      <p><strong>Q: How do I know the Lucky Multiplier?</strong><br>A: It's displayed on the banner and highlighted in the multiplier grid with a gold border.</p>
+      <p style="margin-top:8px;"><strong>Q: Can I win both Lucky and Hidden on the same day?</strong><br>A: Yes! You can win up to 120U (20U + 100U) in a single day.</p>
+      <p style="margin-top:8px;"><strong>Q: What if the Hidden Multiplier is never hit?</strong><br>A: A fallback winner is selected at 12:00 UTC to ensure daily engagement.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Particles for hidden win -->
+<div class="particles" id="particles"></div>
+
+<!-- Demo Controls -->
+<div class="demo-controls">
+  <button class="demo-btn" onclick="showLuckyWin()">🍀 Demo: Lucky Win</button>
+  <button class="demo-btn" onclick="showHiddenWin()">🔮 Demo: Hidden Win</button>
+  <button class="demo-btn" onclick="showActivityDetail()">📋 Activity Detail</button>
+  <button class="demo-btn" onclick="showRules()">📖 Rules</button>
+</div>
+
+<script>
+  // Device switching
+  function switchDevice(device) {
+    document.querySelectorAll('.device-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+
+    document.getElementById('webFrame').style.display = device === 'web' ? 'flex' : 'none';
+    document.getElementById('h5Frame').style.display = device === 'h5' ? 'flex' : 'none';
+    document.getElementById('appFrame').style.display = device === 'app' ? 'flex' : 'none';
+  }
+
+  // Multiplier selection
+  function selectMult(el, mult) {
+    document.querySelectorAll('.mult-cell').forEach(c => c.style.outline = '');
+    el.style.outline = '2px solid var(--gold)';
+    document.getElementById('selectedMult').textContent = mult;
+  }
+
+  // Bet preset
+  function setBet(amount) {
+    document.getElementById('betAmount').value = amount;
+  }
+
+  // Place bet
+  function placeBet() {
+    const amount = document.getElementById('betAmount').value;
+    const mult = document.getElementById('selectedMult').textContent;
+    alert(`Bet placed!\nAmount: ${amount} USDT\nMultiplier: ${mult}\n\n(In production, this would submit to the game engine)`);
+  }
+
+  // Modals
+  function showLuckyWin() {
+    document.getElementById('luckyWinModal').classList.add('show');
+  }
+  function showHiddenWin() {
+    document.getElementById('hiddenWinModal').classList.add('show');
+    createParticles();
+  }
+  function showActivityDetail() {
+    document.getElementById('activityDetailModal').classList.add('show');
+  }
+  function showRules() {
+    document.getElementById('rulesPanel').classList.add('show');
+  }
+  function hideRules() {
+    document.getElementById('rulesPanel').classList.remove('show');
+  }
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('show');
+    if (id === 'hiddenWinModal') {
+      document.getElementById('particles').classList.remove('show');
+    }
+  }
+
+  // Particles
+  function createParticles() {
+    const container = document.getElementById('particles');
+    container.innerHTML = '';
+    container.classList.add('show');
+    const colors = ['#a855f7', '#c084fc', '#f0b90b', '#0ecb81', '#f6465d', '#1e90ff'];
+    for (let i = 0; i < 40; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.style.left = Math.random() * 100 + '%';
+      p.style.background = colors[Math.floor(Math.random() * colors.length)];
+      p.style.animationDelay = Math.random() * 1 + 's';
+      p.style.animationDuration = (1.5 + Math.random()) + 's';
+      p.style.width = (4 + Math.random() * 8) + 'px';
+      p.style.height = p.style.width;
+      container.appendChild(p);
+    }
+    setTimeout(() => container.classList.remove('show'), 3000);
+  }
+
+  // Close modals on overlay click
+  document.querySelectorAll('.modal-overlay, .activity-detail-modal').forEach(overlay => {
+    overlay.addEventListener('click', function(e) {
+      if (e.target === this) {
+        this.classList.remove('show');
+        document.getElementById('particles').classList.remove('show');
+      }
+    });
+  });
+
+  // Language switching (i18n)
+  const i18n = {
+    en: {
+      protoLabel: 'TapTrading Lucky Multiplier - Business Prototype',
+      bannerTitle: "Today's Lucky Multiplier:",
+      bannerSubtitle: 'Hit it to win 20U Bonus | Secret Multiplier also hidden today!',
+      lucky: 'Lucky:', hidden: 'Hidden:', hiddenSlots: 'Hidden Slots:', remaining: 'remaining',
+      roundEnds: 'Round ends in:', rules: 'Rules',
+      selectedMult: 'Selected Multiplier', placeBet: 'Place Bet',
+      liveBets: 'Live Bets', myBets: 'My Bets', winners: 'Winners',
+      luckyHit: 'Lucky Multiplier Hit!',
+      luckyHitDesc: "You hit today's Lucky Multiplier",
+      luckyHitDesc2: 'Your K-line passed through the lucky zone!',
+      hiddenHit: 'Secret Multiplier Hit!',
+      hiddenHitDesc: 'You discovered the hidden multiplier',
+      hiddenHitDesc2: "You're one of the first 5 winners today!",
+      claimReward: 'Claim Reward', incredible: 'Incredible!',
+      activityTitle: 'Lucky Multiplier Event',
+      activitySubtitle: 'Daily special multiplier rewards in TapTrading',
+      luckyPublic: 'Lucky Multiplier (Public)',
+      luckyRule: 'Every day a special multiplier is announced. If you bet on it and the K-line passes through, you win',
+      noLimit: 'No limit on winners!',
+      todayLucky: "Today's Lucky:",
+      hiddenSecret: 'Hidden Multiplier (Secret)',
+      hiddenRule: 'A secret multiplier is hidden each day. Only the',
+      first5: 'first 5',
+      hiddenRule2: 'users who hit it win',
+      fallbackRule: 'If no one hits by noon, a fallback winner is selected.',
+      rulesTitle: 'Activity Rules',
+      kycReq: 'KYC verification required',
+      minBet: 'Minimum bet: 0.1 USDT',
+      maxReward: 'Max 1 Lucky + 1 Hidden reward per day per user',
+      bonusBal: 'Rewards are Bonus balance with 3x wagering requirement',
+      multiAccount: 'Multi-account or abuse will result in disqualification',
+      luckyHow: 'How do I know the Lucky Multiplier?',
+      luckyHowAns: "It's displayed on the banner and highlighted in the multiplier grid with a gold border.",
+      bothWin: 'Can I win both Lucky and Hidden on the same day?',
+      bothWinAns: 'Yes! You can win up to 120U (20U + 100U) in a single day.',
+      neverHit: 'What if the Hidden Multiplier is never hit?',
+      neverHitAns: 'A fallback winner is selected at 12:00 UTC to ensure daily engagement.',
+      demoLucky: 'Demo: Lucky Win',
+      demoHidden: 'Demo: Hidden Win',
+      demoActivity: 'Activity Detail',
+      demoRules: 'Rules',
+      playNow: 'Play Now', close: 'Close'
+    },
+    zh: {
+      protoLabel: 'TapTrading 幸运倍率活动 - 业务端原型',
+      bannerTitle: '今日幸运倍率:',
+      bannerSubtitle: '命中即赢 20U Bonus | 今日还有隐藏神秘倍率！',
+      lucky: '幸运:', hidden: '神秘:', hiddenSlots: '神秘名额:', remaining: '剩余',
+      roundEnds: '本轮剩余:', rules: '规则',
+      selectedMult: '已选倍率', placeBet: '下注',
+      liveBets: '实时投注', myBets: '我的投注', winners: '中奖榜',
+      luckyHit: '幸运倍率命中！',
+      luckyHitDesc: '你命中了今日幸运倍率',
+      luckyHitDesc2: 'K线穿过了幸运区域！',
+      hiddenHit: '神秘倍率命中！',
+      hiddenHitDesc: '你发现了隐藏的神秘倍率',
+      hiddenHitDesc2: '你是今日前5名中奖者之一！',
+      claimReward: '领取奖励', incredible: '太棒了！',
+      activityTitle: '幸运倍率活动',
+      activitySubtitle: 'TapTrading 每日特殊倍率奖励',
+      luckyPublic: '幸运倍率（公开）',
+      luckyRule: '每日公布一个特殊倍率，投注该倍率且K线经过即可赢取',
+      noLimit: '中奖人数无上限！',
+      todayLucky: '今日幸运倍率:',
+      hiddenSecret: '神秘倍率（隐藏）',
+      hiddenRule: '每日系统隐藏一个倍率，仅',
+      first5: '前5名',
+      hiddenRule2: '命中者可赢取',
+      fallbackRule: '若中午前无人命中，系统将指定保底中奖者。',
+      rulesTitle: '活动规则',
+      kycReq: '需完成 KYC 认证',
+      minBet: '最低投注: 0.1 USDT',
+      maxReward: '每用户每日 Lucky + Hidden 各限 1 次',
+      bonusBal: '奖励为 Bonus 余额，需满足 3 倍流水要求',
+      multiAccount: '多账号或作弊将取消资格',
+      luckyHow: '如何知道今日幸运倍率？',
+      luckyHowAns: '在顶部 Banner 和倍率网格中以金色高亮显示。',
+      bothWin: '同一天可以同时中 Lucky 和 Hidden 吗？',
+      bothWinAns: '可以！单日最高可赢 120U（20U + 100U）。',
+      neverHit: '如果神秘倍率始终无人命中？',
+      neverHitAns: '12:00 UTC 将触发保底机制，指定一名中奖者。',
+      demoLucky: '演示: 幸运中奖',
+      demoHidden: '演示: 神秘中奖',
+      demoActivity: '活动详情',
+      demoRules: '规则',
+      playNow: '立即参与', close: '关闭'
+    }
+  };
+
+  let currentLang = 'en';
+  function switchLang(lang) {
+    currentLang = lang;
+    document.getElementById('langEn').classList.toggle('active', lang === 'en');
+    document.getElementById('langZh').classList.toggle('active', lang === 'zh');
+    const t = i18n[lang];
+
+    // Update topbar
+    document.querySelector('.proto-label').textContent = t.protoLabel;
+
+    // Update banner
+    const bannerTitleEl = document.querySelector('.banner-title');
+    if (bannerTitleEl) {
+      bannerTitleEl.innerHTML = `${t.bannerTitle} <span class="banner-lucky">188x</span>`;
+    }
+    const bannerSubEl = document.querySelector('.banner-subtitle');
+    if (bannerSubEl) bannerSubEl.textContent = t.bannerSubtitle;
+
+    // Update info bar
+    const infoLabels = document.querySelectorAll('.info-label');
+    if (infoLabels[0]) infoLabels[0].textContent = t.lucky;
+    if (infoLabels[1]) infoLabels[1].textContent = t.hidden;
+    if (infoLabels[2]) infoLabels[2].textContent = t.hiddenSlots;
+    if (infoLabels[3]) infoLabels[3].textContent = t.roundEnds;
+
+    // Update side tabs
+    const sideTabs = document.querySelectorAll('.side-tab');
+    if (sideTabs[0]) sideTabs[0].textContent = t.liveBets;
+    if (sideTabs[1]) sideTabs[1].textContent = t.myBets;
+    if (sideTabs[2]) sideTabs[2].textContent = t.winners;
+
+    // Update bet panel
+    const selectedMultLabel = document.querySelector('.bet-label');
+    if (selectedMultLabel && selectedMultLabel.textContent.includes('Selected')) {
+      selectedMultLabel.textContent = t.selectedMult;
+    }
+    const betSubmit = document.querySelector('.bet-submit');
+    if (betSubmit) betSubmit.textContent = t.placeBet;
+
+    // Update demo buttons
+    const demoBtns = document.querySelectorAll('.demo-controls .demo-btn');
+    if (demoBtns[0]) demoBtns[0].textContent = (lang === 'zh' ? '' : '') + ' ' + t.demoLucky;
+    if (demoBtns[1]) demoBtns[1].textContent = (lang === 'zh' ? '' : '') + ' ' + t.demoHidden;
+    if (demoBtns[2]) demoBtns[2].textContent = (lang === 'zh' ? '' : '') + ' ' + t.demoActivity;
+    if (demoBtns[3]) demoBtns[3].textContent = (lang === 'zh' ? '' : '') + ' ' + t.demoRules;
+
+    // Update Lucky win modal
+    const luckyTitle = document.querySelector('#luckyWinModal .win-title');
+    if (luckyTitle) luckyTitle.textContent = t.luckyHit;
+    const luckyDesc = document.querySelector('#luckyWinModal .win-desc');
+    if (luckyDesc) luckyDesc.innerHTML = `${t.luckyHitDesc} <strong style="color:var(--gold);">188x</strong>!<br>${t.luckyHitDesc2}`;
+    const luckyBtn = document.querySelector('#luckyWinModal .win-btn');
+    if (luckyBtn) luckyBtn.textContent = t.claimReward;
+
+    // Update Hidden win modal
+    const hiddenTitle = document.querySelector('#hiddenWinModal .win-title');
+    if (hiddenTitle) hiddenTitle.textContent = t.hiddenHit;
+    const hiddenDesc = document.querySelector('#hiddenWinModal .win-desc');
+    if (hiddenDesc) hiddenDesc.innerHTML = `${t.hiddenHitDesc} <strong style="color:var(--purple-light);">347x</strong>!<br>${t.hiddenHitDesc2}`;
+    const hiddenBtn = document.querySelector('#hiddenWinModal .win-btn');
+    if (hiddenBtn) hiddenBtn.textContent = t.incredible;
+
+    // Update activity detail modal
+    const adTitle = document.querySelector('#activityDetailModal .ad-header h2');
+    if (adTitle) adTitle.textContent = (lang === 'zh' ? '' : '') + ' ' + t.activityTitle;
+    const adSub = document.querySelector('#activityDetailModal .ad-header p');
+    if (adSub) adSub.textContent = t.activitySubtitle;
+
+    // Update activity detail footer buttons
+    const adBtns = document.querySelectorAll('#activityDetailModal .ad-footer .ad-btn');
+    if (adBtns[0]) adBtns[0].textContent = t.close;
+    if (adBtns[1]) adBtns[1].textContent = t.playNow;
+
+    // Update rules panel
+    const rulesHeader = document.querySelector('#rulesPanel .rules-header h3');
+    if (rulesHeader) rulesHeader.textContent = (lang === 'zh' ? '' : '') + ' ' + t.rulesTitle;
+  }
+
+  // Timer countdown simulation
+  let seconds = 14 * 3600 + 57 * 60 + 1;
+  setInterval(() => {
+    seconds--;
+    if (seconds < 0) seconds = 86400;
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    const timeStr = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    document.getElementById('roundTimer').textContent = timeStr;
+    document.getElementById('roundTimer2').textContent = timeStr;
+  }, 1000);
+</script>
+</body>
+</html>
