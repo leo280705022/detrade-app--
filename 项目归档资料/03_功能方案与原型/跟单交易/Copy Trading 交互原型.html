@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Copy Trading 交互原型</title>
+<style>
+/* ===== RESET & BASE ===== */
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Inter','PingFang SC',sans-serif;background:#0b0e11;color:#eaecef;font-size:14px;line-height:1.5;overflow:hidden;height:100vh}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#2b3139;border-radius:2px}
+
+/* ===== LAYOUT ===== */
+.app{display:flex;height:100vh}
+.sidebar{width:220px;background:#0b0e11;border-right:1px solid #1e2329;display:flex;flex-direction:column;flex-shrink:0}
+.sidebar-logo{padding:16px 20px;font-size:18px;font-weight:700;color:#f0b90b;border-bottom:1px solid #1e2329;letter-spacing:1px}
+.sidebar-menu{flex:1;overflow-y:auto;padding:8px 0}
+.menu-item{padding:10px 20px;font-size:13px;color:#848e9c;cursor:pointer;transition:all .15s}
+.menu-item:hover{color:#eaecef;background:#1e2329}
+.menu-item.active{color:#f0b90b;background:#1e2329;border-right:2px solid #f0b90b}
+.menu-group-title{padding:12px 20px 6px;font-size:11px;color:#5e6673;text-transform:uppercase;letter-spacing:.5px}
+
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:48px;background:#0b0e11;border-bottom:1px solid #1e2329;display:flex;align-items:center;padding:0 24px;flex-shrink:0}
+.breadcrumb{font-size:13px;color:#848e9c}
+.breadcrumb span{color:#eaecef}
+.content{flex:1;overflow-y:auto;padding:20px 24px;background:#0f1318}
+
+/* ===== PAGE CONTAINER ===== */
+.page{display:none}
+.page.active{display:block}
+
+/* ===== TRADE TYPE TABS ===== */
+.trade-tabs{display:flex;gap:0;background:#1e2329;border-radius:8px;padding:3px;margin-bottom:20px;width:fit-content}
+.trade-tab{padding:8px 24px;font-size:13px;font-weight:500;color:#848e9c;cursor:pointer;border-radius:6px;transition:all .15s;white-space:nowrap}
+.trade-tab:hover{color:#eaecef}
+.trade-tab.active{background:#2b3139;color:#f0b90b;font-weight:600}
+
+/* ===== ROLE TABS ===== */
+.role-tabs{display:flex;gap:24px;margin-bottom:20px;border-bottom:1px solid #1e2329;padding-bottom:0}
+.role-tab{padding:10px 0;font-size:14px;font-weight:500;color:#848e9c;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
+.role-tab:hover{color:#eaecef}
+.role-tab.active{color:#f0b90b;border-bottom-color:#f0b90b}
+
+/* ===== TOP STATS BAR ===== */
+.stats-bar{display:flex;gap:24px;margin-bottom:20px;padding:16px 20px;background:#1e2329;border-radius:8px}
+.stat-item{display:flex;flex-direction:column;gap:2px}
+.stat-label{font-size:11px;color:#848e9c}
+.stat-value{font-size:16px;font-weight:600;color:#eaecef}
+.stat-value.positive{color:#0ecb81}
+.stat-value.negative{color:#f6465d}
+
+/* ===== TOOLBAR ===== */
+.toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.toolbar-left{display:flex;gap:12px;align-items:center}
+.toolbar-right{display:flex;gap:12px;align-items:center}
+.search-box{background:#2b3139;border:1px solid #3c4049;border-radius:6px;padding:7px 12px;color:#eaecef;font-size:13px;width:200px;outline:none}
+.search-box:focus{border-color:#f0b90b}
+.search-box::placeholder{color:#5e6673}
+select.filter-select{background:#2b3139;border:1px solid #3c4049;border-radius:6px;padding:7px 12px;color:#eaecef;font-size:13px;outline:none;cursor:pointer}
+select.filter-select:focus{border-color:#f0b90b}
+.btn{padding:8px 16px;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .15s}
+.btn-primary{background:#f0b90b;color:#0b0e11}
+.btn-primary:hover{background:#d4a50a}
+.btn-outline{background:transparent;border:1px solid #3c4049;color:#eaecef}
+.btn-outline:hover{border-color:#f0b90b;color:#f0b90b}
+.btn-danger{background:transparent;border:1px solid #f6465d;color:#f6465d}
+.btn-danger:hover{background:#f6465d;color:#fff}
+.btn-sm{padding:6px 12px;font-size:12px}
+
+/* ===== TRADER CARDS ===== */
+.trader-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.trader-card{background:#1e2329;border:1px solid #2b3139;border-radius:10px;padding:20px;transition:all .2s;cursor:default}
+.trader-card:hover{border-color:#3c4049;transform:translateY(-1px)}
+.trader-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
+.trader-id{font-size:14px;font-weight:600;color:#eaecef}
+.trader-badge{font-size:10px;padding:2px 8px;border-radius:3px;font-weight:600}
+.badge-futures{background:rgba(240,185,11,.12);color:#f0b90b}
+.trader-metrics{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.metric{display:flex;flex-direction:column;gap:2px}
+.metric-label{font-size:11px;color:#848e9c}
+.metric-value{font-size:14px;font-weight:600}
+.metric-value.positive{color:#0ecb81}
+.metric-value.negative{color:#f6465d}
+.trader-footer{display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px solid #2b3139}
+.trader-copiers{font-size:12px;color:#848e9c}
+.trader-days{font-size:12px;color:#848e9c}
+.btn-copy{padding:6px 16px;background:#f0b90b;color:#0b0e11;border:none;border-radius:4px;font-size:12px;font-weight:600;cursor:pointer}
+.btn-copy:hover{background:#d4a50a}
+
+/* ===== RECRUITMENT BANNER ===== */
+.recruit-banner{background:linear-gradient(135deg,#1e2329 0%,#2b3139 100%);border:1px solid #3c4049;border-radius:10px;padding:28px 32px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;position:relative;overflow:hidden}
+.recruit-banner::after{content:'';position:absolute;right:-30px;top:-30px;width:160px;height:160px;border-radius:50%;background:rgba(240,185,11,.06)}
+.recruit-content h3{font-size:18px;font-weight:700;color:#eaecef;margin-bottom:6px}
+.recruit-content p{font-size:13px;color:#848e9c}
+.btn-apply{padding:10px 28px;background:#f0b90b;color:#0b0e11;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;position:relative;z-index:1}
+.btn-apply:hover{background:#d4a50a}
+
+/* ===== MODAL ===== */
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.65);z-index:100;justify-content:center;align-items:center}
+.modal-overlay.show{display:flex}
+.modal{background:#1e2329;border:1px solid #2b3139;border-radius:12px;width:440px;max-height:80vh;overflow-y:auto}
+.modal-header{padding:20px 24px 16px;border-bottom:1px solid #2b3139;display:flex;justify-content:space-between;align-items:center}
+.modal-header h3{font-size:16px;font-weight:600;color:#eaecef}
+.modal-close{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:4px;cursor:pointer;color:#848e9c;font-size:18px}
+.modal-close:hover{background:#2b3139;color:#eaecef}
+.modal-body{padding:20px 24px}
+.modal-footer{padding:16px 24px;border-top:1px solid #2b3139;display:flex;justify-content:flex-end;gap:12px}
+
+/* ===== FORM ELEMENTS ===== */
+.form-group{margin-bottom:16px}
+.form-label{display:block;font-size:12px;color:#848e9c;margin-bottom:6px}
+.form-input{width:100%;background:#2b3139;border:1px solid #3c4049;border-radius:6px;padding:10px 12px;color:#eaecef;font-size:13px;outline:none}
+.form-input:focus{border-color:#f0b90b}
+.form-select{width:100%;background:#2b3139;border:1px solid #3c4049;border-radius:6px;padding:10px 12px;color:#eaecef;font-size:13px;outline:none;cursor:pointer}
+.form-hint{font-size:11px;color:#5e6673;margin-top:4px}
+.form-row{display:flex;gap:12px}
+.form-row .form-group{flex:1}
+.checkbox-row{display:flex;align-items:center;gap:8px;margin:12px 0}
+.checkbox-row input[type="checkbox"]{accent-color:#f0b90b}
+.checkbox-row label{font-size:13px;color:#848e9c;cursor:pointer}
+
+/* ===== MY LEAD PANEL ===== */
+.lead-info-card{background:#1e2329;border:1px solid #2b3139;border-radius:10px;padding:24px;margin-bottom:20px}
+.lead-info-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.lead-info-header h3{font-size:16px;font-weight:600}
+.lead-info-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.lead-stat{display:flex;flex-direction:column;gap:4px}
+.lead-stat .label{font-size:11px;color:#848e9c}
+.lead-stat .value{font-size:18px;font-weight:600;color:#eaecef}
+.lead-stat .value.positive{color:#0ecb81}
+
+/* ===== TABLE ===== */
+.data-table{width:100%;border-collapse:collapse}
+.data-table th{padding:10px 16px;text-align:left;font-size:12px;font-weight:500;color:#848e9c;background:#1e2329;border-bottom:1px solid #2b3139;white-space:nowrap}
+.data-table td{padding:12px 16px;font-size:13px;color:#eaecef;border-bottom:1px solid #1e2329}
+.data-table tr:hover td{background:#1a1e24}
+.data-table .positive{color:#0ecb81}
+.data-table .negative{color:#f6465d}
+
+/* ===== COPY OVERVIEW ===== */
+.overview-tabs{display:flex;gap:0;margin-bottom:16px;border-bottom:1px solid #2b3139}
+.overview-tab{padding:10px 20px;font-size:13px;color:#848e9c;cursor:pointer;border-bottom:2px solid transparent}
+.overview-tab.active{color:#f0b90b;border-bottom-color:#f0b90b}
+.overview-card{background:#1e2329;border:1px solid #2b3139;border-radius:8px;padding:16px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.overview-card-left{display:flex;align-items:center;gap:16px}
+.overview-trader-id{font-size:14px;font-weight:600}
+.overview-metrics{display:flex;gap:20px}
+.overview-metric{display:flex;flex-direction:column;gap:2px}
+.overview-metric .label{font-size:11px;color:#848e9c}
+.overview-metric .value{font-size:13px;font-weight:500}
+.overview-actions{display:flex;gap:8px}
+
+/* ===== PROFIT SHARING MODAL ===== */
+.ratio-display{display:flex;align-items:center;gap:8px;margin-top:8px}
+.ratio-bar{flex:1;height:6px;background:#2b3139;border-radius:3px;overflow:hidden}
+.ratio-fill{height:100%;background:#f0b90b;border-radius:3px;transition:width .2s}
+.ratio-value{font-size:14px;font-weight:600;color:#f0b90b;min-width:40px;text-align:right}
+
+/* ===== PROTOTYPE NAV (page switcher) ===== */
+.proto-nav{position:fixed;bottom:0;left:0;right:0;background:#1e2329;border-top:1px solid #2b3139;padding:8px 24px;display:flex;gap:8px;z-index:200;align-items:center}
+.proto-nav-label{font-size:11px;color:#5e6673;margin-right:8px;white-space:nowrap}
+.proto-btn{padding:5px 12px;font-size:11px;border-radius:4px;border:1px solid #3c4049;background:transparent;color:#848e9c;cursor:pointer;white-space:nowrap}
+.proto-btn:hover{border-color:#f0b90b;color:#f0b90b}
+.proto-btn.active{background:#f0b90b;color:#0b0e11;border-color:#f0b90b;font-weight:600}
+
+/* ===== ANNOTATION ===== */
+.annotation{position:relative;border:2px dashed #f0b90b40;border-radius:8px;padding:8px 12px;margin:8px 0}
+.annotation-label{position:absolute;top:-10px;left:12px;background:#f0b90b;color:#0b0e11;font-size:10px;font-weight:700;padding:1px 8px;border-radius:3px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ===== SIDEBAR ===== -->
+<div class="sidebar">
+  <div class="sidebar-logo">Detrade</div>
+  <div class="sidebar-menu">
+    <div class="menu-group-title">Trade</div>
+    <div class="menu-item">Futures</div>
+    <div class="menu-item">Spot</div>
+    <div class="menu-item">Options</div>
+    <div class="menu-group-title">Earn</div>
+    <div class="menu-item">Staking</div>
+    <div class="menu-item">Launchpad</div>
+    <div class="menu-group-title">Social</div>
+    <div class="menu-item active">Copy Trade</div>
+    <div class="menu-item">Community</div>
+    <div class="menu-group-title">Account</div>
+    <div class="menu-item">Portfolio</div>
+    <div class="menu-item">Orders</div>
+    <div class="menu-item">Wallet</div>
+    <div class="menu-item">Settings</div>
+  </div>
+</div>
+
+<!-- ===== MAIN ===== -->
+<div class="main">
+  <div class="topbar">
+    <div class="breadcrumb">Social / <span>Copy Trade</span></div>
+  </div>
+  <div class="content" style="padding-bottom:60px">
+
+    <!-- ==================== PAGE 1: Lead Trader View ==================== -->
+    <div class="page active" id="page-lead-list">
+      <!-- Trade Type Tabs -->
+      <div class="trade-tabs">
+        <div class="trade-tab active" onclick="switchTradeTab(this)">Futures</div>
+        <div class="trade-tab" onclick="switchTradeTab(this)">Spread</div>
+        <div class="trade-tab" onclick="switchTradeTab(this)">High Low</div>
+        <div class="trade-tab" onclick="switchTradeTab(this)">Up Down</div>
+      </div>
+
+      <!-- Role Tabs -->
+      <div class="role-tabs">
+        <div class="role-tab active">Lead Trader</div>
+        <div class="role-tab" onclick="switchPage('page-copy-list')">Copy Trader</div>
+      </div>
+
+      <!-- Top Stats (Lead Trader view) -->
+      <div class="stats-bar">
+        <div class="stat-item">
+          <span class="stat-label">Total Copying PnL (USDT)</span>
+          <span class="stat-value positive">+2,486.32</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Total Unrealized PnL</span>
+          <span class="stat-value positive">+368.15</span>
+        </div>
+        <div style="flex:1"></div>
+        <button class="btn btn-outline btn-sm" onclick="switchPage('page-my-lead')">My Lead</button>
+        <button class="btn btn-primary btn-sm">Trade</button>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <select class="filter-select">
+            <option>30 Day</option>
+            <option>7 Day</option>
+            <option>90 Day</option>
+          </select>
+          <select class="filter-select">
+            <option>Sort by: PnL</option>
+            <option>Sort by: ROI</option>
+          </select>
+        </div>
+        <div class="toolbar-right">
+          <input class="search-box" type="text" placeholder="Search traders">
+        </div>
+      </div>
+
+      <!-- Trader Cards Grid -->
+      <div class="trader-grid">
+        <!-- Card 1 -->
+        <div class="trader-card">
+          <div class="trader-header">
+            <div class="trader-id">YdkKE7 <span style="color:#848e9c;font-weight:400;font-size:12px">1184****3673</span></div>
+            <span class="trader-badge badge-futures">Futures</span>
+          </div>
+          <div class="trader-metrics">
+            <div class="metric"><span class="metric-label">30D PnL</span><span class="metric-value positive">+1,976.99</span></div>
+            <div class="metric"><span class="metric-label">ROI</span><span class="metric-value positive">43.29%</span></div>
+            <div class="metric"><span class="metric-label">30D MDD</span><span class="metric-value negative">-275.59</span></div>
+            <div class="metric"><span class="metric-label">Profit Share</span><span class="metric-value" style="color:#f0b90b">12%</span></div>
+          </div>
+          <div class="trader-footer">
+            <span class="trader-copiers">Copiers: 128 / 400</span>
+            <span class="trader-days">28 days</span>
+          </div>
+        </div>
+        <!-- Card 2 -->
+        <div class="trader-card">
+          <div class="trader-header">
+            <div class="trader-id">Ax9mPq <span style="color:#848e9c;font-weight:400;font-size:12px">5521****8901</span></div>
+            <span class="trader-badge badge-futures">Futures</span>
+          </div>
+          <div class="trader-metrics">
+            <div class="metric"><span class="metric-label">30D PnL</span><span class="metric-value positive">+1,245.80</span></div>
+            <div class="metric"><span class="metric-label">ROI</span><span class="metric-value positive">38.12%</span></div>
+            <div class="metric"><span class="metric-label">30D MDD</span><span class="metric-value negative">-189.40</span></div>
+            <div class="metric"><span class="metric-label">Profit Share</span><span class="metric-value" style="color:#f0b90b">8%</span></div>
+          </div>
+          <div class="trader-footer">
+            <span class="trader-copiers">Copiers: 256 / 400</span>
+            <span class="trader-days">65 days</span>
+          </div>
+        </div>
+        <!-- Card 3 -->
+        <div class="trader-card">
+          <div class="trader-header">
+            <div class="trader-id">Kz3rTw <span style="color:#848e9c;font-weight:400;font-size:12px">7734****2156</span></div>
+            <span class="trader-badge badge-futures">Futures</span>
+          </div>
+          <div class="trader-metrics">
+            <div class="metric"><span class="metric-label">30D PnL</span><span class="metric-value positive">+892.15</span></div>
+            <div class="metric"><span class="metric-label">ROI</span><span class="metric-value positive">22.56%</span></div>
+            <div class="metric"><span class="metric-label">30D MDD</span><span class="metric-value negative">-412.30</span></div>
+            <div class="metric"><span class="metric-label">Profit Share</span><span class="metric-value" style="color:#f0b90b">5%</span></div>
+          </div>
+          <div class="trader-footer">
+            <span class="trader-copiers">Copiers: 89 / 400</span>
+            <span class="trader-days">14 days</span>
+          </div>
+        </div>
+        <!-- Card 4 -->
+        <div class="trader-card">
+          <div class="trader-header">
+            <div class="trader-id">Bn7vXe <span style="color:#848e9c;font-weight:400;font-size:12px">3390****6712</span></div>
+            <span class="trader-badge badge-futures">Futures</span>
+          </div>
+          <div class="trader-metrics">
+            <div class="metric"><span class="metric-label">30D PnL</span><span class="metric-value negative">-156.42</span></div>
+            <div class="metric"><span class="metric-label">ROI</span><span class="metric-value negative">-5.83%</span></div>
+            <div class="metric"><span class="metric-label">30D MDD</span><span class="metric-value negative">-520.10</span></div>
+            <div class="metric"><span class="metric-label">Profit Share</span><span class="metric-value" style="color:#f0b90b">15%</span></div>
+          </div>
+          <div class="trader-footer">
+            <span class="trader-copiers">Copiers: 12 / 400</span>
+            <span class="trader-days">7 days</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== PAGE 2: Copy Trader View ==================== -->
+    <div class="page" id="page-copy-list">
+      <div class="trade-tabs">
+        <div class="trade-tab active">Futures</div>
+        <div class="trade-tab">Spread</div>
+        <div class="trade-tab">High Low</div>
+        <div class="trade-tab">Up Down</div>
+      </div>
+      <div class="role-tabs">
+        <div class="role-tab" onclick="switchPage('page-lead-list')">Lead Trader</div>
+        <div class="role-tab active">Copy Trader</div>
+      </div>
+
+      <!-- Top Stats (Copy Trader view) -->
+      <div class="stats-bar">
+        <div class="stat-item">
+          <span class="stat-label">Total Copying PnL (USDT)</span>
+          <span class="stat-value positive">+586.20</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Total Unrealized PnL</span>
+          <span class="stat-value positive">+124.80</span>
+        </div>
+        <div style="flex:1"></div>
+        <button class="btn btn-outline btn-sm" onclick="switchPage('page-copy-overview')">Copy Overview</button>
+      </div>
+
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <select class="filter-select"><option>30 Day</option><option>7 Day</option></select>
+          <select class="filter-select"><option>Sort by: PnL</option><option>Sort by: ROI</option></select>
+        </div>
+        <div class="toolbar-right">
+          <input class="search-box" type="text" placeholder="Search traders">
+        </div>
+      </div>
+
+      <!-- Trader Cards with Copy Trade button -->
+      <div class="trader-grid">
+        <div class="trader-card">
+          <div class="trader-header">
+            <div class="trader-id">YdkKE7 <span style="color:#848e9c;font-weight:400;font-size:12px">1184****3673</span></div>
+            <span class="trader-badge badge-futures">Futures</span>
+          </div>
+          <div class="trader-metrics">
+            <div class="metric"><span class="metric-label">30D PnL</span><span class="metric-value positive">+1,976.99</span></div>
+            <div class="metric"><span class="metric-label">ROI</span><span class="metric-value positive">43.29%</span></div>
+            <div class="metric"><span class="metric-label">30D MDD</span><span class="metric-value negative">-275.59</span></div>
+            <div class="metric"><span class="metric-label">Profit Share</span><span class="metric-value" style="color:#f0b90b">12%</span></div>
+          </div>
+          <div class="trader-footer">
+            <span class="trader-copiers">128 / 400</span>
+            <button class="btn-copy" onclick="openModal('modal-copy-settings')">Copy Trade</button>
+          </div>
+        </div>
+        <div class="trader-card">
+          <div class="trader-header">
+            <div class="trader-id">Ax9mPq <span style="color:#848e9c;font-weight:400;font-size:12px">5521****8901</span></div>
+            <span class="trader-badge badge-futures">Futures</span>
+          </div>
+          <div class="trader-metrics">
+            <div class="metric"><span class="metric-label">30D PnL</span><span class="metric-value positive">+1,245.80</span></div>
+            <div class="metric"><span class="metric-label">ROI</span><span class="metric-value positive">38.12%</span></div>
+            <div class="metric"><span class="metric-label">30D MDD</span><span class="metric-value negative">-189.40</span></div>
+            <div class="metric"><span class="metric-label">Profit Share</span><span class="metric-value" style="color:#f0b90b">8%</span></div>
+          </div>
+          <div class="trader-footer">
+            <span class="trader-copiers">256 / 400</span>
+            <button class="btn-copy" onclick="openModal('modal-copy-settings')">Copy Trade</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recruitment Banner (shown when user is NOT a trader in this玩法) -->
+      <div style="margin-top:24px">
+        <div class="annotation">
+          <span class="annotation-label">未申请交易员身份时展示</span>
+          <div class="recruit-banner">
+            <div class="recruit-content">
+              <h3>Be a Spread Lead Trader, enjoy up to 30% profit share</h3>
+              <p>Share your trading strategy and earn from every profitable copy</p>
+            </div>
+            <button class="btn-apply">Apply Now</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== PAGE 3: My Lead Panel ==================== -->
+    <div class="page" id="page-my-lead">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <div style="font-size:18px;font-weight:600">My Lead — Futures</div>
+        <button class="btn btn-outline btn-sm" onclick="switchPage('page-lead-list')">← Back to List</button>
+      </div>
+
+      <!-- Trader Info Card -->
+      <div class="lead-info-card">
+        <div class="lead-info-header">
+          <div>
+            <div style="font-size:16px;font-weight:600;margin-bottom:4px">YdkKE7 1184****3673</div>
+            <div style="font-size:12px;color:#848e9c">Days Trading: <span style="color:#eaecef">28</span> &nbsp;|&nbsp; Copiers: <span style="color:#eaecef">128 / 400</span></div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-primary btn-sm">Trade</button>
+            <button class="btn btn-danger btn-sm">Close</button>
+          </div>
+        </div>
+        <div class="lead-info-grid">
+          <div class="lead-stat">
+            <span class="label">Copying Trading (USDT)</span>
+            <span class="value">15,680.00</span>
+          </div>
+          <div class="lead-stat">
+            <span class="label">Profit Sharing</span>
+            <span class="value" style="color:#f0b90b;cursor:pointer" onclick="openModal('modal-profit-sharing')">12% ✎</span>
+          </div>
+          <div class="lead-stat">
+            <span class="label">Today's Earnings (USDT)</span>
+            <span class="value positive">+186.42</span>
+          </div>
+          <div class="lead-stat">
+            <span class="label">Net Profit (USDT)</span>
+            <span class="value positive">+3,245.80</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Follow List Table -->
+      <div style="background:#1e2329;border:1px solid #2b3139;border-radius:10px;overflow:hidden">
+        <div style="padding:16px 20px;font-size:14px;font-weight:600;border-bottom:1px solid #2b3139">Follow List</div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Amount (USDT)</th>
+              <th>Total PnL (USDT)</th>
+              <th>Net Profit (USDT)</th>
+              <th>Count</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>User_8a3f</td><td>500.00</td><td class="positive">+125.60</td><td class="positive">+15.07</td><td>42</td></tr>
+            <tr><td>CryptoKing</td><td>1,200.00</td><td class="positive">+348.20</td><td class="positive">+41.78</td><td>86</td></tr>
+            <tr><td>HodlMaster</td><td>300.00</td><td class="negative">-42.15</td><td>0.00</td><td>28</td></tr>
+            <tr><td>TraderX_99</td><td>800.00</td><td class="positive">+215.80</td><td class="positive">+25.90</td><td>55</td></tr>
+            <tr><td>Whale_0x</td><td>2,000.00</td><td class="positive">+680.40</td><td class="positive">+81.65</td><td>112</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ==================== PAGE 4: Copy Overview ==================== -->
+    <div class="page" id="page-copy-overview">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <div style="font-size:18px;font-weight:600">Copy Overview — Futures</div>
+        <button class="btn btn-outline btn-sm" onclick="switchPage('page-copy-list')">← Back to List</button>
+      </div>
+
+      <!-- Summary Stats -->
+      <div class="stats-bar">
+        <div class="stat-item">
+          <span class="stat-label">Total Copying Balance (USDT)</span>
+          <span class="stat-value">3,200.00</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Total Realized PnL (USDT)</span>
+          <span class="stat-value positive">+586.20</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Total Today's PnL (USDT)</span>
+          <span class="stat-value positive">+124.80</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Net Profit (USDT)</span>
+          <span class="stat-value positive">+462.36</span>
+        </div>
+      </div>
+
+      <!-- Ongoing / Closed Tabs -->
+      <div class="overview-tabs">
+        <div class="overview-tab active" onclick="switchOverviewTab(this,'ongoing')">Ongoing</div>
+        <div class="overview-tab" onclick="switchOverviewTab(this,'closed')">Closed</div>
+      </div>
+
+      <!-- Ongoing List -->
+      <div id="ongoing-list">
+        <div class="overview-card">
+          <div class="overview-card-left">
+            <div>
+              <div class="overview-trader-id">YdkKE7 <span style="color:#848e9c;font-weight:400;font-size:12px">1184****3673</span></div>
+              <div style="font-size:11px;color:#848e9c;margin-top:2px">Copy since Jul 15, 2026</div>
+            </div>
+            <div class="overview-metrics">
+              <div class="overview-metric"><span class="label">Balance</span><span class="value">800.00</span></div>
+              <div class="overview-metric"><span class="label">Realized PnL</span><span class="value" style="color:#0ecb81">+186.40</span></div>
+              <div class="overview-metric"><span class="label">Unrealized</span><span class="value" style="color:#0ecb81">+42.15</span></div>
+              <div class="overview-metric"><span class="label">Net Profit</span><span class="value" style="color:#0ecb81">+163.56</span></div>
+            </div>
+          </div>
+          <div class="overview-actions">
+            <button class="btn btn-danger btn-sm">Close</button>
+          </div>
+        </div>
+        <div class="overview-card">
+          <div class="overview-card-left">
+            <div>
+              <div class="overview-trader-id">Ax9mPq <span style="color:#848e9c;font-weight:400;font-size:12px">5521****8901</span></div>
+              <div style="font-size:11px;color:#848e9c;margin-top:2px">Copy since Jul 20, 2026</div>
+            </div>
+            <div class="overview-metrics">
+              <div class="overview-metric"><span class="label">Balance</span><span class="value">400.00</span></div>
+              <div class="overview-metric"><span class="label">Realized PnL</span><span class="value" style="color:#0ecb81">+98.60</span></div>
+              <div class="overview-metric"><span class="label">Unrealized</span><span class="value" style="color:#0ecb81">+82.65</span></div>
+              <div class="overview-metric"><span class="label">Net Profit</span><span class="value" style="color:#0ecb81">+73.20</span></div>
+            </div>
+          </div>
+          <div class="overview-actions">
+            <button class="btn btn-danger btn-sm">Close</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Closed List (hidden by default) -->
+      <div id="closed-list" style="display:none">
+        <div class="overview-card" style="opacity:.7">
+          <div class="overview-card-left">
+            <div>
+              <div class="overview-trader-id">Kz3rTw <span style="color:#848e9c;font-weight:400;font-size:12px">7734****2156</span></div>
+              <div style="font-size:11px;color:#848e9c;margin-top:2px">Closed: Jul 18, 2026 · Stop Loss</div>
+            </div>
+            <div class="overview-metrics">
+              <div class="overview-metric"><span class="label">Balance</span><span class="value">0.00</span></div>
+              <div class="overview-metric"><span class="label">Realized PnL</span><span class="value" style="color:#f6465d">-156.42</span></div>
+              <div class="overview-metric"><span class="label">Net Profit</span><span class="value" style="color:#f6465d">-156.42</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ==================== MODAL: Copy Settings ==================== -->
+<div class="modal-overlay" id="modal-copy-settings">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Copy Settings</h3>
+      <div class="modal-close" onclick="closeModal('modal-copy-settings')">×</div>
+    </div>
+    <div class="modal-body">
+      <div class="annotation" style="margin-bottom:16px">
+        <span class="annotation-label">仅 Futures 显示杠杆</span>
+      </div>
+
+      <!-- Leverage -->
+      <div class="form-group">
+        <label class="form-label">Leverage</label>
+        <select class="form-select">
+          <option>Copy Leader Trader's Leverage</option>
+          <option>Fixed Leverage</option>
+        </select>
+        <div class="form-hint">Recommended: follow leader's leverage for consistent results</div>
+      </div>
+
+      <!-- Cost Per Order -->
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Latest Cost Per Order (USDT)</label>
+          <input class="form-input" type="number" value="1" min="1">
+          <div class="form-hint">Amount per copy trade</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Latest Copy Amount (USDT)</label>
+          <input class="form-input" type="number" value="100" min="1">
+          <div class="form-hint">Total copy limit</div>
+        </div>
+      </div>
+
+      <!-- Currency -->
+      <div class="form-group">
+        <label class="form-label">Currency</label>
+        <select class="form-select">
+          <option>USDT</option>
+        </select>
+      </div>
+
+      <!-- Stop Loss Ratio -->
+      <div class="form-group">
+        <label class="form-label">Stop Loss Ratio (%)</label>
+        <input class="form-input" type="number" value="50" min="0" max="90">
+        <div class="form-hint">Futures: per-order stop loss | Spread/HighLow/UpDown: total copy amount stop loss. Range: 0-90%, 0 = no stop loss</div>
+      </div>
+
+      <!-- Trading Amount Limit Note -->
+      <div class="checkbox-row">
+        <input type="checkbox" id="limit-note" checked>
+        <label for="limit-note">Trading Amount Limit Note</label>
+      </div>
+
+      <!-- Summary -->
+      <div style="background:#2b3139;border-radius:6px;padding:12px 16px;margin-top:12px;font-size:12px;color:#848e9c">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+          <span>Trader Profit Share</span><span style="color:#f0b90b;font-weight:600">12%</span>
+        </div>
+        <div style="display:flex;justify-content:space-between">
+          <span>Est. max orders</span><span style="color:#eaecef">100</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-copy-settings')">Cancel</button>
+      <button class="btn btn-primary">Copy Trade</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== MODAL: Profit Sharing Ratio ==================== -->
+<div class="modal-overlay" id="modal-profit-sharing">
+  <div class="modal" style="width:380px">
+    <div class="modal-header">
+      <h3>Profit Sharing Ratio</h3>
+      <div class="modal-close" onclick="closeModal('modal-profit-sharing')">×</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Current Ratio (%)</label>
+        <input class="form-input" type="number" value="12" min="1" max="15" id="ratio-input" oninput="updateRatioBar()">
+        <div class="form-hint">Futures range: 1% — 15% | Spread/HighLow/UpDown: 1% — 5%</div>
+      </div>
+      <div class="ratio-display">
+        <div class="ratio-bar"><div class="ratio-fill" id="ratio-fill" style="width:80%"></div></div>
+        <div class="ratio-value" id="ratio-value">12%</div>
+      </div>
+      <div style="margin-top:16px;font-size:12px;color:#848e9c;background:#2b3139;border-radius:6px;padding:12px">
+        <div style="margin-bottom:4px;color:#eaecef;font-weight:500">Example:</div>
+        Copier earns <span style="color:#0ecb81">100 USDT</span> → You receive <span style="color:#f0b90b">12 USDT</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-profit-sharing')">Cancel</button>
+      <button class="btn btn-primary" onclick="closeModal('modal-profit-sharing')">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PROTOTYPE PAGE NAVIGATOR ===== -->
+<div class="proto-nav">
+  <span class="proto-nav-label">原型页面切换：</span>
+  <button class="proto-btn active" onclick="switchPage('page-lead-list',this)">Lead Trader 列表</button>
+  <button class="proto-btn" onclick="switchPage('page-copy-list',this)">Copy Trader 列表</button>
+  <button class="proto-btn" onclick="switchPage('page-my-lead',this)">My Lead 面板</button>
+  <button class="proto-btn" onclick="switchPage('page-copy-overview',this)">Copy Overview</button>
+  <button class="proto-btn" onclick="openModal('modal-copy-settings')">弹窗: Copy Settings</button>
+  <button class="proto-btn" onclick="openModal('modal-profit-sharing')">弹窗: Profit Sharing</button>
+</div>
+
+<script>
+function switchPage(pageId, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(pageId).classList.add('active');
+  // Update proto nav buttons
+  if (btn) {
+    document.querySelectorAll('.proto-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+}
+
+function switchTradeTab(el) {
+  el.parentElement.querySelectorAll('.trade-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function switchOverviewTab(el, tab) {
+  el.parentElement.querySelectorAll('.overview-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('ongoing-list').style.display = tab === 'ongoing' ? 'block' : 'none';
+  document.getElementById('closed-list').style.display = tab === 'closed' ? 'block' : 'none';
+}
+
+function openModal(id) {
+  document.getElementById(id).classList.add('show');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+}
+
+function updateRatioBar() {
+  const val = parseInt(document.getElementById('ratio-input').value) || 0;
+  const pct = Math.min(Math.max(val / 15 * 100, 0), 100);
+  document.getElementById('ratio-fill').style.width = pct + '%';
+  document.getElementById('ratio-value').textContent = val + '%';
+}
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('show');
+  });
+});
+</script>
+</body>
+</html>

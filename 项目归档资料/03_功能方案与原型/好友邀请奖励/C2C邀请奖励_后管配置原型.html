@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>C2C 邀请奖励 - 后管配置原型 v4.0</title>
+    <title>C2C 邀请奖励 - 后管配置原型 v5.0</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f2f5; color: #333; overflow: hidden; font-size: 13px; }
@@ -165,7 +165,7 @@
     <div class="sidebar">
         <div class="logo">
             <h1>DeTrade 后台管理</h1>
-            <span>配置原型 v4.0</span>
+            <span>配置原型 v5.0</span>
         </div>
         <div class="menu-parent" style="font-size:12px;opacity:0.5;">运营看板</div>
         <div class="menu-parent" style="font-size:12px;opacity:0.5;">交易管理</div>
@@ -205,10 +205,17 @@
                     <label>活动状态</label>
                     <select>
                         <option>全部</option>
-                        <option>未上线</option>
-                        <option>已上线</option>
-                        <option>已下线</option>
+                        <option>进行中</option>
                         <option>已结束</option>
+                    </select>
+                </div>
+                <div class="filter-item">
+                    <label>上架状态</label>
+                    <select>
+                        <option>全部</option>
+                        <option>待上架</option>
+                        <option>已上架</option>
+                        <option>已下架</option>
                     </select>
                 </div>
                 <div class="filter-item">
@@ -229,7 +236,8 @@
                             <tr>
                                 <th style="width:60px;">ID</th>
                                 <th>活动名称</th>
-                                <th style="width:80px;">状态</th>
+                                <th style="width:80px;">活动状态</th>
+                                <th style="width:80px;">上架状态</th>
                                 <th style="width:160px;">活动时间</th>
                                 <th style="width:130px;">有效邀请 / 参与用户</th>
                                 <th style="width:120px;">累计奖励 (USDT)</th>
@@ -240,7 +248,8 @@
                             <tr>
                                 <td class="mono">1001</td>
                                 <td>Invite & Earn Q3</td>
-                                <td><span class="tag tag-green">已上线</span></td>
+                                <td><span class="tag tag-green">进行中</span></td>
+                                <td><span class="tag tag-green">已上架</span></td>
                                 <td class="mono" style="font-size:11px;">2026-07-01 ~ 2026-09-30</td>
                                 <td class="mono">256 / 1,024</td>
                                 <td class="mono">12,500</td>
@@ -248,22 +257,23 @@
                                     <div class="actions">
                                         <button class="btn-link" onclick="openModal('view')">查看</button>
                                         <span class="divider"></span>
-                                        <button class="btn-link danger" onclick="tryOffline('Invite & Earn Q3')">下线</button>
+                                        <button class="btn-link danger" onclick="tryOffline('Invite & Earn Q3')">下架</button>
                                     </div>
                                 </td>
                             </tr>
                             <tr>
                                 <td class="mono">1002</td>
                                 <td>Summer Invite</td>
-                                <td><span class="tag tag-gray">未上线</span></td>
-                                <td class="mono" style="font-size:11px;">2026-08-01 ~ 2026-08-31</td>
+                                <td><span class="tag tag-gray">进行中</span></td>
+                                <td><span class="tag tag-orange">待上架</span></td>
+                                <td class="mono" style="font-size:11px;">2026-07-15 ~ 2026-08-31</td>
                                 <td class="mono">0 / 0</td>
                                 <td class="mono">0</td>
                                 <td>
                                     <div class="actions">
                                         <button class="btn-link" onclick="openModal('edit')">编辑</button>
                                         <span class="divider"></span>
-                                        <button class="btn-link" onclick="tryOnline('Summer Invite')">上线</button>
+                                        <button class="btn-link" onclick="tryOnline('Summer Invite')">上架</button>
                                         <span class="divider"></span>
                                         <button class="btn-link danger" onclick="tryDelete('Summer Invite')">删除</button>
                                     </div>
@@ -272,17 +282,16 @@
                             <tr>
                                 <td class="mono">1003</td>
                                 <td>VIP Invite Event</td>
-                                <td><span class="tag tag-blue">已下线</span></td>
-                                <td class="mono" style="font-size:11px;">2026-06-01 ~ 2026-06-30</td>
+                                <td><span class="tag tag-green">进行中</span></td>
+                                <td><span class="tag tag-blue">已下架</span></td>
+                                <td class="mono" style="font-size:11px;">2026-07-01 ~ 2026-09-30</td>
                                 <td class="mono">89 / 320</td>
                                 <td class="mono">5,200</td>
                                 <td>
                                     <div class="actions">
                                         <button class="btn-link" onclick="openModal('view')">查看</button>
                                         <span class="divider"></span>
-                                        <button class="btn-link" onclick="copyActivity('VIP Invite Event')">复制</button>
-                                        <span class="divider"></span>
-                                        <button class="btn-link" onclick="tryOnline('VIP Invite Event')">上线</button>
+                                        <button class="btn-link" onclick="tryOnline('VIP Invite Event')">上架</button>
                                     </div>
                                 </td>
                             </tr>
@@ -290,14 +299,13 @@
                                 <td class="mono">1004</td>
                                 <td>Spring Festival</td>
                                 <td><span class="tag tag-gray">已结束</span></td>
+                                <td><span class="tag tag-gray">已下架</span></td>
                                 <td class="mono" style="font-size:11px;">2026-01-15 ~ 2026-02-28</td>
                                 <td class="mono">450 / 1,800</td>
                                 <td class="mono">32,000</td>
                                 <td>
                                     <div class="actions">
                                         <button class="btn-link" onclick="openModal('view')">查看</button>
-                                        <span class="divider"></span>
-                                        <button class="btn-link" onclick="copyActivity('Spring Festival')">复制</button>
                                     </div>
                                 </td>
                             </tr>
@@ -305,14 +313,13 @@
                                 <td class="mono">1005</td>
                                 <td>New User Bonus</td>
                                 <td><span class="tag tag-gray">已结束</span></td>
+                                <td><span class="tag tag-gray">已下架</span></td>
                                 <td class="mono" style="font-size:11px;">2026-03-01 ~ 2026-05-31</td>
                                 <td class="mono">180 / 720</td>
                                 <td class="mono">8,900</td>
                                 <td>
                                     <div class="actions">
                                         <button class="btn-link" onclick="openModal('view')">查看</button>
-                                        <span class="divider"></span>
-                                        <button class="btn-link" onclick="copyActivity('New User Bonus')">复制</button>
                                     </div>
                                 </td>
                             </tr>
@@ -354,6 +361,11 @@
                         <label class="fl">结束时间</label>
                         <input type="datetime-local" class="fi" id="f-end">
                     </div>
+                </div>
+                <div class="fg" style="display:flex;align-items:center;gap:10px;margin-top:4px;">
+                    <label class="fl" style="margin:0;">立即上架</label>
+                    <label class="sw"><input type="checkbox" id="f-auto-list" checked><span class="sl"></span></label>
+                    <span style="font-size:11px;color:#999;" id="auto-list-hint">开启后到达开始时间将自动上架</span>
                 </div>
             </div>
 
@@ -485,18 +497,18 @@
 
     // ===== 操作交互 =====
 
-    // 上线操作 - 异常分支演示
+    // 上架操作 - 异常分支演示
     function tryOnline(name) {
-        // 模拟：当前已有「Invite & Earn Q3」在线
-        showToast('上线失败：当前已有活动「Invite & Earn Q3」在线，请先下线后再操作', 'error');
+        // 模拟：当前已有「Invite & Earn Q3」已上架
+        showToast('上架失败：当前已有活动「Invite & Earn Q3」已上架，请先下架后再操作', 'error');
     }
 
-    // 下线操作 - 确认弹窗
+    // 下架操作 - 确认弹窗
     function tryOffline(name) {
         showConfirm(
-            '⚠️ 确认下线',
-            '下线后用户将无法看到该活动，已产生的邀请记录继续有效。<br><br><span class="warn">该活动仍有 3 笔待发放奖励，下线后不会自动发放。</span><br><br>确认下线「' + name + '」？',
-            function() { showToast('活动「' + name + '」已下线', 'success'); }
+            '⚠️ 确认下架',
+            '下架后用户将无法看到该活动，已产生的邀请记录继续有效。<br><br><span class="warn">该活动仍有 3 笔待发放奖励，下架后不会自动发放。</span><br><br>确认下架「' + name + '」？',
+            function() { showToast('活动「' + name + '」已下架', 'success'); }
         );
     }
 
@@ -508,11 +520,6 @@
             '确认删除活动「' + name + '」？删除后不可恢复。',
             function() { showToast('活动「' + name + '」已删除', 'success'); }
         );
-    }
-
-    // 复制操作
-    function copyActivity(name) {
-        showToast('已复制活动「' + name + ' - 副本」，请编辑后上线', 'success');
     }
 
     // 弹窗模式切换
@@ -530,7 +537,7 @@
 
         if (mode === 'create') {
             title.textContent = '新建活动';
-            footer.innerHTML = '<button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="closeModal()">保存</button>';
+            footer.innerHTML = '<button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveWithValidation()">保存</button>';
             setReadonly(inputs, false);
             setReadonly(tierInputs, false);
             setSelDisabled(tierSels, false);
@@ -540,7 +547,7 @@
             tierOps.forEach(el => el.style.display = '');
         } else if (mode === 'edit') {
             title.textContent = '编辑活动';
-            footer.innerHTML = '<button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="closeModal()">保存</button>';
+            footer.innerHTML = '<button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveWithValidation()">保存</button>';
             setReadonly(inputs, false);
             setReadonly(tierInputs, false);
             setSelDisabled(tierSels, false);
@@ -550,7 +557,7 @@
             tierOps.forEach(el => el.style.display = '');
         } else if (mode === 'view') {
             title.textContent = '查看活动';
-            footer.innerHTML = '<button class="btn" onclick="closeModal()">关闭</button><button class="btn btn-primary" onclick="closeModal()">复制为新活动</button>';
+            footer.innerHTML = '<button class="btn" onclick="closeModal()">关闭</button>';
             setReadonly(inputs, true);
             setReadonly(tierInputs, true);
             setSelDisabled(tierSels, true);
@@ -628,9 +635,41 @@
         const hasCoupon = Array.from(sels).some(s => s.value === 'coupon');
         document.getElementById('coupon-hint').classList.toggle('show', hasCoupon);
     }
-    document.getElementById('tier-body').addEventListener('input', e => { if (e.target.tagName === 'INPUT') calcTotal(); });
+    document.getElementById('tier-body').addEventListener('input', e => { if (e.target.tagName === 'INPUT') { calcTotal(); validateTiers(); } });
     // 初始化检查
     checkCouponHint();
+
+    // 保存前校验
+    function saveWithValidation() {
+        if (!validateTiers()) {
+            showToast('保存失败：下一个阶梯的邀请人数必须大于上一个阶梯', 'error');
+            return;
+        }
+        closeModal();
+        showToast('活动已保存', 'success');
+    }
+
+    // 阶梯人数严格递增校验
+    function validateTiers() {
+        const rows = document.getElementById('tier-body').querySelectorAll('tr');
+        let prevCount = 0;
+        let valid = true;
+        rows.forEach(r => {
+            const input = r.querySelector('td:nth-child(2) input');
+            if (!input) return;
+            const count = parseInt(input.value) || 0;
+            if (count <= prevCount) {
+                input.style.borderColor = '#ff4d4f';
+                input.style.background = '#fff1f0';
+                valid = false;
+            } else {
+                input.style.borderColor = '';
+                input.style.background = '';
+            }
+            prevCount = count;
+        });
+        return valid;
+    }
 </script>
 </body>
 </html>

@@ -127,7 +127,7 @@ td:first-child{font-weight:500;color:#1e293b}
 <div class="page-card">
 <div class="title">Copy Settings 弹窗</div>
 <div class="url">弹窗（无独立 URL）</div>
-<div class="desc">跟单员点击 "Copy Trade" 按钮后弹出，配置杠杆、金额、止损等参数。</div>
+<div class="desc">跟单员点击 "Copy Trade" 按钮后弹出，配置杠杆、金额等参数（Futures 暂不支持设置止损）。</div>
 </div>
 </div>
 
@@ -147,14 +147,14 @@ td:first-child{font-weight:500;color:#1e293b}
 <tr><td>分润比例范围</td><td>1% — 15%</td><td>1% — 5%</td><td>1% — 5%</td><td>1% — 5%</td></tr>
 <tr><td>默认分润</td><td>5%</td><td>2.5%</td><td>2.5%</td><td>2.5%</td></tr>
 <tr><td>杠杆支持</td><td>支持（跟随/固定）</td><td>不适用</td><td>不适用</td><td>不适用</td></tr>
-<tr><td>止损机制</td><td>支持（按单笔订单止损）</td><td>支持（按总跟单金额止损）</td><td>支持（按总跟单金额止损）</td><td>支持（按总跟单金额止损）</td></tr>
-<tr><td>交易员申请</td><td>独立申请</td><td>独立申请</td><td>独立申请</td><td>独立申请</td></tr>
+<tr><td>跟单员止损设置</td><td><strong>暂不支持</strong>（仓位维度和总跟单金额维度均不支持）</td><td>支持（按总跟单金额止损）</td><td>支持（按总跟单金额止损）</td><td>支持（按总跟单金额止损）</td></tr>
+<tr><td>交易员申请</td><td>独立申请（需有该玩法交易数据）</td><td>独立申请（需有该玩法交易数据）</td><td>独立申请（需有该玩法交易数据）</td><td>独立申请（需有该玩法交易数据）</td></tr>
 <tr><td>最大跟单员数</td><td>400</td><td>400</td><td>400</td><td>400</td></tr>
 <tr><td>结算币种</td><td>USDT</td><td>USDT</td><td>USDT</td><td>USDT</td></tr>
 </table>
 
 <div class="callout callout-warn">
-<strong>运营注意：</strong>四种玩法的交易员身份完全独立。一个用户可以在 Futures 中是交易员（12% 分润），同时在 Spread 中是普通用户。推广时需按玩法分别引导。
+<strong>运营注意：</strong>四种玩法的交易员身份完全独立。一个用户可以在 Futures 中是交易员（12% 分润），同时在 Spread 中是普通用户。推广时需按玩法分别引导。<br><strong>申请条件：</strong>每个玩法申请成为交易员时，用户必须在该玩法下已有交易数据（交易记录），没有交易数据无法申请。
 </div>
 
 <h3>2.1 页面状态差异</h3>
@@ -250,7 +250,7 @@ td:first-child{font-weight:500;color:#1e293b}
 <div class="flow-step">
 <div class="step-num">3</div>
 <div class="step-title">配置参数</div>
-<div class="step-desc">设置杠杆、金额、止损等</div>
+<div class="step-desc">设置杠杆、金额等（Futures 暂不支持止损）</div>
 </div>
 <div class="flow-step">
 <div class="step-num">4</div>
@@ -285,15 +285,15 @@ td:first-child{font-weight:500;color:#1e293b}
 <tr><td><strong>Latest Copy Amount</strong></td><td>跟单总金额上限。当累计跟单金额达到此值后停止跟单。</td><td>100</td><td>正数，需 ≥ Cost Per Order</td></tr>
 <tr><td><strong>Currency</strong></td><td>跟单结算币种</td><td>USDT</td><td>当前仅支持 USDT</td></tr>
 <tr><td><strong>Trading Amount Limit Note</strong></td><td>勾选后，当跟单金额接近限制时发送提醒通知</td><td>勾选</td><td>可选</td></tr>
-<tr><td><strong>Stop Loss Ratio</strong></td><td>止损比例（%）。<br><strong>Futures</strong>：按单笔订单计算，当某笔订单亏损达到此比例时，自动平掉该笔订单。<br><strong>Spread / High Low / Up Down</strong>：按总跟单金额计算，当累计亏损达到总跟单金额的此比例时，停止跟单并触发止损。</td><td>50</td><td>0 — 90 之间的整数</td></tr>
+<tr><td><strong>Stop Loss Ratio</strong></td><td>止损比例（%）。<br><strong>Futures</strong>：<strong>暂不支持</strong>设置止损（仓位维度和总跟单金额维度均不支持），跟单员设置弹窗中不展示此参数。<br><strong>Spread / High Low / Up Down</strong>：按总跟单金额计算，当累计亏损达到总跟单金额的此比例时，停止跟单并触发止损。</td><td>Spread/HighLow/UpDown: 50</td><td>Spread/HighLow/UpDown: 0 — 90 之间的整数</td></tr>
 </table>
 
 <div class="callout callout-info">
 <strong>关键业务逻辑：</strong>
 <ul style="padding-left:16px;margin-top:6px">
 <li>杠杆选择"跟随交易员"时，交易员调整杠杆后跟单员自动同步；选择"固定杠杆"则不受交易员影响。</li>
-<li>止损机制因玩法不同：<strong>Futures</strong> 按单笔订单止损（某笔订单亏损达到比例时平仓该笔）；<strong>Spread / High Low / Up Down</strong> 按总跟单金额止损（累计亏损达到总跟单金额的比例时，停止跟单并触发止损）。</li>
-<li>Stop Loss Ratio 的验证规则：必须在 0-90% 之间，超出范围提交时提示 "Stop-loss ratio must be between 0-90%"。</li>
+<li><strong>Futures</strong> 跟单员设置弹窗中<strong>暂不支持</strong>设置止损（仓位维度和总跟单金额维度均不支持），即 Futures 跟单员设置弹窗中不展示 Stop Loss Ratio 参数。</li>
+<li><strong>Spread / High Low / Up Down</strong> 按总跟单金额止损（累计亏损达到总跟单金额的比例时，停止跟单并触发止损）。Stop Loss Ratio 的验证规则：必须在 0-90% 之间，超出范围提交时提示 "Stop-loss ratio must be between 0-90%"。</li>
 </ul>
 </div>
 </div>
@@ -409,7 +409,7 @@ td:first-child{font-weight:500;color:#1e293b}
 <tr><td>2. 检查仓位</td><td>在 Copy Overview → Ongoing 中查看是否有进行中的跟单</td></tr>
 <tr><td>3. 检查余额</td><td>确认跟单员账户余额是否充足（≥ Cost Per Order）</td></tr>
 <tr><td>4. 检查限额</td><td>确认 Copy Amount 上限是否已用完</td></tr>
-<tr><td>5. 检查止损</td><td>Futures：确认是否有单笔订单触发止损平仓；Spread/HighLow/UpDown：确认累计亏损是否达到总跟单金额的止损比例，触发后系统会停止跟单</td></tr>
+<tr><td>5. 检查止损</td><td>Futures：当前跟单员暂不支持设置止损，不涉及止损触发；Spread/HighLow/UpDown：确认累计亏损是否达到总跟单金额的止损比例，触发后系统会停止跟单</td></tr>
 </table>
 
 <h3>场景 2：交易员想调整分润比例</h3>
@@ -429,6 +429,10 @@ td:first-child{font-weight:500;color:#1e293b}
 <li>审核通过后即可在 Lead Trader 视图中展示自己的交易数据</li>
 </ul>
 
+<div class="callout callout-warn">
+<strong>申请条件：</strong>每个玩法申请成为交易员时，用户必须在该玩法下已有交易数据（交易记录）。没有交易数据的用户无法申请成为交易员。四种玩法的交易员身份完全独立，需要在每个玩法下分别满足交易数据要求后分别申请。
+</div>
+
 <h3>场景 4：用户想停止跟单</h3>
 <p>引导路径：<kbd>Copy Trade</kbd> → <kbd>Copy Overview</kbd> → <kbd>Ongoing</kbd> → 选择对应仓位关闭</p>
 <ul style="padding-left:20px;color:#475569;margin:8px 0">
@@ -440,7 +444,7 @@ td:first-child{font-weight:500;color:#1e293b}
 <p>引导路径：<kbd>Copy Trade</kbd> → <kbd>My Lead</kbd> → <kbd>Close</kbd></p>
 <ul style="padding-left:20px;color:#475569;margin:8px 0">
 <li>关闭后不再接受新的跟单</li>
-<li>已有仓位继续运行至自然关闭或止损触发（Futures 按单笔订单止损，其他玩法按总跟单金额止损）</li>
+<li>已有仓位继续运行至自然关闭或止损触发（Futures 暂不支持跟单员止损设置，其他玩法按总跟单金额止损）</li>
 <li>关闭后可以重新申请成为交易员</li>
 </ul>
 

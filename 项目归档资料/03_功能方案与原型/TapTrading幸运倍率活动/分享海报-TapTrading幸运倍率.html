@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TapTrading — Social Sharing Poster</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* ─── Reset & Page ─── */
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    /* ── Lucky Palette (Gold Luxury) ── */
+    --lucky-bg:        #08060A;
+    --lucky-surface:   #110E16;
+    --lucky-gold-1:    #F5C842;
+    --lucky-gold-2:    #E8A920;
+    --lucky-gold-3:    #D4A017;
+    --lucky-gold-soft: rgba(245, 200, 66, 0.12);
+    --lucky-ink:       #F5F0E0;
+    --lucky-muted:     #9A917A;
+
+    /* ── Hidden Palette (Mysterious Violet) ── */
+    --hidden-bg:        #06040E;
+    --hidden-surface:   #0E0A1A;
+    --hidden-violet-1:  #A78BFA;
+    --hidden-violet-2:  #8B5CF6;
+    --hidden-violet-3:  #7C3AED;
+    --hidden-violet-soft: rgba(167, 139, 250, 0.12);
+    --hidden-ink:       #EDE9FE;
+    --hidden-muted:     #7A7490;
+
+    /* ── Shared ── */
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-mono:    'JetBrains Mono', monospace;
+    --font-body:    'Inter', sans-serif;
+  }
+
+  body {
+    background: #0A0A0F;
+    font-family: var(--font-body);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 40px 20px;
+    gap: 60px;
+  }
+
+  /* ─── Section Labels ─── */
+  .section-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: #555;
+    margin-bottom: -36px;
+  }
+
+  /* ─── Poster Base ─── */
+  .poster {
+    position: relative;
+    width: 380px;
+    height: 620px;
+    border-radius: 20px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .poster:hover {
+    transform: scale(1.02) translateY(-4px);
+  }
+
+  /* ─── Background Layers ─── */
+  .poster-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+
+  .poster-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% 30%, var(--glow-color) 0%, transparent 70%);
+    opacity: 0.5;
+  }
+
+  .poster-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 100% 80% at 50% 100%, transparent 40%, var(--bg) 100%);
+  }
+
+  /* ── Lucky BG ── */
+  .poster-lucky { --bg: var(--lucky-bg); --glow-color: rgba(245, 200, 66, 0.15); }
+  .poster-lucky .poster-bg { background: var(--lucky-bg); }
+
+  /* ── Hidden BG ── */
+  .poster-hidden { --bg: var(--hidden-bg); --glow-color: rgba(139, 92, 246, 0.15); }
+  .poster-hidden .poster-bg { background: var(--hidden-bg); }
+
+  /* ─── Grain Overlay ─── */
+  .grain {
+    position: absolute;
+    inset: 0;
+    z-index: 6;
+    pointer-events: none;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* ─── Canvas (Particles) ─── */
+  .poster canvas {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  /* ─── Orb Glow ─── */
+  .orb {
+    position: absolute;
+    z-index: 1;
+    border-radius: 50%;
+    filter: blur(60px);
+    animation: orbPulse 4s ease-in-out infinite;
+  }
+
+  .poster-lucky .orb {
+    width: 200px; height: 200px;
+    top: 15%; left: 50%;
+    transform: translateX(-50%);
+    background: radial-gradient(circle, rgba(245, 200, 66, 0.35), transparent 70%);
+  }
+
+  .poster-hidden .orb {
+    width: 220px; height: 220px;
+    top: 12%; left: 50%;
+    transform: translateX(-50%);
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.3), transparent 70%);
+  }
+
+  @keyframes orbPulse {
+    0%, 100% { opacity: 0.6; transform: translateX(-50%) scale(1); }
+    50%      { opacity: 1;   transform: translateX(-50%) scale(1.15); }
+  }
+
+  /* ─── Rays ─── */
+  .rays {
+    position: absolute;
+    z-index: 1;
+    top: -30%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 500px;
+    height: 500px;
+    opacity: 0.12;
+    animation: raysRotate 30s linear infinite;
+  }
+
+  .poster-lucky .rays {
+    background: conic-gradient(from 0deg, transparent, var(--lucky-gold-1), transparent, var(--lucky-gold-2), transparent, var(--lucky-gold-1), transparent);
+  }
+
+  .poster-hidden .rays {
+    background: conic-gradient(from 0deg, transparent, var(--hidden-violet-1), transparent, var(--hidden-violet-2), transparent, var(--hidden-violet-1), transparent);
+  }
+
+  @keyframes raysRotate {
+    from { transform: translateX(-50%) rotate(0deg); }
+    to   { transform: translateX(-50%) rotate(360deg); }
+  }
+
+  /* ─── Border Glow ─── */
+  .border-glow {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    border-radius: 20px;
+    pointer-events: none;
+  }
+
+  .poster-lucky .border-glow {
+    border: 1px solid rgba(245, 200, 66, 0.15);
+    box-shadow: inset 0 0 30px rgba(245, 200, 66, 0.05), 0 0 40px rgba(245, 200, 66, 0.08);
+  }
+
+  .poster-hidden .border-glow {
+    border: 1px solid rgba(167, 139, 250, 0.15);
+    box-shadow: inset 0 0 30px rgba(139, 92, 246, 0.05), 0 0 40px rgba(139, 92, 246, 0.08);
+  }
+
+  /* ─── Content ─── */
+  .poster-content {
+    position: relative;
+    z-index: 10;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 36px 28px 28px;
+  }
+
+  /* ── Badge ── */
+  .badge {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    border-radius: 100px;
+    margin-bottom: 20px;
+    animation: badgeFadeIn 0.6s ease-out;
+  }
+
+  .poster-lucky .badge {
+    color: var(--lucky-gold-1);
+    background: var(--lucky-gold-soft);
+    border: 1px solid rgba(245, 200, 66, 0.2);
+  }
+
+  .poster-hidden .badge {
+    color: var(--hidden-violet-1);
+    background: var(--hidden-violet-soft);
+    border: 1px solid rgba(167, 139, 250, 0.2);
+  }
+
+  @keyframes badgeFadeIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Hit Label ── */
+  .hit-label {
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    margin-bottom: 8px;
+    animation: fadeUp 0.5s ease-out 0.1s both;
+  }
+
+  .poster-lucky .hit-label { color: var(--lucky-ink); }
+  .poster-hidden .hit-label { color: var(--hidden-ink); }
+
+  /* ── Multiplier ── */
+  .multiplier {
+    font-family: var(--font-display);
+    font-size: 88px;
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    margin-bottom: 4px;
+    animation: multiplierReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+    position: relative;
+  }
+
+  .poster-lucky .multiplier {
+    background: linear-gradient(135deg, #F5C842 0%, #FFDF80 40%, #E8A920 70%, #D4A017 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 20px rgba(245, 200, 66, 0.3));
+  }
+
+  .poster-hidden .multiplier {
+    background: linear-gradient(135deg, #A78BFA 0%, #C4B5FD 40%, #8B5CF6 70%, #7C3AED 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.3));
+  }
+
+  @keyframes multiplierReveal {
+    from { opacity: 0; transform: scale(0.7) translateY(12px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  /* ── Multiplier Sub ── */
+  .multiplier-sub {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    margin-bottom: 24px;
+    animation: fadeUp 0.5s ease-out 0.35s both;
+  }
+
+  .poster-lucky .multiplier-sub { color: var(--lucky-muted); }
+  .poster-hidden .multiplier-sub { color: var(--hidden-muted); }
+
+  /* ── Divider ── */
+  .divider {
+    width: 60px;
+    height: 1px;
+    margin-bottom: 24px;
+    animation: fadeUp 0.5s ease-out 0.4s both;
+  }
+
+  .poster-lucky .divider { background: linear-gradient(90deg, transparent, var(--lucky-gold-3), transparent); }
+  .poster-hidden .divider { background: linear-gradient(90deg, transparent, var(--hidden-violet-3), transparent); }
+
+  /* ── Reward Block ── */
+  .reward-block {
+    text-align: center;
+    margin-bottom: 28px;
+    animation: fadeUp 0.5s ease-out 0.45s both;
+  }
+
+  .reward-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .poster-lucky .reward-label { color: var(--lucky-muted); }
+  .poster-hidden .reward-label { color: var(--hidden-muted); }
+
+  .reward-amount {
+    font-family: var(--font-display);
+    font-size: 36px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+
+  .poster-lucky .reward-amount { color: var(--lucky-ink); }
+  .poster-hidden .reward-amount { color: var(--hidden-ink); }
+
+  .reward-unit {
+    font-size: 18px;
+    font-weight: 400;
+    opacity: 0.6;
+    margin-left: 2px;
+  }
+
+  .user-tag {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    margin-top: 8px;
+    opacity: 0.5;
+  }
+
+  .poster-lucky .user-tag { color: var(--lucky-muted); }
+  .poster-hidden .user-tag { color: var(--hidden-muted); }
+
+  /* ── CTA Area ── */
+  .cta-area {
+    margin-top: auto;
+    text-align: center;
+    animation: fadeUp 0.5s ease-out 0.55s both;
+  }
+
+  .platform {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin-bottom: 6px;
+  }
+
+  .poster-lucky .platform { color: var(--lucky-ink); }
+  .poster-hidden .platform { color: var(--hidden-ink); }
+
+  .platform span {
+    font-weight: 300;
+    opacity: 0.5;
+    margin-left: 6px;
+  }
+
+  .cta-text {
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 300;
+    line-height: 1.5;
+    margin-bottom: 16px;
+    max-width: 260px;
+  }
+
+  .poster-lucky .cta-text { color: var(--lucky-muted); }
+  .poster-hidden .cta-text { color: var(--hidden-muted); }
+
+  .cta-btn {
+    display: inline-block;
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    padding: 10px 28px;
+    border-radius: 100px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+
+  .poster-lucky .cta-btn {
+    color: var(--lucky-bg);
+    background: linear-gradient(135deg, var(--lucky-gold-1), var(--lucky-gold-2));
+    box-shadow: 0 4px 20px rgba(245, 200, 66, 0.25);
+  }
+
+  .poster-lucky .cta-btn:hover {
+    box-shadow: 0 6px 28px rgba(245, 200, 66, 0.4);
+    transform: translateY(-1px);
+  }
+
+  .poster-hidden .cta-btn {
+    color: #fff;
+    background: linear-gradient(135deg, var(--hidden-violet-2), var(--hidden-violet-3));
+    box-shadow: 0 4px 20px rgba(139, 92, 246, 0.25);
+  }
+
+  .poster-hidden .cta-btn:hover {
+    box-shadow: 0 6px 28px rgba(139, 92, 246, 0.4);
+    transform: translateY(-1px);
+  }
+
+  /* ── Date Stamp ── */
+  .date-stamp {
+    position: absolute;
+    bottom: 12px;
+    right: 16px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    opacity: 0.25;
+    z-index: 10;
+  }
+
+  .poster-lucky .date-stamp { color: var(--lucky-muted); }
+  .poster-hidden .date-stamp { color: var(--hidden-muted); }
+
+  /* ─── Animations ─── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ─── Reduced Motion ─── */
+  @media (prefers-reduced-motion: reduce) {
+    .orb, .rays { animation: none; }
+    .badge, .hit-label, .multiplier, .multiplier-sub, .divider,
+    .reward-block, .cta-area { animation: none; opacity: 1; }
+    .poster canvas { display: none; }
+  }
+
+  /* ─── Responsive ─── */
+  @media (max-width: 420px) {
+    .poster { width: 340px; height: 560px; }
+    .multiplier { font-size: 72px; }
+    .reward-amount { font-size: 30px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- LUCKY MULTIPLIER POSTER                     -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section-label">Lucky Multiplier — Share Poster</div>
+
+<div class="poster poster-lucky" id="luckyPoster">
+  <div class="poster-bg"></div>
+  <div class="orb"></div>
+  <div class="rays"></div>
+  <canvas id="luckyCanvas"></canvas>
+  <div class="grain"></div>
+  <div class="border-glow"></div>
+
+  <div class="poster-content">
+    <div class="badge">🍀 Lucky Multiplier</div>
+    <div class="hit-label">You hit the Lucky Range!</div>
+    <div class="multiplier">188x</div>
+    <div class="multiplier-sub">within 150x ~ 250x</div>
+    <div class="divider"></div>
+    <div class="reward-block">
+      <div class="reward-label">Reward</div>
+      <div class="reward-amount">20<span class="reward-unit">USDT</span></div>
+      <div class="user-tag">◆ user_***8K2F</div>
+    </div>
+    <div class="cta-area">
+      <div class="platform">DeTrade <span>TapTrading</span></div>
+      <div class="cta-text">Hit lucky multipliers, win up to 20 USDT daily</div>
+      <a class="cta-btn" href="#">Play Now →</a>
+    </div>
+  </div>
+  <div class="date-stamp">2026-07-31</div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- HIDDEN MULTIPLIER POSTER                    -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="section-label">Hidden Multiplier — Share Poster</div>
+
+<div class="poster poster-hidden" id="hiddenPoster">
+  <div class="poster-bg"></div>
+  <div class="orb"></div>
+  <div class="rays"></div>
+  <canvas id="hiddenCanvas"></canvas>
+  <div class="grain"></div>
+  <div class="border-glow"></div>
+
+  <div class="poster-content">
+    <div class="badge">🔮 Hidden Multiplier</div>
+    <div class="hit-label">You discovered the Secret!</div>
+    <div class="multiplier">347x</div>
+    <div class="multiplier-sub">Top 5 winners worldwide</div>
+    <div class="divider"></div>
+    <div class="reward-block">
+      <div class="reward-label">Reward</div>
+      <div class="reward-amount">100<span class="reward-unit">USDT</span></div>
+      <div class="user-tag">◆ user_***8K2F</div>
+    </div>
+    <div class="cta-area">
+      <div class="platform">DeTrade <span>TapTrading</span></div>
+      <div class="cta-text">Find the hidden multiplier before anyone else</div>
+      <a class="cta-btn" href="#">Play Now →</a>
+    </div>
+  </div>
+  <div class="date-stamp">2026-07-31</div>
+</div>
+
+<script>
+  /* ─── Particle System ─── */
+  function initParticles(canvasId, colors, count) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    let w, h;
+
+    function resize() {
+      const rect = canvas.getBoundingClientRect();
+      w = rect.width;
+      h = rect.height;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      ctx.scale(dpr, dpr);
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    const particles = [];
+    for (let i = 0; i < count; i++) {
+      particles.push({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        r: Math.random() * 2 + 0.5,
+        vy: -(Math.random() * 0.4 + 0.1),
+        vx: (Math.random() - 0.5) * 0.15,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        alpha: Math.random() * 0.5 + 0.15,
+        phase: Math.random() * Math.PI * 2
+      });
+    }
+
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let frame = 0;
+
+    function draw() {
+      frame++;
+      ctx.clearRect(0, 0, w, h);
+
+      for (const p of particles) {
+        p.y += p.vy;
+        p.x += p.vx + Math.sin(frame * 0.01 + p.phase) * 0.08;
+
+        if (p.y < -10) { p.y = h + 10; p.x = Math.random() * w; }
+        if (p.x < -10) p.x = w + 10;
+        if (p.x > w + 10) p.x = -10;
+
+        const flicker = 0.7 + 0.3 * Math.sin(frame * 0.03 + p.phase);
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.alpha * flicker;
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+
+      if (!reduce) requestAnimationFrame(draw);
+    }
+    draw();
+  }
+
+  /* ── Init ── */
+  initParticles('luckyCanvas', ['#F5C842', '#FFDF80', '#D4A017', '#FFF5D4'], 45);
+  initParticles('hiddenCanvas', ['#A78BFA', '#C4B5FD', '#7C3AED', '#EDE9FE'], 40);
+</script>
+
+</body>
+</html>

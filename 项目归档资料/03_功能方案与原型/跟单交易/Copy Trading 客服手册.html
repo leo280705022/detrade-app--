@@ -110,20 +110,20 @@ td:first-child{font-weight:500;color:#1e293b}
 </table>
 
 <div class="callout callout-info">
-<strong>客服要点：</strong>任何注册用户都可以成为交易员或跟单员，无需特殊资质。交易员申请不需要交易记录门槛。
+<strong>客服要点：</strong>任何注册用户都可以成为跟单员。但成为交易员需要<strong>在该玩法下已有交易数据</strong>，没有交易数据的用户无法申请成为交易员。四种玩法的交易员身份完全独立，需要在每个玩法下分别满足交易数据要求后分别申请。
 </div>
 
 <h3>1.3 四种交易玩法</h3>
 <table>
 <tr><th>玩法</th><th>类型</th><th>分润范围</th><th>默认分润</th><th>杠杆</th><th>止损</th></tr>
-<tr><td><span class="tag tag-blue">Futures</span></td><td>合约交易</td><td>1% — 15%</td><td>5%</td><td>支持</td><td>支持（按单笔订单）</td></tr>
+<tr><td><span class="tag tag-blue">Futures</span></td><td>合约交易</td><td>1% — 15%</td><td>5%</td><td>支持</td><td><strong>暂不支持</strong>（跟单员设置）</td></tr>
 <tr><td><span class="tag tag-orange">Spread</span></td><td>价差预测</td><td>1% — 5%</td><td>2.5%</td><td>不支持</td><td>支持（按总跟单金额）</td></tr>
 <tr><td><span class="tag tag-orange">High Low</span></td><td>高低预测</td><td>1% — 5%</td><td>2.5%</td><td>不支持</td><td>支持（按总跟单金额）</td></tr>
 <tr><td><span class="tag tag-orange">Up Down</span></td><td>涨跌预测</td><td>1% — 5%</td><td>2.5%</td><td>不支持</td><td>支持（按总跟单金额）</td></tr>
 </table>
 
 <div class="callout callout-warn">
-<strong>重要：</strong>四种玩法的交易员身份完全独立。用户在 Futures 中是交易员，不代表在 Spread 中也是。每种玩法需要分别申请。
+<strong>重要：</strong>四种玩法的交易员身份完全独立。用户在 Futures 中是交易员，不代表在 Spread 中也是。每种玩法需要分别申请，且每个玩法申请时都需要用户在该玩法下已有交易数据。
 </div>
 
 <h3>1.4 分润机制一句话解释</h3>
@@ -139,12 +139,12 @@ td:first-child{font-weight:500;color:#1e293b}
 
 <div class="faq">
 <div class="faq-q"><span class="q-icon">Q1</span>如何成为交易员？</div>
-<div class="faq-a"><span class="a-icon">A：</span>进入 Copy Trade 页面 → 选择想成为交易员的玩法（如 Spread）→ 点击 "Apply Now" → 提交申请 → 等待平台审核。审核通过后即可成为交易员。<br><strong>无需交易记录门槛</strong>，新注册用户也可以申请。</div>
+<div class="faq-a"><span class="a-icon">A：</span>进入 Copy Trade 页面 → 选择想成为交易员的玩法（如 Spread）→ 点击 "Apply Now" → 提交申请 → 等待平台审核。审核通过后即可成为交易员。<br><strong>申请条件：</strong>用户必须在所申请的玩法下<strong>已有交易数据</strong>（交易记录），没有交易数据无法申请成为交易员。四种玩法的交易员身份完全独立，需要在每个玩法下分别满足交易数据要求后分别申请。</div>
 </div>
 
 <div class="faq">
 <div class="faq-q"><span class="q-icon">Q2</span>如何跟单？</div>
-<div class="faq-a"><span class="a-icon">A：</span>进入 Copy Trade 页面 → 切换到 "Copy Trader" Tab → 浏览交易员列表 → 点击想跟随的交易员卡片上的 "Copy Trade" → 在弹窗中设置跟单参数（杠杆、金额、止损等）→ 点击 "Copy Trade" 确认。</div>
+<div class="faq-a"><span class="a-icon">A：</span>进入 Copy Trade 页面 → 切换到 "Copy Trader" Tab → 浏览交易员列表 → 点击想跟随的交易员卡片上的 "Copy Trade" → 在弹窗中设置跟单参数（杠杆、金额等；注意 Futures 暂不支持设置止损）→ 点击 "Copy Trade" 确认。</div>
 </div>
 
 <div class="faq">
@@ -157,7 +157,7 @@ td:first-child{font-weight:500;color:#1e293b}
 <div class="faq-a"><span class="a-icon">A：</span>请检查以下几点：<br>
 ① 账户余额是否充足（需 ≥ 每笔跟单金额）<br>
 ② 跟单总金额上限（Copy Amount）是否已用完<br>
-③ 是否已触发止损（Futures 按单笔订单止损，其他玩法按总跟单金额止损）<br>
+③ 是否已触发止损（Futures 暂不支持跟单员设置止损；Spread/HighLow/UpDown 按总跟单金额止损）<br>
 ④ 在 Copy Overview → Ongoing 中确认跟单状态是否正常<br>
 如以上均正常，请联系客服进一步排查。</div>
 </div>
@@ -186,10 +186,10 @@ td:first-child{font-weight:500;color:#1e293b}
 
 <div class="faq">
 <div class="faq-q"><span class="q-icon">Q9</span>止损是怎么工作的？</div>
-<div class="faq-a"><span class="a-icon">A：</span>所有玩法都支持止损，但机制不同：<br>
-<strong>Futures</strong>：按单笔订单止损。当某笔订单的亏损达到设定比例时，系统自动平掉该笔订单，其他订单不受影响。<br>
+<div class="faq-a"><span class="a-icon">A：</span>不同玩法的止损支持情况不同：<br>
+<strong>Futures</strong>：<strong>暂不支持</strong>跟单员设置止损（仓位维度和总跟单金额维度均不支持），即 Futures 跟单设置弹窗中不展示止损参数。<br>
 <strong>Spread / High Low / Up Down</strong>：按总跟单金额止损。当累计亏损达到总跟单金额的设定比例时，系统停止跟单并触发止损。<br>
-止损比例范围 0%-90%，默认 50%。设为 0% 等于不设止损。</div>
+Spread/HighLow/UpDown 的止损比例范围 0%-90%，默认 50%。设为 0% 等于不设止损。</div>
 </div>
 
 <div class="faq">
@@ -252,7 +252,7 @@ td:first-child{font-weight:500;color:#1e293b}
 <table>
 <tr><th>影响</th><th>说明</th></tr>
 <tr><td>不再接受新跟单</td><td>关闭后不会有新的跟单员加入</td></tr>
-<tr><td>已有仓位继续运行</td><td>已建立的跟单关系不会立即中断，仓位运行至自然关闭或止损触发（Futures 按单笔订单止损，其他玩法按总跟单金额止损）</td></tr>
+<tr><td>已有仓位继续运行</td><td>已建立的跟单关系不会立即中断，仓位运行至自然关闭或止损触发（Futures 暂不支持跟单员止损设置，其他玩法按总跟单金额止损）</td></tr>
 <tr><td>可以重新申请</td><td>关闭后可以重新申请成为交易员</td></tr>
 </table>
 
@@ -336,12 +336,12 @@ td:first-child{font-weight:500;color:#1e293b}
 
 <h3>7.1 引导用户开始跟单</h3>
 <div class="script">
-"您好！开始跟单很简单：\n1. 打开 Detrade → 点击顶部 'Copy Trade'\n2. 选择您感兴趣的玩法（Futures / Spread / High Low / Up Down）\n3. 浏览交易员列表，关注 30 Days PnL（盈利）、ROI（回报率）和 MDD（风险）\n4. 点击满意的交易员卡片上的 'Copy Trade'\n5. 设置跟单金额和止损比例 → 确认即可\n\n建议先用小金额试单，熟悉后再增加。"
+"您好！开始跟单很简单：\n1. 打开 Detrade → 点击顶部 'Copy Trade'\n2. 选择您感兴趣的玩法（Futures / Spread / High Low / Up Down）\n3. 浏览交易员列表，关注 30 Days PnL（盈利）、ROI（回报率）和 MDD（风险）\n4. 点击满意的交易员卡片上的 'Copy Trade'\n5. 设置跟单金额等参数（Spread/HighLow/UpDown 还可设置止损比例；Futures 暂不支持设置止损）→ 确认即可\n\n建议先用小金额试单，熟悉后再增加。"
 </div>
 
 <h3>7.2 引导用户申请交易员</h3>
 <div class="script">
-"您好！申请成为交易员：\n1. 进入 Copy Trade 页面\n2. 选择您想成为交易员的玩法\n3. 点击页面上的 'Apply Now' 按钮\n4. 提交申请后等待审核\n\n申请不需要交易记录门槛，新用户可以申请。每种玩法需要分别申请。审核通过后，其他用户就能看到您的交易数据并跟随您了。"
+"您好！申请成为交易员：\n1. 进入 Copy Trade 页面\n2. 选择您想成为交易员的玩法\n3. 点击页面上的 'Apply Now' 按钮\n4. 提交申请后等待审核\n\n注意：申请成为交易员需要您在该玩法下已有交易数据（交易记录），没有交易数据无法申请。每种玩法需要分别申请，交易数据要求也是按玩法独立计算的。审核通过后，其他用户就能看到您的交易数据并跟随您了。"
 </div>
 
 <h3>7.3 引导用户处理跟单异常</h3>

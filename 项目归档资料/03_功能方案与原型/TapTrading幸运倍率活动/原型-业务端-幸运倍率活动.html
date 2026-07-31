@@ -736,6 +736,10 @@
     0%, 100% { opacity: 0.5; transform: translate(-50%,-50%) scale(1); }
     50% { opacity: 1; transform: translate(-50%,-50%) scale(1.1); }
   }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
   @keyframes bounceIn {
     0% { transform: scale(0); opacity: 0; }
     50% { transform: scale(1.2); }
@@ -1010,7 +1014,8 @@
       </div>
       <div class="info-item">
         <span class="info-label">Hidden:</span>
-        <span class="info-value hidden-val">???</span>
+        <span class="info-value hidden-val" id="hiddenValDisplay">???</span>
+        <button class="demo-btn" onclick="toggleHiddenReveal()" style="padding:2px 6px;font-size:10px;margin-left:4px;" title="演示：切换 Hidden 公示状态">Demo</button>
       </div>
       <div class="info-item">
         <span class="info-label">Hidden Slots:</span>
@@ -1480,7 +1485,7 @@
       </div>
       <div class="ad-rule-card">
         <h4>🔮 Hidden Multiplier (Secret)</h4>
-        <p>A secret multiplier is hidden each day. Only the <strong>first 5</strong> users who hit it win <strong style="color:var(--purple);">100U Bonus</strong>. If no one hits by noon, a fallback winner is selected.</p>
+        <p>A secret multiplier is hidden each day. Only the <strong>first 5</strong> users who hit it win <strong style="color:var(--purple);">100U Bonus</strong>. The hidden multiplier will be auto-revealed at 12:00 UTC if not hit.</p>
       </div>
       <div class="ad-rule-card">
         <h4>📋 Rules</h4>
@@ -1516,7 +1521,7 @@
       <ul>
         <li>System generates a random hidden multiplier daily</li>
         <li>First 5 users to hit it win 100U Bonus</li>
-        <li>If no winner by 12:00 UTC, fallback mechanism activates</li>
+        <li>Hidden multiplier auto-revealed at 12:00 UTC if not hit</li>
         <li>Results announced on TG channel</li>
       </ul>
     </div>
@@ -1525,7 +1530,7 @@
       <ul>
         <li>KYC verification required</li>
         <li>Minimum bet: 0.1 USDT</li>
-        <li>Max 1 Lucky + 1 Hidden reward per day per user</li>
+        <li>Multiple bets on the same multiplier block: only first hit counts for Lucky and Hidden each</li>
         <li>Rewards are Bonus balance with 3x wagering requirement</li>
         <li>Multi-account or abuse will result in disqualification</li>
       </ul>
@@ -1533,8 +1538,8 @@
     <div class="rules-section">
       <h4>❓ FAQ</h4>
       <p><strong>Q: How do I know the Lucky Multiplier?</strong><br>A: It's displayed on the banner and highlighted in the multiplier grid with a gold border.</p>
-      <p style="margin-top:8px;"><strong>Q: Can I win both Lucky and Hidden on the same day?</strong><br>A: Yes! You can win up to 120U (20U + 100U) in a single day.</p>
-      <p style="margin-top:8px;"><strong>Q: What if the Hidden Multiplier is never hit?</strong><br>A: A fallback winner is selected at 12:00 UTC to ensure daily engagement.</p>
+      <p style="margin-top:8px;"><strong>Q: Can I win both Lucky and Hidden on the same day?</strong><br>A: Yes! You can win Lucky and Hidden rewards separately. No daily limit on total rewards. However, multiple bets on the same multiplier block only count once — first hit wins for each type.</p>
+      <p style="margin-top:8px;"><strong>Q: What if the Hidden Multiplier is never hit?</strong><br>A: The Hidden Multiplier value will be automatically revealed at 12:00 UTC for all to see.</p>
     </div>
   </div>
 </div>
@@ -1661,7 +1666,7 @@
       hiddenRule: 'A secret multiplier is hidden each day. Only the',
       first5: 'first 5',
       hiddenRule2: 'users who hit it win',
-      fallbackRule: 'If no one hits by noon, a fallback winner is selected.',
+      fallbackRule: 'The hidden multiplier will be auto-revealed at 12:00 UTC if not hit.',
       rulesTitle: 'Activity Rules',
       kycReq: 'KYC verification required',
       minBet: 'Minimum bet: 0.1 USDT',
@@ -1673,7 +1678,7 @@
       bothWin: 'Can I win both Lucky and Hidden on the same day?',
       bothWinAns: 'Yes! You can win up to 120U (20U + 100U) in a single day.',
       neverHit: 'What if the Hidden Multiplier is never hit?',
-      neverHitAns: 'A fallback winner is selected at 12:00 UTC to ensure daily engagement.',
+      neverHitAns: 'The Hidden Multiplier value will be automatically revealed at 12:00 UTC for all to see.',
       demoLucky: 'Demo: Lucky Win',
       demoHidden: 'Demo: Hidden Win',
       demoActivity: 'Activity Detail',
@@ -1705,7 +1710,7 @@
       hiddenRule: '每日系统隐藏一个倍率，仅',
       first5: '前5名',
       hiddenRule2: '命中者可赢取',
-      fallbackRule: '若中午前无人命中，系统将指定保底中奖者。',
+      fallbackRule: '若 12:00 UTC 前无人命中，系统将自动公示该倍率值。',
       rulesTitle: '活动规则',
       kycReq: '需完成 KYC 认证',
       minBet: '最低投注: 0.1 USDT',
@@ -1717,7 +1722,7 @@
       bothWin: '同一天可以同时中 Lucky 和 Hidden 吗？',
       bothWinAns: '可以！单日最高可赢 120U（20U + 100U）。',
       neverHit: '如果神秘倍率始终无人命中？',
-      neverHitAns: '12:00 UTC 将触发保底机制，指定一名中奖者。',
+      neverHitAns: '12:00 UTC 系统将自动公示该神秘倍率值，所有用户可见。',
       demoLucky: '演示: 幸运中奖',
       demoHidden: '演示: 神秘中奖',
       demoActivity: '活动详情',
@@ -1816,6 +1821,26 @@
     document.getElementById('roundTimer').textContent = timeStr;
     document.getElementById('roundTimer2').textContent = timeStr;
   }, 1000);
+
+  // ===== Hidden Multiplier Reveal Toggle (Demo) =====
+  let hiddenRevealed = false;
+  function toggleHiddenReveal() {
+    hiddenRevealed = !hiddenRevealed;
+    const el = document.getElementById('hiddenValDisplay');
+    if (hiddenRevealed) {
+      el.textContent = '347x';
+      el.style.color = '#a855f7';
+      el.style.textShadow = '0 0 8px rgba(168,85,247,0.5)';
+      el.style.animation = 'pulse 1.5s ease-in-out infinite';
+      el.closest('.info-item').querySelector('.info-label').textContent = 'Hidden ✨:';
+    } else {
+      el.textContent = '???';
+      el.style.color = '';
+      el.style.textShadow = '';
+      el.style.animation = '';
+      el.closest('.info-item').querySelector('.info-label').textContent = 'Hidden:';
+    }
+  }
 </script>
 </body>
 </html>
